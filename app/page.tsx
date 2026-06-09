@@ -119,7 +119,13 @@ export default function Page(){
     <h1 className="h1">{t[mod]}</h1><div className="crumb">D&I Kozijnen / {t[mod]} · {t.welcome}</div>
     {mod==='dashboard'&&<Dashboard t={t} projects={projects.length} customers={customers.length} stock={stock.length}/>}
     {mod==='kunden'&&<CustomersModule customers={customers} addCustomer={addCustomer} editCustomer={editCustomer} deleteCustomer={deleteCustomer}/>}
-    {mod==='projekte'&&<Projects projects={projects} addProject={addProject}/>}
+    {mod==='projekte'&&
+<Projects
+projects={projects}
+addProject={addProject}
+editProject={editProject}
+deleteProject={deleteProject}
+/>}
     {mod==='produktion'&&<Production/>}
     {mod==='lager'&&<Stock stock={stock} setStock={setStock}/>}
     {mod==='wareneingang'&&<Simple title="Wareneingang" text="Lieferungen erfassen, Menge erhöhen, Foto vom Lieferschein hochladen und QR/Barcode zuordnen."/>}
@@ -166,7 +172,30 @@ function CustomersModule({customers,addCustomer,editCustomer,deleteCustomer}:any
 function Dashboard({t,projects,customers,stock}:any){return <><div className="grid cards"><Stat title={t.activeProjects} value={projects}/><Stat title="Kunden" value={customers}/><Stat title={t.stock} value={stock}/><Stat title={t.users} value="12"/></div><div className="grid two"><div className="card"><h2>Project Overview</h2><div className="chart"/></div><div className="card"><h2>Tasks Status</h2><p className="statNum">54</p><p className="small">Montage, Produktion, Lager, Angebote</p><button className="primary">Create New Task</button></div></div></>}
 function Stat({title,value}:any){return <div className="card stat"><div className="statIcon"><Package size={22}/></div><div><div className="small">{title}</div><div className="statNum">{value}</div><div className="small" style={{color:'#16a34a'}}>+ 12.5%</div></div></div>}
 function DataModule({title,button,onAdd,rows,headers}:any){return <div className="card"><div className="actions" style={{justifyContent:'space-between'}}><h2>{title}</h2><button className="primary" onClick={onAdd}><Plus size={16}/> {button}</button></div><table className="table"><thead><tr>{headers.map((h:string)=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((r:any,i:number)=><tr key={i}>{r.map((c:string,j:number)=><td key={j}>{j===2?<span className="badge b-green">{c}</span>:c}</td>)}</tr>)}</tbody></table></div>}
-function Projects({projects,addProject}:any){return <div className="card"><div className="actions" style={{justifyContent:'space-between'}}><h2>Projekte</h2><button className="primary" onClick={addProject}>Projekt hinzufügen</button></div><table className="table"><thead><tr><th>Nr.</th><th>Projekt</th><th>Kunde</th><th>Status</th><th>Preis</th></tr></thead><tbody>{projects.map((p:any)=><tr key={p.nr}><td>{p.nr}</td><td>{p.name}</td><td>{p.customer}</td><td><span className="badge b-purple">{p.status}</span></td><td>{p.price}</td></tr>)}</tbody></table></div>}
+function Projects({projects,addProject,editProject,deleteProject}:any){
+ return <div className="card">
+  <div className="actions" style={{justifyContent:'space-between'}}>
+   <h2>Projekte</h2>
+   <button className="primary" onClick={addProject}>Projekt hinzufügen</button>
+  </div>
+  <table className="table">
+   <thead><tr><th>Nr.</th><th>Projekt</th><th>Kunde</th><th>Status</th><th>Preis</th><th>Aktion</th></tr></thead>
+   <tbody>
+    {projects.map((p:any)=><tr key={p.id}>
+     <td>{p.project_number || '-'}</td>
+     <td>{p.project_name || '-'}</td>
+     <td>{p.customer || '-'}</td>
+     <td><span className="badge b-purple">{p.status || 'Anfrage'}</span></td>
+     <td>{p.price || '-'}</td>
+     <td>
+      <button className="pill" onClick={()=>editProject(p)}><Pencil size={14}/> Bearbeiten</button>
+      <button className="pill" onClick={()=>deleteProject(p)}><Trash2 size={14}/> Löschen</button>
+     </td>
+    </tr>)}
+   </tbody>
+  </table>
+ </div>
+}
 function Production(){return <div className="card"><h2>Produktion</h2><p>Produktionsmodul vorbereitet.</p></div>}
 function Stock({stock,setStock}:any){return <div className="card"><h2>Vorrat / Lager</h2><table className="table"><tbody>{stock.map((s:any)=><tr key={s.item}><td>{s.item}</td><td>{s.qty}</td><td>{s.min}</td><td><span className={'badge '+(s.qty<s.min?'b-red':'b-green')}>{s.qty<s.min?'Bestellen':'OK'}</span></td></tr>)}</tbody></table></div>}
 function CalendarView(){return <div className="card"><h2>Kalender</h2><p>Kalender vorbereitet.</p></div>}
