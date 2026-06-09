@@ -65,12 +65,7 @@ export default function Page(){
    <section className="content">
     <h1 className="h1">{t[mod]}</h1><div className="crumb">D&I Kozijnen / {t[mod]} · {t.welcome}</div>
     {mod==='dashboard'&&<Dashboard t={t} projects={projects.length} customers={customers.length} stock={stock.length}/>} 
-    {mod==='kunden'&&<DataModule title={t.kunden} button="Kunde hinzufügen" onAdd={addCustomer} rows={customers.map(c=>[
-  c.company_name || '-',
-  c.phone || '-',
-  c.city || '-',
-  'Aktiv'
-])}
+    {mod==='kunden'&&<DataModule title={t.kunden} button="Kunde hinzufügen" onAdd={addCustomer} rows={customers.map(c=>[c.company_name || '-', c.phone || '-', c.city || '-', 'Aktiv'])} headers={['Kunde','Telefon','Ort','Status']}/>}
     {mod==='projekte'&&<Projects projects={projects} addProject={addProject}/>} 
     {mod==='produktion'&&<Production/>}
     {mod==='lager'&&<Stock stock={stock} setStock={setStock}/>} 
