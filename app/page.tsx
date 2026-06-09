@@ -24,16 +24,29 @@ export default function Page(){
  const [dark,setDark]=useState(false);
  const t=labels[lang];
  const [customers,setCustomers]=useState<any[]>([]);
- const [projects,setProjects]=useState([{nr:'P-10045',name:'Fensteranlage',customer:'Schmidt GmbH',status:'Produktion',price:'18.950 €'},{nr:'P-10046',name:'Schiebetür',customer:'Müller Privatkunde',status:'Montage',price:'6.750 €'}]);
+ const [projects,setProjects]=useState<any[]>([]);
  const [stock,setStock]=useState([{item:'Kunststoffprofil Anthrazit',qty:42,min:20},{item:'HR++ Glas 1200x900',qty:18,min:25},{item:'Beschläge Set',qty:75,min:30}]);
 
  async function loadCustomers(){
+  async function loadProjects(){
+  const { data, error } = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  if(error){
+    alert('Fehler beim Laden der Projekte: '+error.message);
+    return;
+  }
+
+  setProjects(data || []);
+}
   const { data, error } = await supabase.from('customers').select('*').order('created_at',{ascending:false});
   if(error){ alert('Fehler beim Laden: '+error.message); return; }
   setCustomers(data || []);
  }
 
- useEffect(()=>{ loadCustomers(); },[]);
+ useEffect(()=>{ loadCustomers(); loadProjects(); },[]);
 
  const addCustomer=async()=>{
   const company_name=prompt('Firmenname / Kundenname?');
@@ -69,7 +82,33 @@ export default function Page(){
   await loadCustomers();
  };
 
- const addProject=()=>setProjects([{nr:'P-'+Math.floor(10000+Math.random()*89999),name:'Neues Projekt',customer:'Neuer Kunde',status:'Anfrage',price:'0 €'},...projects]);
+ const addProject=async()=>{
+
+  const project_name=prompt('Projektname?');
+  if(!project_name)return;
+
+  const customer=prompt('Kunde?')||'';
+  const price=prompt('Preis?')||'';
+
+  const project_number='P-'+Math.floor(10000+Math.random()*89999);
+
+  const { error } = await supabase
+    .from('projects')
+    .insert([{
+      project_number,
+      project_name,
+      customer,
+      status:'Anfrage',
+      price
+    }]);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  await loadProjects();
+};
 
  return <div className={dark?'app darkPreview':'app'}>
   <aside className="rail"><div className="brandDot"/>{nav.slice(0,12).map(n=>{const I=n.icon;return <button key={n.id} className={'iconBtn '+(mod===n.id?'active':'')} onClick={()=>setMod(n.id)}><I size={19}/></button>})}</aside>
