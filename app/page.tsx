@@ -36,7 +36,26 @@ export default function Page(){
 }, []);
  const [projects,setProjects]=useState([{nr:'P-10045',name:'Fensteranlage',customer:'Schmidt GmbH',status:'Produktion',price:'18.950 €'},{nr:'P-10046',name:'Schiebetür',customer:'Müller Privatkunde',status:'Montage',price:'6.750 €'}]);
  const [stock,setStock]=useState([{item:'Kunststoffprofil Anthrazit',qty:42,min:20},{item:'HR++ Glas 1200x900',qty:18,min:25},{item:'Beschläge Set',qty:75,min:30}]);
- const addCustomer=()=>setCustomers([{name:'Neuer Kunde',phone:'-',city:'-',status:'Neu'},...customers]);
+ const addCustomer=async()=>{
+  const company_name=prompt('Firmenname / Kundenname?');
+  if(!company_name)return;
+
+  const phone=prompt('Telefon?')||'';
+  const city=prompt('Ort?')||'';
+  const email=prompt('E-Mail?')||'';
+
+  const { data, error } = await supabase
+    .from('customers')
+    .insert([{ company_name, phone, city, email }])
+    .select();
+
+  if(error){
+    alert('Fehler beim Speichern: '+error.message);
+    return;
+  }
+
+  setCustomers([...(data||[]),...customers]);
+};
  const addProject=()=>setProjects([{nr:'P-'+Math.floor(10000+Math.random()*89999),name:'Neues Projekt',customer:'Neuer Kunde',status:'Anfrage',price:'0 €'},...projects]);
  return <div className={dark?'app darkPreview':'app'}>
   <aside className="rail"><div className="brandDot"/>{nav.slice(0,12).map(n=>{const I=n.icon;return <button key={n.id} className={'iconBtn '+(mod===n.id?'active':'')} onClick={()=>setMod(n.id)}><I size={19}/></button>})}</aside>
