@@ -1,7 +1,7 @@
 'use client';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 import { Home, Users, FolderKanban, Factory, Truck, Package, CalendarDays, Clock, FileText, Receipt, QrCode, Camera, MessageCircle, Settings, Bell, Search, Plus, Warehouse, UserCog, Bot, Languages } from 'lucide-react';
-
+import { supabase } from '../lib/supabase';
 type Module = 'dashboard'|'kunden'|'projekte'|'produktion'|'lager'|'wareneingang'|'bestellliste'|'montage'|'kalender'|'mitarbeiter'|'zeit'|'angebote'|'rechnungen'|'qr'|'whatsapp'|'ki'|'settings';
 type Lang='de'|'nl'|'en'|'pl';
 
@@ -22,6 +22,18 @@ export default function Page(){
  const [dark,setDark]=useState(false);
  const t=labels[lang];
  const [customers,setCustomers]=useState<any[]>([]);
+ useEffect(() => {
+  async function loadCustomers() {
+    const { data } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    setCustomers(data || []);
+  }
+
+  loadCustomers();
+}, []);
  const [projects,setProjects]=useState([{nr:'P-10045',name:'Fensteranlage',customer:'Schmidt GmbH',status:'Produktion',price:'18.950 €'},{nr:'P-10046',name:'Schiebetür',customer:'Müller Privatkunde',status:'Montage',price:'6.750 €'}]);
  const [stock,setStock]=useState([{item:'Kunststoffprofil Anthrazit',qty:42,min:20},{item:'HR++ Glas 1200x900',qty:18,min:25},{item:'Beschläge Set',qty:75,min:30}]);
  const addCustomer=()=>setCustomers([{name:'Neuer Kunde',phone:'-',city:'-',status:'Neu'},...customers]);
