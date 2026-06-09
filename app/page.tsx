@@ -21,7 +21,7 @@ export default function Page(){
  const [lang,setLang]=useState<Lang>('de');
  const [dark,setDark]=useState(false);
  const t=labels[lang];
- const [customers,setCustomers]=useState([{name:'Schmidt GmbH',phone:'0711 123456',city:'Stuttgart',status:'Aktiv'},{name:'Müller Privatkunde',phone:'0172 9876543',city:'Utrecht',status:'Aktiv'}]);
+ const [customers,setCustomers]=useState<any[]>([]);
  const [projects,setProjects]=useState([{nr:'P-10045',name:'Fensteranlage',customer:'Schmidt GmbH',status:'Produktion',price:'18.950 €'},{nr:'P-10046',name:'Schiebetür',customer:'Müller Privatkunde',status:'Montage',price:'6.750 €'}]);
  const [stock,setStock]=useState([{item:'Kunststoffprofil Anthrazit',qty:42,min:20},{item:'HR++ Glas 1200x900',qty:18,min:25},{item:'Beschläge Set',qty:75,min:30}]);
  const addCustomer=()=>setCustomers([{name:'Neuer Kunde',phone:'-',city:'-',status:'Neu'},...customers]);
