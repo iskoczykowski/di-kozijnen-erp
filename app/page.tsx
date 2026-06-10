@@ -25,8 +25,20 @@ export default function Page(){
  const t=labels[lang];
  const [customers,setCustomers]=useState<any[]>([]);
  const [projects,setProjects]=useState<any[]>([]);
- const [stock,setStock]=useState([{item:'Kunststoffprofil Anthrazit',qty:42,min:20},{item:'HR++ Glas 1200x900',qty:18,min:25},{item:'Beschläge Set',qty:75,min:30}]);
+ const [stock,setStock]=useState<any[]>([]);
+ async function loadStock(){
+  const { data, error } = await supabase
+    .from('stock')
+    .select('*')
+    .order('created_at',{ascending:false});
 
+  if(error){
+    alert('Fehler beim Laden: '+error.message);
+    return;
+  }
+
+  setStock(data || []);
+}
  async function loadProjects(){
   const { data, error } = await supabase
     .from('projects')
@@ -55,7 +67,7 @@ async function loadCustomers(){
   setCustomers(data || []);
 }
 
- useEffect(()=>{ loadCustomers(); loadProjects(); },[]);
+ useEffect(()=>{ loadCustomers(); loadProjects(); loadStock(); },[]);
 
  const addCustomer=async()=>{
   const company_name=prompt('Firmenname / Kundenname?');
