@@ -27,8 +27,7 @@ export default function Page(){
  const [projects,setProjects]=useState<any[]>([]);
  const [stock,setStock]=useState([{item:'Kunststoffprofil Anthrazit',qty:42,min:20},{item:'HR++ Glas 1200x900',qty:18,min:25},{item:'Beschläge Set',qty:75,min:30}]);
 
- async function loadCustomers(){
-  async function loadProjects(){
+ async function loadProjects(){
   const { data, error } = await supabase
     .from('projects')
     .select('*')
@@ -41,10 +40,20 @@ export default function Page(){
 
   setProjects(data || []);
 }
-  const { data, error } = await supabase.from('customers').select('*').order('created_at',{ascending:false});
-  if(error){ alert('Fehler beim Laden: '+error.message); return; }
+
+async function loadCustomers(){
+  const { data, error } = await supabase
+    .from('customers')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  if(error){
+    alert('Fehler beim Laden: '+error.message);
+    return;
+  }
+
   setCustomers(data || []);
- }
+}
 
  useEffect(()=>{ loadCustomers(); loadProjects(); },[]);
 
