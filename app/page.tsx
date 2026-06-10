@@ -109,7 +109,47 @@ export default function Page(){
 
   await loadProjects();
 };
+const editProject = async (p:any) => {
+  const project_name = prompt('Projektname?', p.project_name || '');
+  if (!project_name) return;
 
+  const customer = prompt('Kunde?', p.customer || '') || '';
+  const status = prompt('Status?', p.status || 'Anfrage') || 'Anfrage';
+  const price = prompt('Preis?', p.price || '') || '';
+
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      project_name,
+      customer,
+      status,
+      price
+    })
+    .eq('id', p.id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await loadProjects();
+};
+
+const deleteProject = async (p:any) => {
+  if (!confirm('Projekt löschen?')) return;
+
+  const { error } = await supabase
+    .from('projects')
+    .delete()
+    .eq('id', p.id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await loadProjects();
+};
  return <div className={dark?'app darkPreview':'app'}>
   <aside className="rail"><div className="brandDot"/>{nav.slice(0,12).map(n=>{const I=n.icon;return <button key={n.id} className={'iconBtn '+(mod===n.id?'active':'')} onClick={()=>setMod(n.id)}><I size={19}/></button>})}</aside>
   <aside className="side"><div className="logo">D&I Kozijnen ERP</div>{nav.map(n=>{const I=n.icon;return <div key={n.id} onClick={()=>setMod(n.id)} className={'navItem '+(mod===n.id?'active':'')}><I size={18}/>{t[n.id]}</div>})}</aside>
