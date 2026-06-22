@@ -257,7 +257,70 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
   </table>
  </div>
 }
-function Production(){return <div className="card"><h2>Produktion</h2><p>Produktionsmodul vorbereitet.</p></div>}
+function Production({production,setProduction}:any){
+  return (
+    <div className="card">
+
+      <h2>Produktion</h2>
+
+      <button
+        className="primary"
+        onClick={async()=>{
+
+          const project=prompt('Projekt?');
+          if(!project)return;
+
+          const item=prompt('Artikel?');
+          if(!item)return;
+
+          const qty=Number(prompt('Menge?')||0);
+          if(!qty)return;
+
+          const {error}=await supabase
+            .from('production')
+            .insert([{project,item,qty,status:'Offen'}]);
+
+          if(error){
+            alert(error.message);
+            return;
+          }
+
+          const {data}=await supabase
+            .from('production')
+            .select('*');
+
+          setProduction(data||[]);
+        }}
+      >
+        Produktionsauftrag anlegen
+      </button>
+
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Projekt</th>
+            <th>Artikel</th>
+            <th>Menge</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {production.map((p:any)=>
+            <tr key={p.id}>
+              <td>{p.project}</td>
+              <td>{p.item}</td>
+              <td>{p.qty}</td>
+              <td>{p.status}</td>
+            </tr>
+          )}
+        </tbody>
+
+      </table>
+
+    </div>
+  )
+}
 function Stock({stock,setStock}:any){
   return (
     <div className="card">
