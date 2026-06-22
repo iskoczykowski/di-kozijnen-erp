@@ -259,7 +259,7 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
 }
 function Production(){return <div className="card"><h2>Produktion</h2><p>Produktionsmodul vorbereitet.</p></div>}
 function Stock({stock,setStock}:any){return <div className="card"><h2>Vorrat / Lager</h2><table className="table"><tbody>{stock.map((s:any)=><tr key={s.item}><td>{s.item}</td><td>{s.qty}</td><td>{s.min}</td><td><span className={'badge '+(s.qty<s.min?'b-red':'b-green')}>{s.qty<s.min?'Bestellen':'OK'}</span></td></tr>)}</tbody></table></div>}
-function IncomingGoods(stock:any,setStock:any){
+function IncomingGoods({stock,setStock}:any){
   return (
     <div className="card">
       <h2>Wareneingang</h2>
