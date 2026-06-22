@@ -83,7 +83,7 @@ async function loadCustomers(){
   setCustomers(data || []);
 }
 
- useEffect(()=>{ loadCustomers(); loadProjects(); loadStock(); },[]);
+ useEffect(()=>{ loadCustomers(); loadProjects(); loadStock(); loadProduction(); },[]);
 
  const addCustomer=async()=>{
   const company_name=prompt('Firmenname / Kundenname?');
