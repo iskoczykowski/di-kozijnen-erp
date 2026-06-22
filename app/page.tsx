@@ -313,10 +313,10 @@ function Production({production,setProduction}:any){
       <button
         className="primary"
         onClick={async()=>{
-          const project=prompt('Projekt?');
+          const project=prompt('Kundenname?');
           if(!project)return;
 
-          const item=prompt('Artikel?');
+          const item=prompt('Kundennummer?');
           if(!item)return;
 
           const qty=Number(prompt('Menge?')||0);
@@ -327,7 +327,7 @@ function Production({production,setProduction}:any){
 
           const {error}=await supabase
             .from('production')
-            .insert([{project,item,qty,status:'Offen',notes,drawing_url}]);
+            .insert([{project,item,qty,status:'Noch nicht begonnen',notes,drawing_url}]);
 
           if(error){ alert(error.message); return; }
           await reloadProduction();
@@ -339,13 +339,12 @@ function Production({production,setProduction}:any){
       <table className="table">
         <thead>
           <tr>
-            <th>Projekt</th>
-            <th>Artikel</th>
+            <th>Kundenname</th>
+            <th>Kundennummer</th>
             <th>Menge</th>
             <th>Status</th>
             <th>Zeichnung</th>
             <th>Notizen</th>
-            <th>Aktion</th>
           </tr>
         </thead>
 
@@ -362,24 +361,19 @@ function Production({production,setProduction}:any){
                   onChange={(e)=>updateStatus(p,e.target.value)}
                 >
                   <option>Noch nicht begonnen</option>
-<option>In Bearbeitung</option>
-<option>Fertig</option>
+                  <option>In Bearbeitung</option>
+                  <option>Fertig</option>
                 </select>
               </td>
 
               <td>
-               <button className="pill" onClick={()=>updateInfo(p)}>
-  Zeichnung / Foto
-</button>
+                <button className="pill" onClick={()=>updateInfo(p)}>
+                  Zeichnung / Foto
+                </button>
+                {p.drawing_url ? <a href={p.drawing_url} target="_blank"> Öffnen</a> : null}
               </td>
 
               <td>{p.notes || '-'}</td>
-
-              <td>
-                <button className="pill" onClick={()=>updateInfo(p)}>
-                  Bearbeiten
-                </button>
-              </td>
             </tr>
           ))}
         </tbody>
