@@ -40,6 +40,21 @@ export default function Page(){
 
   setStock(data || []);
 }
+ async function loadProduction(){
+
+  const { data, error } = await supabase
+    .from('production')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  if(error){
+    alert('Fehler beim Laden: '+error.message);
+    return;
+  }
+
+  setProduction(data || []);
+
+}
  async function loadProjects(){
   const { data, error } = await supabase
     .from('projects')
