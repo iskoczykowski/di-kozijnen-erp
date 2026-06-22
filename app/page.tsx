@@ -271,6 +271,7 @@ function Stock({stock,setStock}:any){
             <th>Min</th>
             <th>Lagerplatz</th>
             <th>Status</th>
+            <th>Aktion</th>
           </tr>
         </thead>
 
@@ -281,15 +282,37 @@ function Stock({stock,setStock}:any){
               <td>{s.qty}</td>
               <td>{s.min}</td>
               <td>{s.location || '-'}</td>
+
               <td>
                 <span className={s.qty > s.min ? "badge b-green" : "badge b-red"}>
                   {s.qty > s.min ? "OK" : "Niedrig"}
                 </span>
               </td>
+
+              <td>
+                <button
+                  className="pill"
+                  onClick={()=>{
+                    const item=prompt('Artikel',s.item)||s.item;
+                    const qty=Number(prompt('Menge',String(s.qty)))||s.qty;
+                    const min=Number(prompt('Mindestbestand',String(s.min)))||s.min;
+                    const location=prompt('Lagerplatz',s.location||'')||'';
+
+                    setStock((old:any[])=>
+                      old.map((x:any)=>
+                        x.item===s.item
+                          ? {...x,item,qty,min,location}
+                          : x
+                      )
+                    );
+                  }}
+                >
+                  Bearbeiten
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
-
       </table>
     </div>
   )
