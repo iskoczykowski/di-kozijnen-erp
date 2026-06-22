@@ -387,6 +387,11 @@ function Production({production,setProduction}:any){
                   <option>In Bearbeitung</option>
                   <option>Fertig</option>
                 </select>
+               <div style={{marginTop:'5px'}}>
+  {p.status === 'Noch nicht begonnen' && '🔴'}
+  {p.status === 'In Bearbeitung' && '🟡'}
+  {p.status === 'Fertig' && '🟢'}
+</div>
                <span className={
   p.status==='Fertig'
     ? 'badge b-green'
