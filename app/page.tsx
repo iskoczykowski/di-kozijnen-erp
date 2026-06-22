@@ -387,6 +387,15 @@ function Production({production,setProduction}:any){
                   <option>In Bearbeitung</option>
                   <option>Fertig</option>
                 </select>
+               <span className={
+  p.status==='Fertig'
+    ? 'badge b-green'
+    : p.status==='In Bearbeitung'
+      ? 'badge b-purple'
+      : 'badge b-red'
+}>
+  {p.status}
+</span>
               </td>
 
               <td>
