@@ -26,6 +26,7 @@ export default function Page(){
  const [customers,setCustomers]=useState<any[]>([]);
  const [projects,setProjects]=useState<any[]>([]);
  const [stock,setStock]=useState<any[]>([]);
+ const [production,setProduction]=useState<any[]>([]);
  async function loadStock(){
   const { data, error } = await supabase
     .from('stock')
