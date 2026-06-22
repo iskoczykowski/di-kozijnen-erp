@@ -301,6 +301,5 @@ function IncomingGoods({stock,setStock}:any){
     </div>
   )
 }
-}
 function CalendarView(){return <div className="card"><h2>Kalender</h2><p>Kalender vorbereitet.</p></div>}
 function Simple({title,text}:any){return <div className="card"><h2>{title}</h2><p>{text}</p><button className="primary">Speichern</button></div>}
