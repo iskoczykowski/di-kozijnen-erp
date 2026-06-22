@@ -258,7 +258,42 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
  </div>
 }
 function Production(){return <div className="card"><h2>Produktion</h2><p>Produktionsmodul vorbereitet.</p></div>}
-function Stock({stock,setStock}:any){return <div className="card"><h2>Vorrat / Lager</h2><table className="table"><tbody>{stock.map((s:any)=><tr key={s.item}><td>{s.item}</td><td>{s.qty}</td><td>{s.min}</td><td><span className={'badge '+(s.qty<s.min?'b-red':'b-green')}>{s.qty<s.min?'Bestellen':'OK'}</span></td></tr>)}</tbody></table></div>}
+function Stock({stock,setStock}:any){
+  return (
+    <div className="card">
+      <h2>Vorrat / Lager</h2>
+
+      <table className="table">
+        <thead>
+          <tr>
+            <th>Artikel</th>
+            <th>Menge</th>
+            <th>Min</th>
+            <th>Lagerplatz</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {stock.map((s:any)=>(
+            <tr key={s.item}>
+              <td>{s.item}</td>
+              <td>{s.qty}</td>
+              <td>{s.min}</td>
+              <td>{s.location || '-'}</td>
+              <td>
+                <span className={s.qty > s.min ? "badge b-green" : "badge b-red"}>
+                  {s.qty > s.min ? "OK" : "Niedrig"}
+                </span>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+
+      </table>
+    </div>
+  )
+}
 function IncomingGoods({stock,setStock}:any){
   const receive=async()=>{
     const item=prompt('Artikel?');
