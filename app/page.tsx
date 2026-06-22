@@ -293,13 +293,37 @@ function Production({production,setProduction}:any){
     await reloadProduction();
   };
 
-  const updateInfo=async(p:any)=>{
-    const drawing_url=prompt('Zeichnung / Foto Link?',p.drawing_url||'')||'';
+  const uploadFile=async(p:any,file:any)=>{
+    if(!file)return;
+
+    const fileName=`${p.id}-${Date.now()}-${file.name}`;
+
+    const {error}=await supabase.storage
+      .from('production-files')
+      .upload(fileName,file);
+
+    if(error){ alert(error.message); return; }
+
+    const {data}=supabase.storage
+      .from('production-files')
+      .getPublicUrl(fileName);
+
+    const {error:updateError}=await supabase
+      .from('production')
+      .update({drawing_url:data.publicUrl})
+      .eq('id',p.id);
+
+    if(updateError){ alert(updateError.message); return; }
+
+    await reloadProduction();
+  };
+
+  const updateNotes=async(p:any)=>{
     const notes=prompt('Notizen?',p.notes||'')||'';
 
     const {error}=await supabase
       .from('production')
-      .update({drawing_url,notes})
+      .update({notes})
       .eq('id',p.id);
 
     if(error){ alert(error.message); return; }
@@ -323,11 +347,10 @@ function Production({production,setProduction}:any){
           if(!qty)return;
 
           const notes=prompt('Notizen?')||'';
-          const drawing_url=prompt('Zeichnung / Foto Link?')||'';
 
           const {error}=await supabase
             .from('production')
-            .insert([{project,item,qty,status:'Noch nicht begonnen',notes,drawing_url}]);
+            .insert([{project,item,qty,status:'Noch nicht begonnen',notes,drawing_url:''}]);
 
           if(error){ alert(error.message); return; }
           await reloadProduction();
@@ -343,7 +366,7 @@ function Production({production,setProduction}:any){
             <th>Kundennummer</th>
             <th>Menge</th>
             <th>Status</th>
-            <th>Zeichnung</th>
+            <th>Zeichnung / Foto</th>
             <th>Notizen</th>
           </tr>
         </thead>
@@ -367,13 +390,25 @@ function Production({production,setProduction}:any){
               </td>
 
               <td>
-                <button className="pill" onClick={()=>updateInfo(p)}>
-                  Zeichnung / Foto
-                </button>
-                {p.drawing_url ? <a href={p.drawing_url} target="_blank"> Öffnen</a> : null}
+                <input
+                  type="file"
+                  onChange={(e)=>uploadFile(p,e.target.files?.[0])}
+                />
+                {p.drawing_url ? (
+                  <a href={p.drawing_url} target="_blank">
+                    Öffnen
+                  </a>
+                ) : (
+                  <span> Keine Datei</span>
+                )}
               </td>
 
-              <td>{p.notes || '-'}</td>
+              <td>
+                {p.notes || '-'}
+                <button className="pill" onClick={()=>updateNotes(p)}>
+                  Notizen
+                </button>
+              </td>
             </tr>
           ))}
         </tbody>
