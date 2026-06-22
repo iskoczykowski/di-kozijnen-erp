@@ -266,7 +266,7 @@ function IncomingGoods({stock,setStock}:any){
 
     const qty=Number(prompt('Menge?')||0);
     if(!qty)return;
-
+    const location=prompt('Lagerplatz?')||'';
     const existing=stock.find((s:any)=>s.item===item);
 
     if(existing){
@@ -274,14 +274,14 @@ function IncomingGoods({stock,setStock}:any){
 
       const { error } = await supabase
         .from('stock')
-        .update({qty:newQty})
+        .update({qty:newQty,location})
         .eq('id',existing.id);
 
       if(error){ alert(error.message); return; }
     }else{
       const { error } = await supabase
         .from('stock')
-        .insert([{item,qty,min:0}]);
+        .insert([{item,qty,min:0,location}]);
 
       if(error){ alert(error.message); return; }
     }
