@@ -189,7 +189,7 @@ deleteProject={deleteProject}
 />}
     {mod==='produktion'&&<Production/>}
     {mod==='lager'&&<Stock stock={stock} setStock={setStock}/>}
-    {mod==='wareneingang'&&<Simple title="Wareneingang" text="Lieferungen erfassen, Menge erhöhen, Foto vom Lieferschein hochladen und QR/Barcode zuordnen."/>}
+    {mod==='wareneingang'&&<IncomingGoods stock={stock} setStock={setStock}/>}
     {mod==='bestellliste'&&<Simple title="Bestellliste" text="Automatische Liste für Artikel unter Mindestbestand, Lieferanten und Status der Bestellung."/>}
     {mod==='montage'&&<Simple title="Montage" text="Teams planen, Adresse öffnen, Checklisten abhaken, Fotos vorher/nachher und digitale Unterschrift speichern."/>}
     {mod==='kalender'&&<CalendarView/>}
@@ -259,5 +259,32 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
 }
 function Production(){return <div className="card"><h2>Produktion</h2><p>Produktionsmodul vorbereitet.</p></div>}
 function Stock({stock,setStock}:any){return <div className="card"><h2>Vorrat / Lager</h2><table className="table"><tbody>{stock.map((s:any)=><tr key={s.item}><td>{s.item}</td><td>{s.qty}</td><td>{s.min}</td><td><span className={'badge '+(s.qty<s.min?'b-red':'b-green')}>{s.qty<s.min?'Bestellen':'OK'}</span></td></tr>)}</tbody></table></div>}
+function IncomingGoods(stock:any,setStock:any){
+  return (
+    <div className="card">
+      <h2>Wareneingang</h2>
+
+      <button
+        className="primary"
+        onClick={()=>{
+          const item=prompt('Artikel?');
+          if(!item)return;
+
+          const qty=Number(prompt('Menge?')||0);
+
+          setStock((old:any[]) =>
+            old.map((s:any)=>
+              s.item===item
+                ? {...s,qty:s.qty+qty}
+                : s
+            )
+          );
+        }}
+      >
+        Lieferung erfassen
+      </button>
+    </div>
+  )
+}
 function CalendarView(){return <div className="card"><h2>Kalender</h2><p>Kalender vorbereitet.</p></div>}
 function Simple({title,text}:any){return <div className="card"><h2>{title}</h2><p>{text}</p><button className="primary">Speichern</button></div>}
