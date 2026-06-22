@@ -358,20 +358,19 @@ function Production({production,setProduction}:any){
 
               <td>
                 <select
-                  value={p.status||'Offen'}
+                  value={p.status||'Noch nicht begonnen'}
                   onChange={(e)=>updateStatus(p,e.target.value)}
                 >
-                  <option>Offen</option>
-                  <option>In Produktion</option>
-                  <option>Warten auf Material</option>
-                  <option>Fertig</option>
+                  <option>Noch nicht begonnen</option>
+<option>In Bearbeitung</option>
+<option>Fertig</option>
                 </select>
               </td>
 
               <td>
-                {p.drawing_url
-                  ? <a href={p.drawing_url} target="_blank">Öffnen</a>
-                  : '-'}
+               <button className="pill" onClick={()=>updateInfo(p)}>
+  Zeichnung / Foto
+</button>
               </td>
 
               <td>{p.notes || '-'}</td>
