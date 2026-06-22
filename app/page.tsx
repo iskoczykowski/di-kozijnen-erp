@@ -273,7 +273,7 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
   </table>
  </div>
 }
-function Production({production,setProduction}:any){
+function Production({production,setProduction,lang}:any){
   const reloadProduction=async()=>{
     const {data}=await supabase
       .from('production')
@@ -356,18 +356,22 @@ function Production({production,setProduction}:any){
           await reloadProduction();
         }}
       >
-        Produktionsauftrag anlegen
-      </button>
+        {lang==='nl'
+ ? 'Productieopdracht aanmaken'
+ : 'Produktionsauftrag anlegen'}
+</button>
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>Kundenname</th>
-            <th>Kundennummer</th>
-            <th>Menge</th>
-            <th>Status</th>
-            <th>Zeichnung / Foto</th>
-            <th>Notizen</th>
+<table className="table">
+<thead>
+<tr>
+<th>{lang==='nl' ? 'Klantnaam' : 'Kundenname'}</th>
+<th>{lang==='nl' ? 'Klantnummer' : 'Kundennummer'}</th>
+<th>{lang==='nl' ? 'Aantal' : 'Menge'}</th>
+<th>{lang==='nl' ? 'Status' : 'Status'}</th>
+<th>{lang==='nl' ? 'Tekening / Foto' : 'Zeichnung / Foto'}</th>
+<th>{lang==='nl' ? 'Notities' : 'Notizen'}</th>
+</tr>
+</thead>
           </tr>
         </thead>
 
