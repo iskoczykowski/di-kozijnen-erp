@@ -274,15 +274,45 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
  </div>
 }
 function Production({production,setProduction}:any){
+  const reloadProduction=async()=>{
+    const {data}=await supabase
+      .from('production')
+      .select('*')
+      .order('created_at',{ascending:false});
+
+    setProduction(data||[]);
+  };
+
+  const updateStatus=async(p:any,status:string)=>{
+    const {error}=await supabase
+      .from('production')
+      .update({status})
+      .eq('id',p.id);
+
+    if(error){ alert(error.message); return; }
+    await reloadProduction();
+  };
+
+  const updateInfo=async(p:any)=>{
+    const drawing_url=prompt('Zeichnung / Foto Link?',p.drawing_url||'')||'';
+    const notes=prompt('Notizen?',p.notes||'')||'';
+
+    const {error}=await supabase
+      .from('production')
+      .update({drawing_url,notes})
+      .eq('id',p.id);
+
+    if(error){ alert(error.message); return; }
+    await reloadProduction();
+  };
+
   return (
     <div className="card">
-
       <h2>Produktion</h2>
 
       <button
         className="primary"
         onClick={async()=>{
-
           const project=prompt('Projekt?');
           if(!project)return;
 
@@ -292,20 +322,15 @@ function Production({production,setProduction}:any){
           const qty=Number(prompt('Menge?')||0);
           if(!qty)return;
 
+          const notes=prompt('Notizen?')||'';
+          const drawing_url=prompt('Zeichnung / Foto Link?')||'';
+
           const {error}=await supabase
             .from('production')
-            .insert([{project,item,qty,status:'Offen'}]);
+            .insert([{project,item,qty,status:'Offen',notes,drawing_url}]);
 
-          if(error){
-            alert(error.message);
-            return;
-          }
-
-          const {data}=await supabase
-            .from('production')
-            .select('*');
-
-          setProduction(data||[]);
+          if(error){ alert(error.message); return; }
+          await reloadProduction();
         }}
       >
         Produktionsauftrag anlegen
@@ -318,22 +343,48 @@ function Production({production,setProduction}:any){
             <th>Artikel</th>
             <th>Menge</th>
             <th>Status</th>
+            <th>Zeichnung</th>
+            <th>Notizen</th>
+            <th>Aktion</th>
           </tr>
         </thead>
 
         <tbody>
-          {production.map((p:any)=>
+          {production.map((p:any)=>(
             <tr key={p.id}>
               <td>{p.project}</td>
               <td>{p.item}</td>
               <td>{p.qty}</td>
-              <td>{p.status}</td>
+
+              <td>
+                <select
+                  value={p.status||'Offen'}
+                  onChange={(e)=>updateStatus(p,e.target.value)}
+                >
+                  <option>Offen</option>
+                  <option>In Produktion</option>
+                  <option>Warten auf Material</option>
+                  <option>Fertig</option>
+                </select>
+              </td>
+
+              <td>
+                {p.drawing_url
+                  ? <a href={p.drawing_url} target="_blank">Öffnen</a>
+                  : '-'}
+              </td>
+
+              <td>{p.notes || '-'}</td>
+
+              <td>
+                <button className="pill" onClick={()=>updateInfo(p)}>
+                  Bearbeiten
+                </button>
+              </td>
             </tr>
-          )}
+          ))}
         </tbody>
-
       </table>
-
     </div>
   )
 }
