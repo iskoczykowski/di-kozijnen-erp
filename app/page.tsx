@@ -260,31 +260,47 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
 function Production(){return <div className="card"><h2>Produktion</h2><p>Produktionsmodul vorbereitet.</p></div>}
 function Stock({stock,setStock}:any){return <div className="card"><h2>Vorrat / Lager</h2><table className="table"><tbody>{stock.map((s:any)=><tr key={s.item}><td>{s.item}</td><td>{s.qty}</td><td>{s.min}</td><td><span className={'badge '+(s.qty<s.min?'b-red':'b-green')}>{s.qty<s.min?'Bestellen':'OK'}</span></td></tr>)}</tbody></table></div>}
 function IncomingGoods({stock,setStock}:any){
+  const receive=async()=>{
+    const item=prompt('Artikel?');
+    if(!item)return;
+
+    const qty=Number(prompt('Menge?')||0);
+    if(!qty)return;
+
+    const existing=stock.find((s:any)=>s.item===item);
+
+    if(existing){
+      const newQty=(existing.qty||0)+qty;
+
+      const { error } = await supabase
+        .from('stock')
+        .update({qty:newQty})
+        .eq('id',existing.id);
+
+      if(error){ alert(error.message); return; }
+    }else{
+      const { error } = await supabase
+        .from('stock')
+        .insert([{item,qty,min:0}]);
+
+      if(error){ alert(error.message); return; }
+    }
+
+    const { data } = await supabase
+      .from('stock')
+      .select('*')
+      .order('created_at',{ascending:false});
+
+    setStock(data || []);
+  };
+
   return (
     <div className="card">
       <h2>Wareneingang</h2>
-
-      <button
-        className="primary"
-        onClick={()=>{
-          const item=prompt('Artikel?');
-          if(!item)return;
-
-          const qty=Number(prompt('Menge?')||0);
-
-          setStock((old:any[]) =>
-            old.map((s:any)=>
-              s.item===item
-                ? {...s,qty:s.qty+qty}
-                : s
-            )
-          );
-        }}
-      >
-        Lieferung erfassen
-      </button>
+      <button className="primary" onClick={receive}>Lieferung erfassen</button>
     </div>
   )
+}
 }
 function CalendarView(){return <div className="card"><h2>Kalender</h2><p>Kalender vorbereitet.</p></div>}
 function Simple({title,text}:any){return <div className="card"><h2>{title}</h2><p>{text}</p><button className="primary">Speichern</button></div>}
