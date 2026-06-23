@@ -315,3 +315,74 @@ const event:any={display:'flex',justifyContent:'space-between',padding:'12px 0',
 const primary:any={padding:'12px 18px',border:0,borderRadius:14,background:'#2563eb',color:'#fff'};
 const th:any={textAlign:'left',padding:12,borderBottom:'1px solid #ddd'};
 const td:any={padding:12,borderBottom:'1px solid #eee'};
+// Projekte
+const [projects,setProjects]=useState<any[]>([]);
+
+const reloadProjects = async ()=>{
+  const {data} = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  setProjects(data || []);
+};
+
+useEffect(()=>{
+  reloadProjects();
+},[]);
+async function addProject(){
+
+  const project_number = prompt(
+    lang==='de'
+      ? 'Projektnummer'
+      : 'Projectnummer'
+  );
+
+  if(!project_number) return;
+
+  const project_name = prompt(
+    lang==='de'
+      ? 'Projektname'
+      : 'Projectnaam'
+  );
+
+  if(!project_name) return;
+
+  const customer = prompt(
+    lang==='de'
+      ? 'Kunde'
+      : 'Klant'
+  );
+
+  const price = prompt(
+    lang==='de'
+      ? 'Preis'
+      : 'Prijs'
+  );
+
+  await supabase.from('projects').insert({
+    project_number,
+    project_name,
+    customer,
+    status: lang==='de' ? 'Anfrage' : 'Aanvraag',
+    price,
+    notes:''
+  });
+
+  reloadProjects();
+}
+async function deleteProject(id:any){
+
+  if(!confirm(
+    lang==='de'
+      ? 'Projekt löschen?'
+      : 'Project verwijderen?'
+  )) return;
+
+  await supabase
+    .from('projects')
+    .delete()
+    .eq('id',id);
+
+  reloadProjects();
+}
