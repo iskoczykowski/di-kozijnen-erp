@@ -267,9 +267,34 @@ export default function Page() {
           </section>
         )}
         {module === 'production' && (
-  <div>
-    <h2>🏭 Produktion</h2>
-  </div>
+<section style={card}>
+<h2>🏭 {t.production}</h2>
+
+<table style={table}>
+<thead>
+<tr>
+<th style={th}>{t.project}</th>
+<th style={th}>{t.item}</th>
+<th style={th}>{t.qty}</th>
+<th style={th}>{t.status}</th>
+<th style={th}>{t.notes}</th>
+</tr>
+</thead>
+
+<tbody>
+{production.map((p:any)=>(
+<tr key={p.id}>
+<td style={td}>{p.project}</td>
+<td style={td}>{p.item}</td>
+<td style={td}>{p.qty}</td>
+<td style={td}>{p.status}</td>
+<td style={td}>{p.notes}</td>
+</tr>
+))}
+</tbody>
+
+</table>
+</section>
 )}
 
 {module === 'stock' && (
