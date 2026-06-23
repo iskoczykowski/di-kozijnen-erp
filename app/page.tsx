@@ -275,84 +275,92 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
 }
 
   function Production({production,setProduction,lang,customers,projects}:any){
-  const reloadProduction=async()=>{
-    const {data}=await supabase
-      .from('production')
-      .select('*')
-      .order('created_at',{ascending:false});
+  const [kundeId,setKundeId]=useState('');
+  const [projektId,setProjektId]=useState('');
+  const [qty,setQty]=useState(1);
+  const [notes,setNotes]=useState('');
 
+  const reloadProduction=async()=>{
+    const {data}=await supabase.from('production').select('*').order('created_at',{ascending:false});
     setProduction(data||[]);
   };
 
+  const selectedCustomer=customers.find((c:any)=>String(c.id)===kundeId);
+  const selectedProject=projects.find((p:any)=>String(p.id)===projektId);
+
+  const addProduction=async()=>{
+    if(!selectedCustomer){alert('Bitte Kunde auswählen');return;}
+    if(!selectedProject){alert('Bitte Projekt auswählen');return;}
+
+    const {error}=await supabase.from('production').insert([{
+      customer_id:selectedCustomer.id,
+      project_id:selectedProject.id,
+      project:selectedCustomer.company_name || selectedCustomer.name || selectedCustomer.customer || '',
+      item:selectedCustomer.phone || selectedCustomer.number || String(selectedCustomer.id),
+      project_name:selectedProject.project_name || selectedProject.name || selectedProject.project || '',
+      qty:Number(qty)||1,
+      status:'Noch nicht begonnen',
+      notes,
+      drawing_url:''
+    }]);
+
+    if(error){alert(error.message);return;}
+
+    setKundeId('');
+    setProjektId('');
+    setQty(1);
+    setNotes('');
+    await reloadProduction();
+  };
+
   const updateStatus=async(p:any,status:string)=>{
-    const {error}=await supabase
-      .from('production')
-      .update({status})
-      .eq('id',p.id);
-
-    if(error){ alert(error.message); return; }
+    const {error}=await supabase.from('production').update({status}).eq('id',p.id);
+    if(error){alert(error.message);return;}
     await reloadProduction();
   };
 
-  const updateNotes=async(p:any)=>{
-    const notes=prompt('Notizen?',p.notes||'')||'';
-
-    const {error}=await supabase
-      .from('production')
-      .update({notes})
-      .eq('id',p.id);
-
-    if(error){ alert(error.message); return; }
-    await reloadProduction();
-  };
-
-  return (
+  return(
     <div className="card">
-      <h2>{lang==='nl'?'Productie':'Produktion'}</h2>
+      <h2>Produktion</h2>
 
-      <button
-        className="primary"
-        onClick={async()=>{
-          const kunde=prompt('Kundenname?');
-          if(!kunde)return;
+      <div className="card" style={{marginBottom:'20px'}}>
+        <h3>Produktionsauftrag anlegen</h3>
 
-          const projekt=prompt('Projekt?');
-          if(!projekt)return;
+        <select value={kundeId} onChange={(e)=>setKundeId(e.target.value)}>
+          <option value="">Kunde auswählen</option>
+          {customers.map((c:any)=>(
+            <option key={c.id} value={c.id}>
+              {c.company_name || c.name || c.customer}
+            </option>
+          ))}
+        </select>
 
-          const kundennummer=
-            customers.find((c:any)=>c.company_name===kunde)?.phone ||
-            customers.find((c:any)=>c.company_name===kunde)?.id ||
-            '';
+        <select value={projektId} onChange={(e)=>setProjektId(e.target.value)}>
+          <option value="">Projekt auswählen</option>
+          {projects.map((p:any)=>(
+            <option key={p.id} value={p.id}>
+              {p.project_name || p.name || p.project}
+            </option>
+          ))}
+        </select>
 
-          const qty=Number(prompt('Menge?')||0);
-          const notes=prompt('Notizen?')||'';
+        <input type="number" value={qty} onChange={(e)=>setQty(Number(e.target.value))} placeholder="Menge" />
+        <input value={notes} onChange={(e)=>setNotes(e.target.value)} placeholder="Notizen" />
 
-          const {error}=await supabase
-            .from('production')
-            .insert([{
-              project:kunde,
-item:String(kundennummer),
-notes:projekt+' | '+notes,
-              qty,
-              status:'Noch nicht begonnen',
-              drawing_url:''
-            }]);
-
-          if(error){ alert(error.message); return; }
-          await reloadProduction();
-        }}
-      >
-        {lang==='nl'?'Productieopdracht aanmaken':'Produktionsauftrag anlegen'}
-      </button>
+        <button className="primary" onClick={addProduction}>
+          Produktionsauftrag anlegen
+        </button>
+      </div>
 
       <table className="table">
         <thead>
           <tr>
-            <th>{lang==='nl'?'Klantnaam':'Kundenname'}</th>
-            <th>{lang==='nl'?'Klantnummer':'Kundennummer'}</th>
-            <th>{lang==='nl'?'Aantal':'Menge'}</th>
+            <th>Kunde</th>
+            <th>Kundennummer</th>
+            <th>Projekt</th>
+            <th>Menge</th>
             <th>Status</th>
-            <th>{lang==='nl'?'Notities':'Notizen'}</th>
+            <th>Notizen</th>
           </tr>
         </thead>
 
@@ -361,25 +369,16 @@ notes:projekt+' | '+notes,
             <tr key={p.id}>
               <td>{p.project}</td>
               <td>{p.item}</td>
+              <td>{p.project_name}</td>
               <td>{p.qty}</td>
-
               <td>
-                <select
-                  value={p.status||'Noch nicht begonnen'}
-                  onChange={(e)=>updateStatus(p,e.target.value)}
-                >
+                <select value={p.status||'Noch nicht begonnen'} onChange={(e)=>updateStatus(p,e.target.value)}>
                   <option>Noch nicht begonnen</option>
                   <option>In Bearbeitung</option>
                   <option>Fertig</option>
                 </select>
               </td>
-
-              <td>
-                {p.notes || '-'}
-                <button className="pill" onClick={()=>updateNotes(p)}>
-                  Notizen
-                </button>
-              </td>
+              <td>{p.notes || '-'}</td>
             </tr>
           ))}
         </tbody>
