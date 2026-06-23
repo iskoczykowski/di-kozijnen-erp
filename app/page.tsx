@@ -4,103 +4,95 @@ import { useState } from 'react';
 
 export default function Page() {
   const [lang,setLang]=useState<'de'|'nl'>('de');
+  const [year,setYear]=useState(new Date().getFullYear());
+  const [events,setEvents]=useState<any[]>([]);
 
   const t:any={
-    de:{
-      title:'D&I Kozijnen ERP',
-      calendar:'Kalender',
-      newEvent:'Neuer Termin',
-      reminders:'Erinnerung 1 Tag vorher',
-      tasks:'Offene Aufträge',
-      messages:'Nachrichten',
-      production:'Produktion',
-      montage:'Montage',
-      stock:'Lager',
-      email:'E-Mail',
-      whatsapp:'WhatsApp',
-      push:'Push-Benachrichtigungen'
-    },
-    nl:{
-      title:'D&I Kozijnen ERP',
-      calendar:'Kalender',
-      newEvent:'Nieuwe afspraak',
-      reminders:'Herinnering 1 dag vooraf',
-      tasks:'Openstaande opdrachten',
-      messages:'Berichten',
-      production:'Productie',
-      montage:'Montage',
-      stock:'Magazijn',
-      email:'E-mail',
-      whatsapp:'WhatsApp',
-      push:'Pushmeldingen'
-    }
+    de:{title:'D&I Kozijnen ERP',calendar:'Jahreskalender',add:'Termin hinzufügen',edit:'Bearbeiten',del:'Löschen',day:'Tag',time:'Uhrzeit',name:'Termin',reminder:'Erinnerung 1 Tag vorher'},
+    nl:{title:'D&I Kozijnen ERP',calendar:'Jaarkalender',add:'Afspraak toevoegen',edit:'Bewerken',del:'Verwijderen',day:'Dag',time:'Tijd',name:'Afspraak',reminder:'Herinnering 1 dag vooraf'}
   }[lang];
 
-  const [events,setEvents]=useState<any[]>([
-    {day:3,time:'09:00',title:'Montage Müller'},
-    {day:8,time:'10:30',title:'Productie Project A'},
-    {day:14,time:'08:00',title:'Levering Glas'},
-  ]);
+  const monthsDe=['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const monthsNl=['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December'];
+  const months=lang==='nl'?monthsNl:monthsDe;
 
-  const addEvent=()=>{
-    const day=Number(prompt(lang==='nl'?'Dag van maand?':'Tag im Monat?')||0);
-    if(!day)return;
-    const time=prompt(lang==='nl'?'Tijd?':'Uhrzeit?')||'';
-    const title=prompt(lang==='nl'?'Titel?':'Titel?')||'';
+  const daysInMonth=(m:number)=>new Date(year,m+1,0).getDate();
+
+  const addEvent=(month:number,day:number)=>{
+    const time=prompt(t.time+'?')||'';
+    const title=prompt(t.name+'?')||'';
     if(!title)return;
-
-    setEvents([{day,time,title},...events]);
+    setEvents([{id:Date.now(),year,month,day,time,title,reminder:t.reminder},...events]);
   };
 
-  const days=Array.from({length:30},(_,i)=>i+1);
+  const editEvent=(ev:any)=>{
+    const time=prompt(t.time+'?',ev.time)||ev.time;
+    const title=prompt(t.name+'?',ev.title)||ev.title;
+    setEvents(events.map(e=>e.id===ev.id?{...e,time,title}:e));
+  };
+
+  const deleteEvent=(id:number)=>{
+    if(confirm(t.del+'?')){
+      setEvents(events.filter(e=>e.id!==id));
+    }
+  };
 
   return (
-    <div style={{padding:40,fontFamily:'Arial'}}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <h1>{t.title}</h1>
-        <select value={lang} onChange={(e)=>setLang(e.target.value as any)}>
-          <option value="de">DE</option>
-          <option value="nl">NL</option>
-        </select>
+    <div style={{padding:30,fontFamily:'Arial',background:'#f8fafc',minHeight:'100vh'}}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:20}}>
+        <div>
+          <h1>{t.title}</h1>
+          <h2>📅 {t.calendar} {year}</h2>
+        </div>
+
+        <div style={{display:'flex',gap:10}}>
+          <button onClick={()=>setYear(year-1)}>◀</button>
+          <button onClick={()=>setYear(new Date().getFullYear())}>{year}</button>
+          <button onClick={()=>setYear(year+1)}>▶</button>
+
+          <select value={lang} onChange={(e)=>setLang(e.target.value as any)}>
+            <option value="de">DE</option>
+            <option value="nl">NL</option>
+          </select>
+        </div>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'2fr 1fr 1fr',gap:20}}>
-        <div style={{background:'#dbeafe',borderRadius:20,padding:20}}>
-          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-            <h2>📅 {t.calendar}</h2>
-            <button onClick={addEvent}>{t.newEvent}</button>
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:20}}>
+        {months.map((monthName:string,month:number)=>(
+          <div key={month} style={{background:'white',borderRadius:18,padding:16,boxShadow:'0 10px 30px #0001'}}>
+            <h3 style={{marginTop:0}}>{monthName}</h3>
+
+            <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6}}>
+              {Array.from({length:daysInMonth(month)},(_,i)=>i+1).map(day=>(
+                <div key={day} onDoubleClick={()=>addEvent(month,day)}
+                  style={{
+                    minHeight:85,
+                    background:'#eef2ff',
+                    borderRadius:10,
+                    padding:6,
+                    fontSize:12,
+                    cursor:'pointer'
+                  }}>
+                  <b>{day}</b>
+
+                  {events.filter(e=>e.year===year&&e.month===month&&e.day===day).map(ev=>(
+                    <div key={ev.id} style={{marginTop:5,background:'#dbeafe',borderRadius:6,padding:5}}>
+                      <b>{ev.time}</b><br/>
+                      {ev.title}<br/>
+                      <small>{ev.reminder}</small><br/>
+                      <button onClick={()=>editEvent(ev)}>{t.edit}</button>
+                      <button onClick={()=>deleteEvent(ev.id)}>{t.del}</button>
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
+
+            <button style={{marginTop:10}} onClick={()=>addEvent(month,1)}>
+              + {t.add}
+            </button>
           </div>
-
-          <p>{t.reminders}</p>
-
-          <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
-            {days.map(day=>(
-              <div key={day} style={{background:'white',borderRadius:12,padding:10,minHeight:90}}>
-                <b>{day}</b>
-                {events.filter(e=>e.day===day).map((e,i)=>(
-                  <div key={i} style={{marginTop:8,background:'#bfdbfe',borderRadius:8,padding:6,fontSize:12}}>
-                    <b>{e.time}</b><br/>
-                    {e.title}
-                  </div>
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div style={{background:'#fee2e2',borderRadius:20,padding:20}}>
-          <h2>📋 {t.tasks}</h2>
-          <p>• {t.production}</p>
-          <p>• {t.montage}</p>
-          <p>• {t.stock}</p>
-        </div>
-
-        <div style={{background:'#f3e8ff',borderRadius:20,padding:20}}>
-          <h2>🔔 {t.messages}</h2>
-          <p>• {t.email}</p>
-          <p>• {t.whatsapp}</p>
-          <p>• {t.push}</p>
-        </div>
+        ))}
       </div>
     </div>
   );
