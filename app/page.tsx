@@ -318,7 +318,7 @@ function Production({production,setProduction,lang}:any){
     await reloadProduction();
   };
 
-  const updateNotes=async(p:any)=>{
+    const updateNotes=async(p:any)=>{
     const notes=prompt('Notizen?',p.notes||'')||'';
 
     const {error}=await supabase
