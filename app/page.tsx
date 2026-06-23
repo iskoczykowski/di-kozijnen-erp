@@ -280,7 +280,7 @@ function Production({production,setProduction,lang}:any){
       .select('*')
       .order('created_at',{ascending:false});
 
-    setProduction(data||[]);
+    setProduction(data || []);
   };
 
   const updateStatus=async(p:any,status:string)=>{
@@ -314,12 +314,11 @@ function Production({production,setProduction,lang}:any){
       .eq('id',p.id);
 
     if(updateError){ alert(updateError.message); return; }
-
     await reloadProduction();
   };
 
-    const updateNotes=async(p:any)=>{
-    const notes=prompt('Notizen?',p.notes||'')||'';
+  const updateNotes=async(p:any)=>{
+    const notes=prompt('Notizen?',p.notes || '') || '';
 
     const {error}=await supabase
       .from('production')
@@ -332,21 +331,21 @@ function Production({production,setProduction,lang}:any){
 
   return (
     <div className="card">
-      <h2>Produktion</h2>
+      <h2>{lang==='nl'?'Productie':'Produktion'}</h2>
 
       <button
         className="primary"
         onClick={async()=>{
-          const project=prompt('Kundenname?');
+          const project=prompt(lang==='nl'?'Klantnaam?':'Kundenname?');
           if(!project)return;
 
-          const item=prompt('Kundennummer?');
+          const item=prompt(lang==='nl'?'Klantnummer?':'Kundennummer?');
           if(!item)return;
 
-          const qty=Number(prompt('Menge?')||0);
+          const qty=Number(prompt(lang==='nl'?'Aantal?':'Menge?') || 0);
           if(!qty)return;
 
-          const notes=prompt('Notizen?')||'';
+          const notes=prompt(lang==='nl'?'Notities?':'Notizen?') || '';
 
           const {error}=await supabase
             .from('production')
@@ -356,22 +355,18 @@ function Production({production,setProduction,lang}:any){
           await reloadProduction();
         }}
       >
-        {lang==='nl'
- ? 'Productieopdracht aanmaken'
- : 'Produktionsauftrag anlegen'}
-</button>
+        {lang==='nl'?'Productieopdracht aanmaken':'Produktionsauftrag anlegen'}
+      </button>
 
-<table className="table">
-<thead>
-<tr>
-<th>{lang==='nl' ? 'Klantnaam' : 'Kundenname'}</th>
-<th>{lang==='nl' ? 'Klantnummer' : 'Kundennummer'}</th>
-<th>{lang==='nl' ? 'Aantal' : 'Menge'}</th>
-<th>{lang==='nl' ? 'Status' : 'Status'}</th>
-<th>{lang==='nl' ? 'Tekening / Foto' : 'Zeichnung / Foto'}</th>
-<th>{lang==='nl' ? 'Notities' : 'Notizen'}</th>
-</tr>
-</thead>
+      <table className="table">
+        <thead>
+          <tr>
+            <th>{lang==='nl'?'Klantnaam':'Kundenname'}</th>
+            <th>{lang==='nl'?'Klantnummer':'Kundennummer'}</th>
+            <th>{lang==='nl'?'Aantal':'Menge'}</th>
+            <th>Status</th>
+            <th>{lang==='nl'?'Tekening / Foto':'Zeichnung / Foto'}</th>
+            <th>{lang==='nl'?'Notities':'Notizen'}</th>
           </tr>
         </thead>
 
@@ -384,27 +379,19 @@ function Production({production,setProduction,lang}:any){
 
               <td>
                 <select
-                  value={p.status||'Noch nicht begonnen'}
+                  value={p.status || 'Noch nicht begonnen'}
                   onChange={(e)=>updateStatus(p,e.target.value)}
                 >
                   <option>Noch nicht begonnen</option>
                   <option>In Bearbeitung</option>
                   <option>Fertig</option>
                 </select>
-               <div style={{marginTop:'5px'}}>
-  {p.status === 'Noch nicht begonnen' && '🔴'}
-  {p.status === 'In Bearbeitung' && '🟡'}
-  {p.status === 'Fertig' && '🟢'}
-</div>
-               <span className={
-  p.status==='Fertig'
-    ? 'badge b-green'
-    : p.status==='In Bearbeitung'
-      ? 'badge b-purple'
-      : 'badge b-red'
-}>
-  {p.status}
-</span>
+
+                <div style={{marginTop:'5px'}}>
+                  {p.status==='Noch nicht begonnen' && '🔴'}
+                  {p.status==='In Bearbeitung' && '🟡'}
+                  {p.status==='Fertig' && '🟢'}
+                </div>
               </td>
 
               <td>
@@ -412,13 +399,9 @@ function Production({production,setProduction,lang}:any){
                   type="file"
                   onChange={(e)=>uploadFile(p,e.target.files?.[0])}
                 />
-                {p.drawing_url ? (
-                  <a href={p.drawing_url} target="_blank">
-                    Öffnen
-                  </a>
-                ) : (
-                  <span> Keine Datei</span>
-                )}
+                {p.drawing_url
+                  ? <a href={p.drawing_url} target="_blank"> Öffnen</a>
+                  : <span> Keine Datei</span>}
               </td>
 
               <td>
@@ -432,7 +415,7 @@ function Production({production,setProduction,lang}:any){
         </tbody>
       </table>
     </div>
-  )
+  );
 }
 function Stock({stock,setStock}:any){
   return (
