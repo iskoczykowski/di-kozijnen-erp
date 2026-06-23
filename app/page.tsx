@@ -370,7 +370,7 @@ function Calendar({events,setEvents,lang}:any) {
     const date = prompt(lang==='nl'?'Datum? bijv. 2026-06-24':'Datum? z.B. 2026-06-24') || '';
     const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?') || '';
 
-    setEvents([{id:Date.now(),title,date,time},...events]);
+    setEvents([{id:Date.now(),title,date,time},...(events || [])]);
   };
 
   const editEvent = (ev:any) => {
