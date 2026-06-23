@@ -383,12 +383,12 @@ function Calendar({events,setEvents,lang}:any) {
   setEvents(events.map((e:any)=>e.id===ev.id?{...e,title,time}:e));
 };
 
-  const deleteEvent=(id:number)=>{
-    if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?'))return;
-    setEvents(events.filter((e:any)=>e.id!==id));
-  };
+const deleteEvent=(id:number)=>{
+  if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?'))return;
+  setEvents(events.filter((e:any)=>e.id!==id));
+};
 
-  return (
+return (
     <div>
       <div style={topRow}>
         <button onClick={()=>setYear(Math.max(2026,year-1))}>{'<'}</button>
