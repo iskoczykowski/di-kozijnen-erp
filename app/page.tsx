@@ -4,7 +4,18 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 type Lang = 'de' | 'nl';
-type Module = 'dashboard' | 'customers' | 'projects';
+type Module =
+  | 'dashboard'
+  | 'customers'
+  | 'projects'
+  | 'production'
+  | 'stock'
+  | 'delivery'
+  | 'orders'
+  | 'montage'
+  | 'calendar'
+  | 'employees'
+  | 'messages';
 
 export default function Page() {
   const [lang, setLang] = useState<Lang>('de');
@@ -109,14 +120,14 @@ export default function Page() {
         <button onClick={()=>setModule('dashboard')} style={iconBtn}>🏠</button>
         <button onClick={()=>setModule('customers')} style={iconBtn}>👥</button>
         <button onClick={()=>setModule('projects')} style={iconBtn}>📁</button>
-        <button style={iconBtn}>🏭</button>
-        <button style={iconBtn}>📦</button>
-        <button style={iconBtn}>🚚</button>
-        <button style={iconBtn}>📋</button>
-        <button style={iconBtn}>🔧</button>
-        <button style={iconBtn}>🗓️</button>
-        <button style={iconBtn}>👷</button>
-        <button style={iconBtn}>💬</button>
+        <button onClick={() => setModule('production')} style={iconBtn}>🏭</button>
+        <button onClick={() => setModule('stock')} style={iconBtn}>📦</button>
+        <button onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
+        <button onClick={() => setModule('orders')} style={iconBtn}>📋</button>
+        <button onClick={() => setModule('montage')} style={iconBtn}>🔧</button>
+        <button onClick={() => setModule('calendar')} style={iconBtn}>📅</button>
+        <button onClick={() => setModule('employees')} style={iconBtn}>👷</button>
+        <button onClick={() => setModule('messages')} style={iconBtn}>💬</button>
       </aside>
 
       <main style={main}>
