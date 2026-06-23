@@ -20,6 +20,7 @@ type Module =
 export default function Page() {
   const [lang, setLang] = useState<Lang>('de');
   const [module, setModule] = useState<Module>('dashboard');
+  const [events,setEvents] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [production,setProduction] = useState<any[]>([]);
