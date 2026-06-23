@@ -241,20 +241,51 @@ export default function Page() {
 }
 
 function Calendar(){
-  const nums = Array.from({length:35},(_,i)=>i+1);
+  const [year,setYear]=useState(2026);
+
+  const months=[
+    'Januar','Februar','März','April',
+    'Mai','Juni','Juli','August',
+    'September','Oktober','November','Dezember'
+  ];
+
+  const daysInMonth=(month:number)=>new Date(year,month+1,0).getDate();
+
   return (
-    <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:10,textAlign:'center'}}>
-      {['MO','TU','WE','TH','FR','SA','SU'].map(d=><b key={d}>{d}</b>)}
-      {nums.map(n=>(
-        <div key={n} style={{
-          padding:10,
-          borderRadius:12,
-          background:n===7?'#ec4899':n===12?'#22c55e':n===23?'#06b6d4':'#f8fafc',
-          color:[7,12,23].includes(n)?'#fff':'#111'
-        }}>{n}</div>
-      ))}
+    <div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:15}}>
+        <button onClick={()=>setYear(Math.max(2026,year-1))}>◀</button>
+        <h2>{year}</h2>
+        <button onClick={()=>setYear(Math.min(2030,year+1))}>▶</button>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:16}}>
+        {months.map((monthName,month)=>(
+          <div key={month} style={{background:'#f8fafc',borderRadius:16,padding:12}}>
+            <h3 style={{marginTop:0}}>{monthName}</h3>
+
+            <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4,textAlign:'center',fontSize:12}}>
+              {['MO','TU','WE','DO','FR','SA','SO'].map(d=><b key={d}>{d}</b>)}
+
+              {Array.from({length:daysInMonth(month)},(_,i)=>i+1).map(day=>(
+                <div
+                  key={day}
+                  style={{
+                    padding:5,
+                    borderRadius:8,
+                    background:day===7?'#ec4899':day===12?'#22c55e':day===23?'#06b6d4':'white',
+                    color:[7,12,23].includes(day)?'#fff':'#111'
+                  }}
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
     </div>
-  )
+  );
 }
 
 function Event({color,title,time}:any){
