@@ -378,10 +378,10 @@ function Calendar({events,setEvents,lang}:any) {
   };
 
   const editEvent=(ev:any)=>{
-    const title=prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title)||ev.title;
-    const time=prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time)||ev.time;
-    setEvents(events.map((e:any)=>e.id===ev.id?{...e,title,time}:e));
-  };
+  const title=prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title)||ev.title;
+  const time=prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time)||ev.time;
+  setEvents(events.map((e:any)=>e.id===ev.id?{...e,title,time}:e));
+};
 
   const deleteEvent=(id:number)=>{
     if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?'))return;
