@@ -81,7 +81,6 @@ async function reloadProjects(){
     .eq('id',id);
 
   reloadProjects();
-
 }
   const text:any = {
     de: {
@@ -189,13 +188,13 @@ async function reloadProjects(){
   }
 
   async function deleteCustomer(c:any){
-    if(!confirm(text.del + '?'))return;
-    const { error } = await supabase.from('customers').delete().eq('id',c.id);
-    if(error){ alert(error.message); return; }
-    await loadCustomers();
-  }
+  if(!confirm(text.del + '?'))return;
+  const { error } = await supabase.from('customers').delete().eq('id',c.id);
+  if(error){ alert(error.message); return; }
+  await loadCustomers();
+}
 
-  return (
+return (
     <div style={app}>
       <aside style={side}>
         <div style={logo}></div>
