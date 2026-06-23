@@ -330,11 +330,11 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
           const {error}=await supabase
             .from('production')
             .insert([{
-              project:projekt,
-              item:String(kundennummer),
+              project:kunde,
+item:String(kundennummer),
+notes:projekt+' | '+notes,
               qty,
               status:'Noch nicht begonnen',
-              notes,
               drawing_url:''
             }]);
 
