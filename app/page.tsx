@@ -4,13 +4,85 @@ import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 
 type Lang = 'de' | 'nl';
-type Module = 'dashboard' | 'customers';
+type Module = 'dashboard' | 'customers' | 'projects';
 
 export default function Page() {
-  const [lang, setLang] = useState<Lang>('de');
-  const [module, setModule] = useState<Module>('dashboard');
-  const [customers, setCustomers] = useState<any[]>([]);
+  const [lang,setLang]=useState<Lang>('de');
+const [module,setModule]=useState<Module>('dashboard');
+const [customers,setCustomers]=useState<any[]>([]);
+const [projects,setProjects]=useState<any[]>([]);
+async function reloadProjects(){
 
+  const {data} = await supabase
+    .from('projects')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  setProjects(data || []);
+
+}
+  async function addProject(){
+
+  const project_number = prompt(
+    lang==='de'
+      ? 'Projektnummer'
+      : 'Projectnummer'
+  );
+
+  if(!project_number) return;
+
+  const project_name = prompt(
+    lang==='de'
+      ? 'Projektname'
+      : 'Projectnaam'
+  );
+
+  if(!project_name) return;
+
+  const customer = prompt(
+    lang==='de'
+      ? 'Kunde'
+      : 'Klant'
+  );
+
+  const price = prompt(
+    lang==='de'
+      ? 'Preis'
+      : 'Prijs'
+  );
+
+  await supabase.from('projects').insert({
+    project_number,
+    project_name,
+    customer,
+    status: lang==='de'
+      ? 'Anfrage'
+      : 'Aanvraag',
+    price,
+    notes:''
+  });
+
+  reloadProjects();
+
+}
+  async function deleteProject(id:any){
+
+  if(
+    !confirm(
+      lang==='de'
+        ? 'Projekt löschen?'
+        : 'Project verwijderen?'
+    )
+  ) return;
+
+  await supabase
+    .from('projects')
+    .delete()
+    .eq('id',id);
+
+  reloadProjects();
+
+}
   const text:any = {
     de: {
       search:'Suchen...',
@@ -85,7 +157,10 @@ export default function Page() {
     setCustomers(data || []);
   }
 
-  useEffect(()=>{ loadCustomers(); },[]);
+  useEffect(()=>{
+  loadCustomers();
+  reloadProjects();
+},[]);
 
   async function addCustomer(){
     const company_name = prompt(text.name + '?');
@@ -126,7 +201,7 @@ export default function Page() {
         <div style={logo}></div>
         <button onClick={()=>setModule('dashboard')} style={iconBtn}>🏠</button>
         <button onClick={()=>setModule('customers')} style={iconBtn}>👥</button>
-        <button style={iconBtn}>📁</button>
+        <button onClick={()=>setModule('projects')} style={iconBtn}>📁</button>
         <button style={iconBtn}>🏭</button>
         <button style={iconBtn}>📦</button>
         <button style={iconBtn}>🚚</button>
@@ -234,6 +309,52 @@ export default function Page() {
               </tbody>
             </table>
           </section>
+      {module==='projects' && (
+<section style={cardWide}>
+
+<div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+<h2>📁 Projekte</h2>
+<button onClick={addProject} style={primary}>
++ Projekt
+</button>
+</div>
+
+<table style={{width:'100%',borderCollapse:'collapse',marginTop:20}}>
+<thead>
+<tr>
+<th style={th}>Nummer</th>
+<th style={th}>Projekt</th>
+<th style={th}>Kunde</th>
+<th style={th}>Status</th>
+<th style={th}>Preis</th>
+<th style={th}>Aktion</th>
+</tr>
+</thead>
+
+<tbody>
+{projects.map((p:any)=>(
+
+<tr key={p.id}>
+<td style={td}>{p.project_number}</td>
+<td style={td}>{p.project_name}</td>
+<td style={td}>{p.customer}</td>
+<td style={td}>{p.status}</td>
+<td style={td}>{p.price}</td>
+
+<td style={td}>
+<button onClick={()=>deleteProject(p.id)}>
+{text.del}
+</button>
+</td>
+
+</tr>
+
+))}
+</tbody>
+</table>
+
+</section>
+)}
         )}
       </main>
     </div>
