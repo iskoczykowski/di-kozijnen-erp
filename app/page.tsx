@@ -246,7 +246,83 @@ function CustomersModule({customers,addCustomer,editCustomer,deleteCustomer}:any
  </div>
 }
 
-function Dashboard({t,projects,customers,stock}:any){return <><div className="grid cards"><Stat title={t.activeProjects} value={projects}/><Stat title="Kunden" value={customers}/><Stat title={t.stock} value={stock}/><Stat title={t.users} value="12"/></div><div className="grid two"><div className="card"><h2>Project Overview</h2><div className="chart"/></div><div className="card"><h2>Tasks Status</h2><p className="statNum">54</p><p className="small">Montage, Produktion, Lager, Angebote</p><button className="primary">Create New Task</button></div></div></>}
+function Dashboard({t,projects,customers,stock}:any){
+  const [todos,setTodos]=useState<any[]>([]);
+  const [appointments,setAppointments]=useState<any[]>([]);
+  const [messages,setMessages]=useState<any[]>([]);
+
+  const addAppointment=()=>{
+    const title=prompt('Termin Titel?');
+    if(!title)return;
+    const date=prompt('Datum und Uhrzeit? z.B. 24.06.2026 09:00')||'';
+    setAppointments([{title,date,reminder:'1 Tag vorher'},...appointments]);
+  };
+
+  const addTodo=()=>{
+    const text=prompt('Auftrag / Aufgabe?');
+    if(!text)return;
+    setTodos([{text,status:'Offen'},...todos]);
+  };
+
+  const addMessage=()=>{
+    const text=prompt('Nachricht / Hinweis?');
+    if(!text)return;
+    setMessages([{text,type:'Info'},...messages]);
+  };
+
+  return(
+    <>
+      <div className="grid cards">
+        <Stat title={t.activeProjects} value={projects}/>
+        <Stat title="Kunden" value={customers}/>
+        <Stat title={t.stock} value={stock}/>
+        <Stat title="Mitarbeiter" value={12}/>
+      </div>
+
+      <div className="grid" style={{gridTemplateColumns:'1fr 1fr 1fr',gap:'20px',marginTop:'20px'}}>
+        <div className="card" style={{border:'3px solid #2563eb'}}>
+          <div className="actions" style={{justifyContent:'space-between'}}>
+            <h2>Kalender</h2>
+            <button className="primary" onClick={addAppointment}>+ Termin</button>
+          </div>
+          <p>Erinnerung: 1 Tag vorher</p>
+          {appointments.map((a:any,i:number)=>(
+            <div key={i} className="pill">
+              <b>{a.title}</b><br/>
+              {a.date}<br/>
+              {a.reminder}
+            </div>
+          ))}
+        </div>
+
+        <div className="card" style={{border:'3px solid #dc2626'}}>
+          <div className="actions" style={{justifyContent:'space-between'}}>
+            <h2>Offene Aufträge</h2>
+            <button className="primary" onClick={addTodo}>+ Aufgabe</button>
+          </div>
+          {todos.map((todo:any,i:number)=>(
+            <div key={i} className="pill">
+              {todo.text} — {todo.status}
+            </div>
+          ))}
+        </div>
+
+        <div className="card" style={{border:'3px solid #9333ea'}}>
+          <div className="actions" style={{justifyContent:'space-between'}}>
+            <h2>Nachrichten</h2>
+            <button className="primary" onClick={addMessage}>+ Nachricht</button>
+          </div>
+          <p>E-Mail / WhatsApp / Push Übersicht</p>
+          {messages.map((m:any,i:number)=>(
+            <div key={i} className="pill">
+              {m.type}: {m.text}
+            </div>
+          ))}
+        </div>
+      </div>
+    </>
+  )
+}
 function Stat({title,value}:any){return <div className="card stat"><div className="statIcon"><Package size={22}/></div><div><div className="small">{title}</div><div className="statNum">{value}</div><div className="small" style={{color:'#16a34a'}}>+ 12.5%</div></div></div>}
 function DataModule({title,button,onAdd,rows,headers}:any){return <div className="card"><div className="actions" style={{justifyContent:'space-between'}}><h2>{title}</h2><button className="primary" onClick={onAdd}><Plus size={16}/> {button}</button></div><table className="table"><thead><tr>{headers.map((h:string)=><th key={h}>{h}</th>)}</tr></thead><tbody>{rows.map((r:any,i:number)=><tr key={i}>{r.map((c:string,j:number)=><td key={j}>{j===2?<span className="badge b-green">{c}</span>:c}</td>)}</tr>)}</tbody></table></div>}
 function Projects({projects,addProject,editProject,deleteProject}:any){
