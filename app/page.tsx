@@ -65,12 +65,6 @@ export default function Page() {
   loadCustomers();
   loadProjects();
   loadProduction();
-  loadStock();
-  loadDelivery();
-  loadOrders();
-  loadMontage();
-  loadEmployees();
-  loadMessages();
 }, []);
 
   async function addCustomer() {
