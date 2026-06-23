@@ -186,10 +186,11 @@ export default function Page() {
             </section>
 
             <section style={card}>
-              <h2>{t.important}</h2>
-              <Event color="#c93670" title="Montage Team 1" time="23 Jun 08:30"/>
-              <Event color="#c85a12" title={lang==='de'?'Material Lieferung':'Materiaal levering'} time="07 Jul 08:50"/>
-            </section>
+  <MiniCalendar
+    events={events}
+    lang={lang}
+  />
+</section>
 
             <section style={cardSmall}>
               <h2>{t.upcoming}</h2>
@@ -425,6 +426,51 @@ function Calendar({events,setEvents,lang}:any) {
         </tbody>
       </table>
     </section>
+  );
+}
+function MiniCalendar({events,lang}:any){
+  const [date,setDate]=useState(new Date(2026,0,1));
+  const year=date.getFullYear();
+  const month=date.getMonth();
+
+  const names=lang==='nl'
+    ? ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December']
+    : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+  const days=new Date(year,month+1,0).getDate();
+
+  const move=(n:number)=>{
+    const next=new Date(year,month+n,1);
+    if(next.getFullYear()>=2026 && next.getFullYear()<=2030)setDate(next);
+  };
+
+  return (
+    <div>
+      <div style={topRow}>
+        <button onClick={()=>move(-1)}>←</button>
+        <h2>📅 {names[month]} {year}</h2>
+        <button onClick={()=>move(1)}>→</button>
+      </div>
+
+      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
+        {Array.from({length:days}).map((_,i)=>{
+          const day=i+1;
+          const d=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+          const list=(events||[]).filter((e:any)=>e.date===d);
+
+          return (
+            <div key={day} style={{background:'#fff',borderRadius:10,padding:8,minHeight:70}}>
+              <b>{day}</b>
+              {list.map((ev:any)=>(
+                <div key={ev.id} style={{fontSize:11}}>
+                  {ev.time} {ev.title}
+                </div>
+              ))}
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
