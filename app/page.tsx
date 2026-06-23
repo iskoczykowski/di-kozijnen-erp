@@ -522,10 +522,10 @@ function Montage({lang}:any){
   const [items,setItems]=useState<any[]>([]);
 
   const tx:any={
-    de:{title:'Montageliste',add:'Neue Montage',kunde:'Kunde',nr:'Kundennummer',projekt:'Projekt',adresse:'Adresse',ort:'Ort',telefon:'Telefon',datum:'Datum',werk:'Werk fertig',anzahl:'Anzahl',notizen:'Notizen',aktion:'Aktion',edit:'Bearbeiten',del:'Löschen'},
-    nl:{title:'Montagelijst',add:'Nieuwe montage',kunde:'Klant',nr:'Klantnummer',projekt:'Project',adresse:'Adres',ort:'Plaats',telefon:'Telefoon',datum:'Datum',werk:'Werk klaar',anzahl:'Aantal',notizen:'Notities',aktion:'Actie',edit:'Bewerken',del:'Verwijderen'},
-    en:{title:'Installation list',add:'New installation',kunde:'Customer',nr:'Customer number',projekt:'Project',adresse:'Address',ort:'City',telefon:'Phone',datum:'Date',werk:'Work finished',anzahl:'Quantity',notizen:'Notes',aktion:'Action',edit:'Edit',del:'Delete'},
-    pl:{title:'Lista montażu',add:'Nowy montaż',kunde:'Klient',nr:'Numer klienta',projekt:'Projekt',adresse:'Adres',ort:'Miasto',telefon:'Telefon',datum:'Data',werk:'Praca gotowa',anzahl:'Ilość',notizen:'Notatki',aktion:'Akcja',edit:'Edytuj',del:'Usuń'}
+    de:{title:'Montageliste',add:'Neue Montage',kunde:'Kunde',nr:'Kundennummer',projekt:'Projekt',adresse:'Adresse',ort:'Ort',telefon:'Telefon',datum:'Datum',werk:'Werk fertig',anzahl:'Anzahl',notizen:'Notizen',monteur:'Monteur',status:'Status',vorher:'Foto vorher',nachher:'Foto nachher',sign:'Unterschrift',check:'Checkliste',aktion:'Aktion',edit:'Bearbeiten',del:'Löschen',open:'Öffnen'},
+    nl:{title:'Montagelijst',add:'Nieuwe montage',kunde:'Klant',nr:'Klantnummer',projekt:'Project',adresse:'Adres',ort:'Plaats',telefon:'Telefoon',datum:'Datum',werk:'Werk klaar',anzahl:'Aantal',notizen:'Notities',monteur:'Monteur',status:'Status',vorher:'Foto voor',nachher:'Foto na',sign:'Handtekening',check:'Checklist',aktion:'Actie',edit:'Bewerken',del:'Verwijderen',open:'Openen'},
+    en:{title:'Installation list',add:'New installation',kunde:'Customer',nr:'Customer number',projekt:'Project',adresse:'Address',ort:'City',telefon:'Phone',datum:'Date',werk:'Work finished',anzahl:'Quantity',notizen:'Notes',monteur:'Installer',status:'Status',vorher:'Before photo',nachher:'After photo',sign:'Signature',check:'Checklist',aktion:'Action',edit:'Edit',del:'Delete',open:'Open'},
+    pl:{title:'Lista montażu',add:'Nowy montaż',kunde:'Klient',nr:'Numer klienta',projekt:'Projekt',adresse:'Adres',ort:'Miasto',telefon:'Telefon',datum:'Data',werk:'Praca gotowa',anzahl:'Ilość',notizen:'Notatki',monteur:'Monter',status:'Status',vorher:'Zdjęcie przed',nachher:'Zdjęcie po',sign:'Podpis',check:'Lista kontrolna',aktion:'Akcja',edit:'Edytuj',del:'Usuń',open:'Otwórz'}
   };
 
   const t=tx[lang]||tx.de;
@@ -553,12 +553,27 @@ function Montage({lang}:any){
     const telefon=prompt(t.telefon+'?')||'';
     const datum=prompt(t.datum+'?')||'';
     const werk_fertig=prompt(t.werk+'?')||'';
+    const monteur=prompt(t.monteur+'?')||'';
+    const status='Offen';
     const anzahl=Number(prompt(t.anzahl+'?')||0);
     const notizen=prompt(t.notizen+'?')||'';
+    const checkliste=prompt(t.check+'?')||'';
 
     const {error}=await supabase.from('montage').insert([{
-      kunde,kundennummer,projekt,adresse,ort,telefon,datum,werk_fertig,anzahl,notizen
+      kunde,kundennummer,projekt,adresse,ort,telefon,datum,werk_fertig,
+      monteur,status,anzahl,notizen,checkliste,
+      foto_vorher:'',foto_nachher:'',unterschrift:''
     }]);
+
+    if(error){ alert(error.message); return; }
+    await load();
+  };
+
+  const updateField=async(m:any,field:string,value:string)=>{
+    const {error}=await supabase
+      .from('montage')
+      .update({[field]:value})
+      .eq('id',m.id);
 
     if(error){ alert(error.message); return; }
     await load();
@@ -566,14 +581,7 @@ function Montage({lang}:any){
 
   const edit=async(m:any)=>{
     const notizen=prompt(t.notizen+'?',m.notizen||'')||'';
-
-    const {error}=await supabase
-      .from('montage')
-      .update({notizen})
-      .eq('id',m.id);
-
-    if(error){ alert(error.message); return; }
-    await load();
+    await updateField(m,'notizen',notizen);
   };
 
   const remove=async(m:any)=>{
@@ -606,6 +614,12 @@ function Montage({lang}:any){
             <th>{t.telefon}</th>
             <th>{t.datum}</th>
             <th>{t.werk}</th>
+            <th>{t.monteur}</th>
+            <th>{t.status}</th>
+            <th>{t.vorher}</th>
+            <th>{t.nachher}</th>
+            <th>{t.sign}</th>
+            <th>{t.check}</th>
             <th>{t.anzahl}</th>
             <th>{t.notizen}</th>
             <th>{t.aktion}</th>
@@ -623,8 +637,41 @@ function Montage({lang}:any){
               <td>{m.telefon}</td>
               <td>{m.datum}</td>
               <td>{m.werk_fertig}</td>
+              <td>{m.monteur}</td>
+
+              <td>
+                <select
+                  value={m.status||'Offen'}
+                  onChange={(e)=>updateField(m,'status',e.target.value)}
+                >
+                  <option>Offen</option>
+                  <option>In Bearbeitung</option>
+                  <option>Fertig</option>
+                </select>
+              </td>
+
+              <td>
+                {m.foto_vorher
+                  ? <a href={m.foto_vorher} target="_blank">{t.open}</a>
+                  : '-'}
+              </td>
+
+              <td>
+                {m.foto_nachher
+                  ? <a href={m.foto_nachher} target="_blank">{t.open}</a>
+                  : '-'}
+              </td>
+
+              <td>
+                {m.unterschrift
+                  ? <a href={m.unterschrift} target="_blank">{t.open}</a>
+                  : '-'}
+              </td>
+
+              <td>{m.checkliste}</td>
               <td>{m.anzahl}</td>
               <td>{m.notizen}</td>
+
               <td>
                 <button className="pill" onClick={()=>edit(m)}>{t.edit}</button>
                 <button className="pill" onClick={()=>remove(m)}>{t.del}</button>
