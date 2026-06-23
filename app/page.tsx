@@ -164,7 +164,7 @@ export default function Page() {
             </section>
 
             <section style={card}>
-              <Calendar/>
+              <Calendar events={events} setEvents={setEvents} lang={lang}/>
             </section>
 
             <section style={cardSmall}>
