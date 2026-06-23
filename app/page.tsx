@@ -273,7 +273,7 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
   </table>
  </div>
 }
-function Production({production,setProduction,lang}:any){
+{mod==='produktion'&&<Production production={production} setProduction={setProduction} lang={lang} customers={customers} projects={projects}/>}
   const reloadProduction=async()=>{
     const {data}=await supabase
       .from('production')
@@ -336,24 +336,39 @@ function Production({production,setProduction,lang}:any){
       <button
         className="primary"
         onClick={async()=>{
-          const project=prompt(lang==='nl'?'Klantnaam?':'Kundenname?');
-          if(!project)return;
 
-          const item=prompt(lang==='nl'?'Klantnummer?':'Kundennummer?');
-          if(!item)return;
+  const kunde = prompt('Kundenname?');
+  if(!kunde) return;
 
-          const qty=Number(prompt(lang==='nl'?'Aantal?':'Menge?') || 0);
-          if(!qty)return;
+  const projekt = prompt('Projekt?');
+  if(!projekt) return;
 
-          const notes=prompt(lang==='nl'?'Notities?':'Notizen?') || '';
+  const kundennummer =
+    customers.find((c:any)=>c.name===kunde)?.nummer || '';
 
-          const {error}=await supabase
-            .from('production')
-            .insert([{project,item,qty,status:'Noch nicht begonnen',notes,drawing_url:''}]);
+  const qty = Number(prompt('Menge?') || 0);
 
-          if(error){ alert(error.message); return; }
-          await reloadProduction();
-        }}
+  const notes = prompt('Notizen?') || '';
+
+  const {error}=await supabase
+    .from('production')
+    .insert([{
+      project: projekt,
+      item: kundennummer,
+      qty,
+      status:'Noch nicht begonnen',
+      notes,
+      drawing_url:''
+    }]);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  await reloadProduction();
+
+}}
       >
         {lang==='nl'?'Productieopdracht aanmaken':'Produktionsauftrag anlegen'}
       </button>
