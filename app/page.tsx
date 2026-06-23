@@ -207,7 +207,7 @@ deleteProject={deleteProject}
     {mod==='lager'&&<Stock stock={stock} setStock={setStock}/>}
     {mod==='wareneingang'&&<IncomingGoods stock={stock} setStock={setStock}/>}
     {mod==='bestellliste'&&<Simple title="Bestellliste" text="Automatische Liste für Artikel unter Mindestbestand, Lieferanten und Status der Bestellung."/>}
-    {mod==='montage'&&<Simple title="Montage" text="Teams planen, Adresse öffnen, Checklisten abhaken, Fotos vorher/nachher und digitale Unterschrift speichern."/>}
+    {mod==='montage'&&<Montage lang={lang}/>}
     {mod==='kalender'&&<CalendarView/>}
     {mod==='mitarbeiter'&&<DataModule title="Mitarbeiter" button="Mitarbeiter hinzufügen" onAdd={()=>{}} rows={[['Jan','Monteur','Aktiv','Heute 08:00'],['Anna','Büro','Aktiv','Heute 09:00'],['Piotr','Produktion','Aktiv','Heute 07:30']]} headers={['Name','Rolle','Status','Start']}/>}
     {mod==='zeit'&&<Simple title="Zeiterfassung" text="Kommen, Gehen, Pause, Urlaub und Stundenzettel für Admin, Büro, Produktion, Lager und Montage."/>}
@@ -515,6 +515,124 @@ function IncomingGoods({stock,setStock}:any){
     <div className="card">
       <h2>Wareneingang</h2>
       <button className="primary" onClick={receive}>Lieferung erfassen</button>
+    </div>
+  )
+}
+function Montage({lang}:any){
+  const [items,setItems]=useState<any[]>([]);
+
+  const tx:any={
+    de:{title:'Montageliste',add:'Neue Montage',kunde:'Kunde',nr:'Kundennummer',projekt:'Projekt',adresse:'Adresse',ort:'Ort',telefon:'Telefon',datum:'Datum',werk:'Werk fertig',anzahl:'Anzahl',notizen:'Notizen',aktion:'Aktion',edit:'Bearbeiten',del:'Löschen'},
+    nl:{title:'Montagelijst',add:'Nieuwe montage',kunde:'Klant',nr:'Klantnummer',projekt:'Project',adresse:'Adres',ort:'Plaats',telefon:'Telefoon',datum:'Datum',werk:'Werk klaar',anzahl:'Aantal',notizen:'Notities',aktion:'Actie',edit:'Bewerken',del:'Verwijderen'},
+    en:{title:'Installation list',add:'New installation',kunde:'Customer',nr:'Customer number',projekt:'Project',adresse:'Address',ort:'City',telefon:'Phone',datum:'Date',werk:'Work finished',anzahl:'Quantity',notizen:'Notes',aktion:'Action',edit:'Edit',del:'Delete'},
+    pl:{title:'Lista montażu',add:'Nowy montaż',kunde:'Klient',nr:'Numer klienta',projekt:'Projekt',adresse:'Adres',ort:'Miasto',telefon:'Telefon',datum:'Data',werk:'Praca gotowa',anzahl:'Ilość',notizen:'Notatki',aktion:'Akcja',edit:'Edytuj',del:'Usuń'}
+  };
+
+  const t=tx[lang]||tx.de;
+
+  const load=async()=>{
+    const {data,error}=await supabase
+      .from('montage')
+      .select('*')
+      .order('created_at',{ascending:false});
+
+    if(error){ alert(error.message); return; }
+    setItems(data||[]);
+  };
+
+  useEffect(()=>{ load(); },[]);
+
+  const add=async()=>{
+    const kunde=prompt(t.kunde+'?');
+    if(!kunde)return;
+
+    const kundennummer=prompt(t.nr+'?')||'';
+    const projekt=prompt(t.projekt+'?')||'';
+    const adresse=prompt(t.adresse+'?')||'';
+    const ort=prompt(t.ort+'?')||'';
+    const telefon=prompt(t.telefon+'?')||'';
+    const datum=prompt(t.datum+'?')||'';
+    const werk_fertig=prompt(t.werk+'?')||'';
+    const anzahl=Number(prompt(t.anzahl+'?')||0);
+    const notizen=prompt(t.notizen+'?')||'';
+
+    const {error}=await supabase.from('montage').insert([{
+      kunde,kundennummer,projekt,adresse,ort,telefon,datum,werk_fertig,anzahl,notizen
+    }]);
+
+    if(error){ alert(error.message); return; }
+    await load();
+  };
+
+  const edit=async(m:any)=>{
+    const notizen=prompt(t.notizen+'?',m.notizen||'')||'';
+
+    const {error}=await supabase
+      .from('montage')
+      .update({notizen})
+      .eq('id',m.id);
+
+    if(error){ alert(error.message); return; }
+    await load();
+  };
+
+  const remove=async(m:any)=>{
+    if(!confirm(t.del+'?'))return;
+
+    const {error}=await supabase
+      .from('montage')
+      .delete()
+      .eq('id',m.id);
+
+    if(error){ alert(error.message); return; }
+    await load();
+  };
+
+  return(
+    <div className="card">
+      <div className="actions" style={{justifyContent:'space-between'}}>
+        <h2>{t.title}</h2>
+        <button className="primary" onClick={add}>{t.add}</button>
+      </div>
+
+      <table className="table">
+        <thead>
+          <tr>
+            <th>{t.kunde}</th>
+            <th>{t.nr}</th>
+            <th>{t.projekt}</th>
+            <th>{t.adresse}</th>
+            <th>{t.ort}</th>
+            <th>{t.telefon}</th>
+            <th>{t.datum}</th>
+            <th>{t.werk}</th>
+            <th>{t.anzahl}</th>
+            <th>{t.notizen}</th>
+            <th>{t.aktion}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {items.map((m:any)=>(
+            <tr key={m.id}>
+              <td>{m.kunde}</td>
+              <td>{m.kundennummer}</td>
+              <td>{m.projekt}</td>
+              <td>{m.adresse}</td>
+              <td>{m.ort}</td>
+              <td>{m.telefon}</td>
+              <td>{m.datum}</td>
+              <td>{m.werk_fertig}</td>
+              <td>{m.anzahl}</td>
+              <td>{m.notizen}</td>
+              <td>
+                <button className="pill" onClick={()=>edit(m)}>{t.edit}</button>
+                <button className="pill" onClick={()=>remove(m)}>{t.del}</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   )
 }
