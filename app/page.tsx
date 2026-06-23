@@ -362,29 +362,64 @@ function Stat({title,value}:any) {
   );
 }
 
-function Calendar() {
-  const [year,setYear] = useState(2026);
-  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-  const days = Array.from({length:35},(_,i)=>i+1);
+function Calendar({events,setEvents,lang}:any) {
+  const addEvent = () => {
+    const title = prompt(lang==='nl'?'Afspraak?':'Termin?');
+    if(!title) return;
+
+    const date = prompt(lang==='nl'?'Datum? bijv. 2026-06-24':'Datum? z.B. 2026-06-24') || '';
+    const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?') || '';
+
+    setEvents([{id:Date.now(),title,date,time},...events]);
+  };
+
+  const editEvent = (ev:any) => {
+    const title = prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title) || ev.title;
+    const date = prompt(lang==='nl'?'Datum?':'Datum?',ev.date) || ev.date;
+    const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time) || ev.time;
+
+    setEvents(events.map((e:any)=>e.id===ev.id?{...e,title,date,time}:e));
+  };
+
+  const deleteEvent = (id:number) => {
+    if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?')) return;
+    setEvents(events.filter((e:any)=>e.id!==id));
+  };
 
   return (
-    <div>
-      <div style={topRow}>
-        <button onClick={()=>setYear(Math.max(2026,year-1))}>{'<'}</button>
-        <h2>Kalender {year}</h2>
-        <button onClick={()=>setYear(Math.min(2030,year+1))}>{'>'}</button>
+    <section style={card}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+        <h2>📅 {lang==='nl'?'Kalender':'Kalender'}</h2>
+        <button onClick={addEvent} style={primary}>
+          {lang==='nl'?'+ Afspraak toevoegen':'+ Termin hinzufügen'}
+        </button>
       </div>
-      <div style={monthsGrid}>
-        {months.map((m)=>(
-          <div key={m} style={monthBox}>
-            <b>{m}</b>
-            <div style={daysGrid}>
-              {days.map(d=><span key={d}>{d}</span>)}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
+
+      <table style={table}>
+        <thead>
+          <tr>
+            <th style={th}>{lang==='nl'?'Datum':'Datum'}</th>
+            <th style={th}>{lang==='nl'?'Tijd':'Uhrzeit'}</th>
+            <th style={th}>{lang==='nl'?'Afspraak':'Termin'}</th>
+            <th style={th}>{t.action}</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {events.map((ev:any)=>(
+            <tr key={ev.id}>
+              <td style={td}>{ev.date}</td>
+              <td style={td}>{ev.time}</td>
+              <td style={td}>{ev.title}</td>
+              <td style={td}>
+                <button onClick={()=>editEvent(ev)}>{t.edit}</button>
+                <button onClick={()=>deleteEvent(ev.id)}>{t.del}</button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
   );
 }
 
