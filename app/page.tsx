@@ -273,7 +273,7 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
   </table>
  </div>
 }
-{mod==='produktion'&&<Production production={production} setProduction={setProduction} lang={lang} customers={customers} projects={projects}/>}
+
   function Production({production,setProduction,lang,customers,projects}:any){
   const reloadProduction=async()=>{
     const {data}=await supabase
