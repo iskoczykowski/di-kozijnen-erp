@@ -431,7 +431,6 @@ return (
             </div>
           </div>
         ))}
-      </div>
 
       <p style={{marginTop:12}}>
         {lang==='nl'
