@@ -22,6 +22,7 @@ export default function Page() {
   const [module, setModule] = useState<Module>('dashboard');
   const [customers, setCustomers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
+  const [production,setProduction] = useState<any[]>([]);
 
   const t:any = {
     de: {
@@ -61,9 +62,16 @@ export default function Page() {
   }
 
   useEffect(() => {
-    loadCustomers();
-    loadProjects();
-  }, []);
+  loadCustomers();
+  loadProjects();
+  loadProduction();
+  loadStock();
+  loadDelivery();
+  loadOrders();
+  loadMontage();
+  loadEmployees();
+  loadMessages();
+}, []);
 
   async function addCustomer() {
     const company_name = prompt(t.name + '?');
@@ -106,6 +114,14 @@ export default function Page() {
     loadProjects();
   }
 
+  async function loadProduction() {
+  const { data } = await supabase
+    .from('production')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  setProduction(data || []);
+}
   async function deleteProject(id:any) {
     if (!confirm(t.deleteAsk)) return;
     const { error } = await supabase.from('projects').delete().eq('id', id);
