@@ -20,7 +20,6 @@ type Module =
 export default function Page() {
   const [lang, setLang] = useState<Lang>('de');
   const [module, setModule] = useState<Module>('dashboard');
-  const [events,setEvents] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [production,setProduction] = useState<any[]>([]);
@@ -164,7 +163,7 @@ export default function Page() {
             </section>
 
             <section style={card}>
-              <Calendar events={events} setEvents={setEvents} lang={lang}/>
+              <Calendar/>
             </section>
 
             <section style={cardSmall}>
@@ -363,33 +362,10 @@ function Stat({title,value}:any) {
   );
 }
 
-function Calendar({events,setEvents,lang}:any) {
-  return (
-    <div>
-      <h2>{lang==='nl'?'Kalender':'Kalender'}</h2>
-      <button onClick={()=>{
-        const title = prompt(lang==='nl'?'Afspraak?':'Termin?');
-        if(!title)return;
-        setEvents([{id:Date.now(),title},...events]);
-      }}>
-        {lang==='nl'?'+ Afspraak toevoegen':'+ Termin hinzufügen'}
-      </button>
-
-      {events.map((e:any)=>(
-        <div key={e.id}>{e.title}</div>
-      ))}
-    </div>
-  );
-}
-
-      <p style={{marginTop:12}}>
-        {lang==='nl'
-          ? 'Dubbelklik op een dag om een afspraak toe te voegen.'
-          : 'Doppelklick auf einen Tag, um einen Termin hinzuzufügen.'}
-      </div>
-    </div>
-  );
-};
+function Calendar() {
+  const [year,setYear] = useState(2026);
+  const months = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  const days = Array.from({length:35},(_,i)=>i+1);
 
   return (
     <div>
