@@ -203,7 +203,7 @@ addProject={addProject}
 editProject={editProject}
 deleteProject={deleteProject}
 />}
-    {mod==='produktion'&&<Production production={production} setProduction={setProduction} lang={lang}/>}
+    {mod==='produktion'&&<Production production={production} setProduction={setProduction} lang={lang} customers={customers} projects={projects}/>}
     {mod==='lager'&&<Stock stock={stock} setStock={setStock}/>}
     {mod==='wareneingang'&&<IncomingGoods stock={stock} setStock={setStock}/>}
     {mod==='bestellliste'&&<Simple title="Bestellliste" text="Automatische Liste für Artikel unter Mindestbestand, Lieferanten und Status der Bestellung."/>}
