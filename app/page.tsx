@@ -256,10 +256,58 @@ export default function Page() {
             </table>
           </section>
         )}
+        {module === 'production' && (
+  <div>
+    <h2>🏭 Produktion</h2>
+  </div>
+)}
+
+{module === 'stock' && (
+  <div>
+    <h2>📦 Lager</h2>
+  </div>
+)}
+
+{module === 'delivery' && (
+  <div>
+    <h2>🚚 Lieferungen</h2>
+  </div>
+)}
+
+{module === 'orders' && (
+  <div>
+    <h2>📋 Aufträge</h2>
+  </div>
+)}
+
+{module === 'montage' && (
+  <div>
+    <h2>🔧 Montage</h2>
+  </div>
+)}
+
+{module === 'calendar' && (
+  <div>
+    <h2>📅 Kalender</h2>
+  </div>
+)}
+
+{module === 'employees' && (
+  <div>
+    <h2>👷 Mitarbeiter</h2>
+  </div>
+)}
+
+{module === 'messages' && (
+  <div>
+    <h2>💬 Nachrichten</h2>
+  </div>
+)}
       </main>
     </div>
   );
 }
+
 
 function Event({color,title,time}:any) {
   return (
