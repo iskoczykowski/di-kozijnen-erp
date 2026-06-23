@@ -440,7 +440,7 @@ function Calendar({events,setEvents,lang}:any) {
       </p>
     </div>
   );
-}
+};
 
   return (
     <div>
