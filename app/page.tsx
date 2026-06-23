@@ -364,73 +364,23 @@ function Stat({title,value}:any) {
 }
 
 function Calendar({events,setEvents,lang}:any) {
-  const [year,setYear] = useState(2026);
-
-  const months = lang==='nl'
-    ? ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December']
-    : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-
-  const addEvent=(month:number,day:number)=>{
-    const title=prompt(lang==='nl'?'Afspraak?':'Termin?');
-    if(!title)return;
-    const time=prompt(lang==='nl'?'Tijd?':'Uhrzeit?')||'';
-    setEvents([{id:Date.now(),year,month,day,title,time},...events]);
-  };
-
-  const editEvent=(ev:any)=>{
-  const title=prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title)||ev.title;
-  const time=prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time)||ev.time;
-  setEvents(events.map((e:any)=>e.id===ev.id?{...e,title,time}:e));
-};
-
-const deleteEvent=(id:number)=>{
-  if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?'))return;
-  setEvents(events.filter((e:any)=>e.id!==id));
-};
-
-return (
+  return (
     <div>
-      <div style={topRow}>
-        <button onClick={()=>setYear(Math.max(2026,year-1))}>{'<'}</button>
-        <h2>{lang==='nl'?'Kalender':'Kalender'} {year}</h2>
-        <button onClick={()=>setYear(Math.min(2030,year+1))}>{'>'}</button>
-      </div>
+      <h2>{lang==='nl'?'Kalender':'Kalender'}</h2>
+      <button onClick={()=>{
+        const title = prompt(lang==='nl'?'Afspraak?':'Termin?');
+        if(!title)return;
+        setEvents([{id:Date.now(),title},...events]);
+      }}>
+        {lang==='nl'?'+ Afspraak toevoegen':'+ Termin hinzufügen'}
+      </button>
 
-      <div style={monthsGrid}>
-        {months.map((m:string,month:number)=>(
-          <div key={m} style={monthBox}>
-            <b>{m}</b>
-
-            <div style={daysGrid}>
-              {Array.from({length:31},(_,i)=>i+1).map(day=>(
-                <div
-                  key={day}
-                  onDoubleClick={()=>addEvent(month,day)}
-                  style={{
-                    background:'#fff',
-                    borderRadius:8,
-                    padding:4,
-                    minHeight:42,
-                    cursor:'pointer'
-                  }}
-                >
-                  <b>{day}</b>
-
-                  {events
-                    .filter((e:any)=>e.year===year && e.month===month && e.day===day)
-                    .map((ev:any)=>(
-                      <div key={ev.id} style={{fontSize:10,marginTop:4,background:'#dbeafe',borderRadius:6,padding:3}}>
-                        {ev.time} {ev.title}
-                        <br/>
-                        <button onClick={()=>editEvent(ev)}>✏️</button>
-                        <button onClick={()=>deleteEvent(ev.id)}>🗑</button>
-                      </div>
-                    ))}
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+      {events.map((e:any)=>(
+        <div key={e.id}>{e.title}</div>
+      ))}
+    </div>
+  );
+}
 
       <p style={{marginTop:12}}>
         {lang==='nl'
