@@ -220,6 +220,7 @@ deleteProject={deleteProject}
    </section>
   </main>
  </div>
+ )
  }
 
 function CustomersModule({customers,addCustomer,editCustomer,deleteCustomer}:any){
@@ -244,6 +245,7 @@ function CustomersModule({customers,addCustomer,editCustomer,deleteCustomer}:any
    </tbody>
   </table>
  </div>
+)
 }
 
 function Dashboard({t,projects,customers,stock}:any){
