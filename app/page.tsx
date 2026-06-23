@@ -401,7 +401,7 @@ function Calendar({events,setEvents,lang}:any) {
             <th style={th}>{lang==='nl'?'Datum':'Datum'}</th>
             <th style={th}>{lang==='nl'?'Tijd':'Uhrzeit'}</th>
             <th style={th}>{lang==='nl'?'Afspraak':'Termin'}</th>
-            <th style={th}>{t.action}</th>
+            <th style={th}>{lang==='nl'?'Actie':'Aktion'}</th>
           </tr>
         </thead>
 
@@ -412,8 +412,8 @@ function Calendar({events,setEvents,lang}:any) {
               <td style={td}>{ev.time}</td>
               <td style={td}>{ev.title}</td>
               <td style={td}>
-                <button onClick={()=>editEvent(ev)}>{t.edit}</button>
-                <button onClick={()=>deleteEvent(ev.id)}>{t.del}</button>
+                <button onClick={()=>editEvent(ev)}>{lang==='nl'?'Bewerken':'Bearbeiten'}</button>
+                <button onClick={()=>deleteEvent(ev.id)}>{lang==='nl'?'Verwijderen':'Löschen'}</button>
               </td>
             </tr>
           ))}
