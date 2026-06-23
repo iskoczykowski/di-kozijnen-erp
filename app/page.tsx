@@ -231,7 +231,7 @@ function CustomersModule({customers,addCustomer,editCustomer,deleteCustomer}:any
   <table className="table">
    <thead><tr><th>Kunde</th><th>Telefon</th><th>Ort</th><th>Status</th><th>Aktion</th></tr></thead>
    <tbody>
-    {customers.map((c:any)=><tr key={c.id}>
+    {(customers||[]).map((c:any)=>(
      <td>{c.company_name || '-'}</td>
      <td>{c.phone || '-'}</td>
      <td>{c.city || '-'}</td>
@@ -258,7 +258,7 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
   <table className="table">
    <thead><tr><th>Nr.</th><th>Projekt</th><th>Kunde</th><th>Status</th><th>Preis</th><th>Aktion</th></tr></thead>
    <tbody>
-    {projects.map((p:any)=><tr key={p.id}>
+   {(projects||[]).map((p:any)=>(
      <td>{p.project_number || '-'}</td>
      <td>{p.project_name || '-'}</td>
      <td>{p.customer || '-'}</td>
@@ -285,8 +285,8 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
     setProduction(data||[]);
   };
 
-  const selectedCustomer=customers.find((c:any)=>String(c.id)===kundeId);
-  const selectedProject=projects.find((p:any)=>String(p.id)===projektId);
+ const selectedCustomer=(customers||[]).find((c:any)=>String(c.id)===kundeId);
+const selectedProject=(projects||[]).find((p:any)=>String(p.id)===projektId);
 
   const addProduction=async()=>{
     if(!selectedCustomer){alert('Bitte Kunde auswählen');return;}
