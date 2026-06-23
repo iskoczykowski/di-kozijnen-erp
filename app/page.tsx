@@ -220,7 +220,6 @@ deleteProject={deleteProject}
    </section>
   </main>
  </div>
- )
  }
 
 function CustomersModule({customers,addCustomer,editCustomer,deleteCustomer}:any){
