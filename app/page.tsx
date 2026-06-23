@@ -430,7 +430,7 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
         </tbody>
       </table>
     </div>
-  );
+  )
 }
 function Stock({stock,setStock}:any){
   return (
