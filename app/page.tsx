@@ -384,8 +384,9 @@ function Calendar({events,setEvents,lang}:any) {
   };
 
   const deleteEvent=(id:number)=>{
-    if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?'))
+    if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?'))return;
     setEvents(events.filter((e:any)=>e.id!==id));
+  };
 
   return (
     <div>
