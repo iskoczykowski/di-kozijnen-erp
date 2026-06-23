@@ -355,7 +355,6 @@ async function reloadProjects(){
 
 </section>
 )}
-        )}
       </main>
     </div>
   );
