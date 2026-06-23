@@ -1,131 +1,233 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { supabase } from '../lib/supabase';
+
+type Lang = 'de' | 'nl';
+type Module = 'dashboard' | 'customers';
 
 export default function Page() {
-  const [lang, setLang] = useState<'de' | 'nl'>('de');
+  const [lang, setLang] = useState<Lang>('de');
+  const [module, setModule] = useState<Module>('dashboard');
+  const [customers, setCustomers] = useState<any[]>([]);
 
   const t:any = {
     de: {
-      search:'Suchen...',
-      today:'Heute',
+      title:'D&I Kozijnen ERP',
+      dashboard:'Dashboard',
+      customers:'Kunden',
+      addCustomer:'Kunde hinzufügen',
+      edit:'Bearbeiten',
+      delete:'Löschen',
+      name:'Name',
+      phone:'Telefon',
+      email:'E-Mail',
+      address:'Adresse',
+      city:'Ort',
+      status:'Status',
+      active:'Aktiv',
       calendar:'Kalender',
-      info:'Informationen',
-      notes:'Notizen',
-      important:'Wichtige Ereignisse',
-      upcoming:'Kommende Termine',
-      active:'Aktive Projekte',
-      open:'Offene Aufträge',
-      done:'Fertige Aufträge',
-      next:'Nächster Termin',
-      add:'Hinzufügen'
+      tasks:'Offene Aufträge',
+      messages:'Nachrichten',
+      search:'Suchen...'
     },
     nl: {
-      search:'Zoeken...',
-      today:'Vandaag',
+      title:'D&I Kozijnen ERP',
+      dashboard:'Dashboard',
+      customers:'Klanten',
+      addCustomer:'Klant toevoegen',
+      edit:'Bewerken',
+      delete:'Verwijderen',
+      name:'Naam',
+      phone:'Telefoon',
+      email:'E-mail',
+      address:'Adres',
+      city:'Plaats',
+      status:'Status',
+      active:'Actief',
       calendar:'Kalender',
-      info:'Informatie',
-      notes:'Notities',
-      important:'Belangrijke gebeurtenissen',
-      upcoming:'Aankomende afspraken',
-      active:'Actieve projecten',
-      open:'Openstaande opdrachten',
-      done:'Afgeronde opdrachten',
-      next:'Volgende afspraak',
-      add:'Toevoegen'
+      tasks:'Openstaande opdrachten',
+      messages:'Berichten',
+      search:'Zoeken...'
     }
   }[lang];
 
-  const days = ['MO','TU','WE','TH','FR','SA','SU'];
-  const nums = Array.from({length:35},(_,i)=>i+1);
+  async function loadCustomers() {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .order('created_at', { ascending:false });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setCustomers(data || []);
+  }
+
+  useEffect(() => {
+    loadCustomers();
+  }, []);
+
+  async function addCustomer() {
+    const company_name = prompt(t.name + '?');
+    if (!company_name) return;
+
+    const phone = prompt(t.phone + '?') || '';
+    const email = prompt(t.email + '?') || '';
+    const address = prompt(t.address + '?') || '';
+    const city = prompt(t.city + '?') || '';
+
+    const { error } = await supabase.from('customers').insert([{
+      company_name,
+      phone,
+      email,
+      address,
+      city
+    }]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadCustomers();
+  }
+
+  async function editCustomer(c:any) {
+    const company_name = prompt(t.name + '?', c.company_name || '');
+    if (!company_name) return;
+
+    const phone = prompt(t.phone + '?', c.phone || '') || '';
+    const email = prompt(t.email + '?', c.email || '') || '';
+    const address = prompt(t.address + '?', c.address || '') || '';
+    const city = prompt(t.city + '?', c.city || '') || '';
+
+    const { error } = await supabase
+      .from('customers')
+      .update({ company_name, phone, email, address, city })
+      .eq('id', c.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadCustomers();
+  }
+
+  async function deleteCustomer(c:any) {
+    if (!confirm(t.delete + '?')) return;
+
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', c.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    await loadCustomers();
+  }
 
   return (
     <div style={{minHeight:'100vh',background:'#f4f7fb',fontFamily:'Arial',display:'flex'}}>
-      
-      <aside style={{width:90,background:'#fff',padding:20,boxShadow:'0 20px 60px #0001'}}>
-        <div style={{width:44,height:44,borderRadius:14,background:'#2563eb',marginBottom:30}}></div>
-        {['🏠','👥','📁','🏭','📦','🚚','📋','🔧','📅','👷','⏰','📄','💶','🔳','💬','🤖'].map((x,i)=>(
-          <div key={i} style={{fontSize:22,margin:'22px 0',textAlign:'center'}}>{x}</div>
-        ))}
+
+      <aside style={{width:230,background:'#fff',padding:24,boxShadow:'0 20px 60px #0001'}}>
+        <h2>D&I Kozijnen</h2>
+
+        <button onClick={()=>setModule('dashboard')} style={navBtn}>
+          🏠 {t.dashboard}
+        </button>
+
+        <button onClick={()=>setModule('customers')} style={navBtn}>
+          👥 {t.customers}
+        </button>
       </aside>
 
       <main style={{flex:1,padding:30}}>
         <header style={{display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:25}}>
-          <h1 style={{fontSize:34,margin:0}}>D&I Kozijnen ERP</h1>
+          <h1>{t.title}</h1>
 
-          <div style={{display:'flex',gap:15,alignItems:'center'}}>
-            <input placeholder={t.search} style={{padding:14,borderRadius:18,border:'0',width:260}} />
-            <select value={lang} onChange={(e)=>setLang(e.target.value as any)} style={{padding:12,borderRadius:14}}>
+          <div style={{display:'flex',gap:12}}>
+            <input placeholder={t.search} style={inputStyle}/>
+            <select value={lang} onChange={(e)=>setLang(e.target.value as Lang)} style={inputStyle}>
               <option value="de">DE</option>
               <option value="nl">NL</option>
             </select>
-            <span style={{fontSize:22}}>🔔</span>
-            <span style={{fontSize:26}}>👤</span>
           </div>
         </header>
 
-        <div style={{display:'grid',gridTemplateColumns:'1.2fr 1.4fr .8fr',gap:24}}>
-          
-          <section style={card}>
-            <h2>{t.today}</h2>
-            <Event color="#ec4899" title="Montage Müller" time="08:30" />
-            <Event color="#22c55e" title="Kundentermin" time="11:40" />
-            <Event color="#06b6d4" title="Lieferung Glas" time="14:00" />
-            <Event color="#f97316" title="Produktion Projekt A" time="16:30" />
-          </section>
+        {module === 'dashboard' && (
+          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:20}}>
+            <div style={{...card,borderTop:'6px solid #2563eb'}}>
+              <h2>📅 {t.calendar}</h2>
+              <p>Montage Müller 08:00</p>
+              <p>Kundentermin 10:00</p>
+              <p>Lieferung 14:00</p>
+            </div>
 
-          <section style={card}>
+            <div style={{...card,borderTop:'6px solid #dc2626'}}>
+              <h2>📋 {t.tasks}</h2>
+              <p>Produktion offen</p>
+              <p>Montage offen</p>
+              <p>Lager prüfen</p>
+            </div>
+
+            <div style={{...card,borderTop:'6px solid #9333ea'}}>
+              <h2>🔔 {t.messages}</h2>
+              <p>WhatsApp</p>
+              <p>E-Mail</p>
+              <p>Push</p>
+            </div>
+          </div>
+        )}
+
+        {module === 'customers' && (
+          <div style={card}>
             <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-              <button>{'<'}</button>
-              <h2>{t.calendar} 2026</h2>
-              <button>{'>'}</button>
+              <h2>{t.customers}</h2>
+              <button onClick={addCustomer} style={primaryBtn}>
+                + {t.addCustomer}
+              </button>
             </div>
 
-            <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:10,textAlign:'center'}}>
-              {days.map(d=><b key={d}>{d}</b>)}
-              {nums.map(n=>(
-                <div key={n} style={{
-                  padding:10,
-                  borderRadius:12,
-                  background:n===12?'#22c55e':n===23?'#06b6d4':n===7?'#ec4899':'#f8fafc',
-                  color:[7,12,23].includes(n)?'#fff':'#111'
-                }}>
-                  {n}
-                </div>
-              ))}
-            </div>
-          </section>
+            <table style={{width:'100%',borderCollapse:'collapse',marginTop:20}}>
+              <thead>
+                <tr>
+                  <th style={th}>{t.name}</th>
+                  <th style={th}>{t.phone}</th>
+                  <th style={th}>{t.email}</th>
+                  <th style={th}>{t.address}</th>
+                  <th style={th}>{t.city}</th>
+                  <th style={th}>{t.status}</th>
+                  <th style={th}>Aktion</th>
+                </tr>
+              </thead>
 
-          <section style={card}>
-            <h2>{t.info}</h2>
-            <BigStat title={t.active} value="128" />
-            <BigStat title={t.done} value="57" />
-            <BigStat title={t.next} value="3h 12m" />
-            <BigStat title={t.open} value="12" />
-          </section>
+              <tbody>
+                {customers.map((c:any)=>(
+                  <tr key={c.id}>
+                    <td style={td}>{c.company_name}</td>
+                    <td style={td}>{c.phone}</td>
+                    <td style={td}>{c.email}</td>
+                    <td style={td}>{c.address}</td>
+                    <td style={td}>{c.city}</td>
+                    <td style={td}>✅ {t.active}</td>
+                    <td style={td}>
+                      <button onClick={()=>editCustomer(c)} style={smallBtn}>{t.edit}</button>
+                      <button onClick={()=>deleteCustomer(c)} style={smallBtn}>{t.delete}</button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
 
-          <section style={card}>
-            <h2>{t.notes}</h2>
-            <Note title="Glas bestellen" text="Lieferant kontaktieren" />
-            <Note title="Kunde anrufen" text="Termin bestätigen" />
-            <Note title="Rechnung senden" text="Projekt Müller" />
-          </section>
-
-          <section style={card}>
-            <h2>{t.important}</h2>
-            <Event color="#ec4899" title="Montage Team 1" time="23 Jun 08:30" />
-            <Event color="#f97316" title="Material Lieferung" time="07 Jul 08:50" />
-            <Event color="#6366f1" title="Urlaub Mitarbeiter" time="14 Jul 10:00" />
-          </section>
-
-          <section style={card}>
-            <h2>{t.upcoming}</h2>
-            <Event color="#ec4899" title="Kundentermin" time="Heute 08:30" />
-            <Event color="#22c55e" title="Montage" time="Heute 11:40" />
-            <Event color="#06b6d4" title="Produktion" time="Heute 14:00" />
-          </section>
-
-        </div>
       </main>
     </div>
   );
@@ -133,37 +235,54 @@ export default function Page() {
 
 const card:any = {
   background:'#fff',
-  borderRadius:24,
+  borderRadius:22,
   padding:24,
   boxShadow:'0 20px 50px #00000012'
 };
 
-function Event({color,title,time}:any){
-  return (
-    <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'12px 0',borderBottom:'1px solid #eee'}}>
-      <div>
-        <span style={{display:'inline-block',width:10,height:10,borderRadius:99,background:color,marginRight:10}}></span>
-        <b>{title}</b>
-      </div>
-      <small>{time}</small>
-    </div>
-  );
-}
+const navBtn:any = {
+  display:'block',
+  width:'100%',
+  padding:14,
+  marginBottom:12,
+  border:'0',
+  borderRadius:14,
+  background:'#eef2ff',
+  textAlign:'left',
+  cursor:'pointer'
+};
 
-function Note({title,text}:any){
-  return (
-    <div style={{padding:'12px 0',borderBottom:'1px solid #eee'}}>
-      <b>☐ {title}</b>
-      <p style={{margin:'4px 0',color:'#666'}}>{text}</p>
-    </div>
-  );
-}
+const primaryBtn:any = {
+  padding:'12px 18px',
+  border:'0',
+  borderRadius:14,
+  background:'#2563eb',
+  color:'#fff',
+  cursor:'pointer'
+};
 
-function BigStat({title,value}:any){
-  return (
-    <div style={{marginBottom:18}}>
-      <small>{title}</small>
-      <div style={{fontSize:32,fontWeight:800,color:'#0ea5e9'}}>{value}</div>
-    </div>
-  );
-}
+const smallBtn:any = {
+  padding:'8px 10px',
+  marginRight:6,
+  border:'0',
+  borderRadius:10,
+  background:'#eef2ff',
+  cursor:'pointer'
+};
+
+const inputStyle:any = {
+  padding:12,
+  borderRadius:14,
+  border:'1px solid #ddd'
+};
+
+const th:any = {
+  textAlign:'left',
+  padding:12,
+  borderBottom:'1px solid #ddd'
+};
+
+const td:any = {
+  padding:12,
+  borderBottom:'1px solid #eee'
+};
