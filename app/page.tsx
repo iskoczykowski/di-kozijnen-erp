@@ -437,7 +437,7 @@ function Calendar({events,setEvents,lang}:any) {
         {lang==='nl'
           ? 'Dubbelklik op een dag om een afspraak toe te voegen.'
           : 'Doppelklick auf einen Tag, um einen Termin hinzuzufügen.'}
-      </p>
+      </div>
     </div>
   );
 };
