@@ -603,83 +603,36 @@ function Montage({lang}:any){
         <button className="primary" onClick={add}>{t.add}</button>
       </div>
 
-      <table className="table">
-        <thead>
-          <tr>
-            <th>{t.kunde}</th>
-            <th>{t.nr}</th>
-            <th>{t.projekt}</th>
-            <th>{t.adresse}</th>
-            <th>{t.ort}</th>
-            <th>{t.telefon}</th>
-            <th>{t.datum}</th>
-            <th>{t.werk}</th>
-            <th>{t.monteur}</th>
-            <th>{t.status}</th>
-            <th>{t.vorher}</th>
-            <th>{t.nachher}</th>
-            <th>{t.sign}</th>
-            <th>{t.check}</th>
-            <th>{t.anzahl}</th>
-            <th>{t.notizen}</th>
-            <th>{t.aktion}</th>
-          </tr>
-        </thead>
+      <div style={{display:'grid',gap:'16px',marginTop:'20px'}}>
+  {items.map((m:any)=>(
+    <div key={m.id} className="card" style={{border:'1px solid #eee'}}>
+      <h3>{m.kunde} - {m.projekt}</h3>
 
-        <tbody>
-          {items.map((m:any)=>(
-            <tr key={m.id}>
-              <td>{m.kunde}</td>
-              <td>{m.kundennummer}</td>
-              <td>{m.projekt}</td>
-              <td>{m.adresse}</td>
-              <td>{m.ort}</td>
-              <td>{m.telefon}</td>
-              <td>{m.datum}</td>
-              <td>{m.werk_fertig}</td>
-              <td>{m.monteur}</td>
+      <p><b>{t.nr}:</b> {m.kundennummer}</p>
+      <p><b>{t.adresse}:</b> {m.adresse}</p>
+      <p><b>{t.ort}:</b> {m.ort}</p>
+      <p><b>{t.telefon}:</b> {m.telefon}</p>
+      <p><b>{t.datum}:</b> {m.datum}</p>
 
-              <td>
-                <select
-                  value={m.status||'Offen'}
-                  onChange={(e)=>updateField(m,'status',e.target.value)}
-                >
-                  <option>Offen</option>
-                  <option>In Bearbeitung</option>
-                  <option>Fertig</option>
-                </select>
-              </td>
+      <hr />
 
-              <td>
-                {m.foto_vorher
-                  ? <a href={m.foto_vorher} target="_blank">{t.open}</a>
-                  : '-'}
-              </td>
+      <p><b>{t.werk}:</b> {m.werk_fertig}</p>
+      <p><b>{t.monteur}:</b> {m.monteur}</p>
+      <p><b>{t.status}:</b> {m.status}</p>
+      <p><b>{t.anzahl}:</b> {m.anzahl}</p>
 
-              <td>
-                {m.foto_nachher
-                  ? <a href={m.foto_nachher} target="_blank">{t.open}</a>
-                  : '-'}
-              </td>
+      <hr />
 
-              <td>
-                {m.unterschrift
-                  ? <a href={m.unterschrift} target="_blank">{t.open}</a>
-                  : '-'}
-              </td>
+      <p><b>{t.check}:</b> {m.checkliste}</p>
+      <p><b>{t.notizen}:</b> {m.notizen}</p>
 
-              <td>{m.checkliste}</td>
-              <td>{m.anzahl}</td>
-              <td>{m.notizen}</td>
-
-              <td>
-                <button className="pill" onClick={()=>edit(m)}>{t.edit}</button>
-                <button className="pill" onClick={()=>remove(m)}>{t.del}</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <div className="actions">
+        <button className="pill" onClick={()=>edit(m)}>{t.edit}</button>
+        <button className="pill" onClick={()=>remove(m)}>{t.del}</button>
+      </div>
+    </div>
+  ))}
+</div>
     </div>
   )
 }
