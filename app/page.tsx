@@ -406,7 +406,7 @@ function Calendar({events,setEvents,lang}:any) {
         </thead>
 
         <tbody>
-          {events.map((ev:any)=>(
+          {(events || []).map((ev:any)=>(
             <tr key={ev.id}>
               <td style={td}>{ev.date}</td>
               <td style={td}>{ev.time}</td>
