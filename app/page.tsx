@@ -274,13 +274,14 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
  </div>
 }
 {mod==='produktion'&&<Production production={production} setProduction={setProduction} lang={lang} customers={customers} projects={projects}/>}
+  function Production({production,setProduction,lang,customers,projects}:any){
   const reloadProduction=async()=>{
     const {data}=await supabase
       .from('production')
       .select('*')
       .order('created_at',{ascending:false});
 
-    setProduction(data || []);
+    setProduction(data||[]);
   };
 
   const updateStatus=async(p:any,status:string)=>{
@@ -293,32 +294,8 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
     await reloadProduction();
   };
 
-  const uploadFile=async(p:any,file:any)=>{
-    if(!file)return;
-
-    const fileName=`${p.id}-${Date.now()}-${file.name}`;
-
-    const {error}=await supabase.storage
-      .from('production-files')
-      .upload(fileName,file);
-
-    if(error){ alert(error.message); return; }
-
-    const {data}=supabase.storage
-      .from('production-files')
-      .getPublicUrl(fileName);
-
-    const {error:updateError}=await supabase
-      .from('production')
-      .update({drawing_url:data.publicUrl})
-      .eq('id',p.id);
-
-    if(updateError){ alert(updateError.message); return; }
-    await reloadProduction();
-  };
-
   const updateNotes=async(p:any)=>{
-    const notes=prompt('Notizen?',p.notes || '') || '';
+    const notes=prompt('Notizen?',p.notes||'')||'';
 
     const {error}=await supabase
       .from('production')
@@ -336,39 +313,34 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
       <button
         className="primary"
         onClick={async()=>{
+          const kunde=prompt('Kundenname?');
+          if(!kunde)return;
 
-  const kunde = prompt('Kundenname?');
-  if(!kunde) return;
+          const projekt=prompt('Projekt?');
+          if(!projekt)return;
 
-  const projekt = prompt('Projekt?');
-  if(!projekt) return;
+          const kundennummer=
+            customers.find((c:any)=>c.company_name===kunde)?.phone ||
+            customers.find((c:any)=>c.company_name===kunde)?.id ||
+            '';
 
-  const kundennummer =
-    customers.find((c:any)=>c.name===kunde)?.nummer || '';
+          const qty=Number(prompt('Menge?')||0);
+          const notes=prompt('Notizen?')||'';
 
-  const qty = Number(prompt('Menge?') || 0);
+          const {error}=await supabase
+            .from('production')
+            .insert([{
+              project:projekt,
+              item:String(kundennummer),
+              qty,
+              status:'Noch nicht begonnen',
+              notes,
+              drawing_url:''
+            }]);
 
-  const notes = prompt('Notizen?') || '';
-
-  const {error}=await supabase
-    .from('production')
-    .insert([{
-      project: projekt,
-      item: kundennummer,
-      qty,
-      status:'Noch nicht begonnen',
-      notes,
-      drawing_url:''
-    }]);
-
-  if(error){
-    alert(error.message);
-    return;
-  }
-
-  await reloadProduction();
-
-}}
+          if(error){ alert(error.message); return; }
+          await reloadProduction();
+        }}
       >
         {lang==='nl'?'Productieopdracht aanmaken':'Produktionsauftrag anlegen'}
       </button>
@@ -380,7 +352,6 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
             <th>{lang==='nl'?'Klantnummer':'Kundennummer'}</th>
             <th>{lang==='nl'?'Aantal':'Menge'}</th>
             <th>Status</th>
-            <th>{lang==='nl'?'Tekening / Foto':'Zeichnung / Foto'}</th>
             <th>{lang==='nl'?'Notities':'Notizen'}</th>
           </tr>
         </thead>
@@ -394,29 +365,13 @@ function Projects({projects,addProject,editProject,deleteProject}:any){
 
               <td>
                 <select
-                  value={p.status || 'Noch nicht begonnen'}
+                  value={p.status||'Noch nicht begonnen'}
                   onChange={(e)=>updateStatus(p,e.target.value)}
                 >
                   <option>Noch nicht begonnen</option>
                   <option>In Bearbeitung</option>
                   <option>Fertig</option>
                 </select>
-
-                <div style={{marginTop:'5px'}}>
-                  {p.status==='Noch nicht begonnen' && '🔴'}
-                  {p.status==='In Bearbeitung' && '🟡'}
-                  {p.status==='Fertig' && '🟢'}
-                </div>
-              </td>
-
-              <td>
-                <input
-                  type="file"
-                  onChange={(e)=>uploadFile(p,e.target.files?.[0])}
-                />
-                {p.drawing_url
-                  ? <a href={p.drawing_url} target="_blank"> Öffnen</a>
-                  : <span> Keine Datei</span>}
               </td>
 
               <td>
