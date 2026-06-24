@@ -67,6 +67,20 @@ export default function Page() {
   loadProjects();
   loadProduction();
 }, []);
+  useEffect(() => {
+  const saved = localStorage.getItem('erp_events');
+
+  if (saved) {
+    setEvents(JSON.parse(saved));
+  }
+}, []);
+
+useEffect(() => {
+  localStorage.setItem(
+    'erp_events',
+    JSON.stringify(events)
+  );
+}, [events]);
 
   async function addCustomer() {
     const company_name = prompt(t.name + '?');
