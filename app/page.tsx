@@ -376,7 +376,26 @@ function Calendar({events,setEvents,lang}:any) {
     const date = prompt(lang==='nl'?'Datum? bijv. 2026-06-24':'Datum? z.B. 2026-06-24') || '';
     const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?') || '';
 
-    setEvents([{id:Date.now(),title,date,time},...(events || [])]);
+    const typeChoice = prompt(
+      lang==='nl'
+        ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
+        : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
+    ) || '1';
+
+    const typeMap:any = {
+      '1': lang==='nl'?'Klant':'Kunde',
+      '2': 'Montage',
+      '3': lang==='nl'?'Levering':'Lieferung',
+      '4': lang==='nl'?'Productie':'Produktion',
+      '5': lang==='nl'?'Belangrijk':'Wichtig'
+    };
+
+    const type = typeMap[typeChoice] || typeMap['1'];
+
+    setEvents([
+      {id:Date.now(),title,date,time,type},
+      ...(events || [])
+    ]);
   };
 
   const editEvent = (ev:any) => {
@@ -384,14 +403,41 @@ function Calendar({events,setEvents,lang}:any) {
     const date = prompt(lang==='nl'?'Datum?':'Datum?',ev.date) || ev.date;
     const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time) || ev.time;
 
-    setEvents(events.map((e:any)=>e.id===ev.id?{...e,title,date,time}:e));
+    const typeChoice = prompt(
+      lang==='nl'
+        ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
+        : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
+    ) || '1';
+
+    const typeMap:any = {
+      '1': lang==='nl'?'Klant':'Kunde',
+      '2': 'Montage',
+      '3': lang==='nl'?'Levering':'Lieferung',
+      '4': lang==='nl'?'Productie':'Produktion',
+      '5': lang==='nl'?'Belangrijk':'Wichtig'
+    };
+
+    const type = typeMap[typeChoice] || ev.type || typeMap['1'];
+
+    setEvents((events || []).map((e:any)=>
+      e.id===ev.id ? {...e,title,date,time,type} : e
+    ));
   };
 
   const deleteEvent = (id:number) => {
     if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?')) return;
-    setEvents(events.filter((e:any)=>e.id!==id));
+    setEvents((events || []).filter((e:any)=>e.id!==id));
   };
 
+  const eventColor=(type:string)=>{
+  if(type==='Montage')return '#22c55e';
+  if(type==='Lieferung' || type==='Levering')return '#eab308';
+  if(type==='Kunde' || type==='Klant')return '#2563eb';
+  if(type==='Produktion' || type==='Productie')return '#9333ea';
+  if(type==='Wichtig' || type==='Belangrijk')return '#dc2626';
+
+  return '#2563eb';
+};
   return (
     <section style={card}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
@@ -406,6 +452,7 @@ function Calendar({events,setEvents,lang}:any) {
           <tr>
             <th style={th}>{lang==='nl'?'Datum':'Datum'}</th>
             <th style={th}>{lang==='nl'?'Tijd':'Uhrzeit'}</th>
+            <th style={th}>{lang==='nl'?'Soort':'Art'}</th>
             <th style={th}>{lang==='nl'?'Afspraak':'Termin'}</th>
             <th style={th}>{lang==='nl'?'Actie':'Aktion'}</th>
           </tr>
@@ -416,10 +463,24 @@ function Calendar({events,setEvents,lang}:any) {
             <tr key={ev.id}>
               <td style={td}>{ev.date}</td>
               <td style={td}>{ev.time}</td>
+              <td style={td}>
+                <span style={{
+                  background:eventColor(ev.type || ev.title),
+                  color:'#fff',
+                  padding:'4px 8px',
+                  borderRadius:8
+                }}>
+                  {ev.type}
+                </span>
+              </td>
               <td style={td}>{ev.title}</td>
               <td style={td}>
-                <button onClick={()=>editEvent(ev)}>{lang==='nl'?'Bewerken':'Bearbeiten'}</button>
-                <button onClick={()=>deleteEvent(ev.id)}>{lang==='nl'?'Verwijderen':'Löschen'}</button>
+                <button onClick={()=>editEvent(ev)}>
+                  {lang==='nl'?'Bewerken':'Bearbeiten'}
+                </button>
+                <button onClick={()=>deleteEvent(ev.id)}>
+                  {lang==='nl'?'Verwijderen':'Löschen'}
+                </button>
               </td>
             </tr>
           ))}
