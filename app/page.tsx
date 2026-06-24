@@ -201,10 +201,12 @@ function editMontageFile(f:any){
   const url = prompt(lang==='de'?'Excel-Link?':'Excel-link?',f.url) || f.url;
 
   setMontageFiles(
-    montageFiles.map((x:any)=>
-      x.id===f.id ? {...x,name,url} : x
-    )
-  );
+  montageFiles.map((x:any)=>
+    x.id === f.id
+      ? { ...x, name, url }
+      : x
+  )
+);
 }
 
 function deleteMontageFile(id:number){
