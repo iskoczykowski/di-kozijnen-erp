@@ -111,13 +111,13 @@ useEffect(() => {
     const price = prompt(t.price + '?') || '';
 
     const { error } = await supabase.from('projects').insert([{
-      project_number,
-      project_name,
-      customer,
-      status: lang === 'de' ? 'Anfrage' : 'Aanvraag',
-      price,
-      notes: ''
-    }]);
+  project_number,
+  project_name,
+  customer,
+  status: 'open',
+  price,
+  notes: ''
+}]);
 
     if (error) return alert(error.message);
     loadProjects();
@@ -307,7 +307,30 @@ useEffect(() => {
 <td style={td}>{p.project}</td>
 <td style={td}>{p.item}</td>
 <td style={td}>{p.qty}</td>
-<td style={td}>{p.status}</td>
+<td style={td}>
+  <button
+    style={{
+      background:
+        p.status === 'done'
+          ? '#22c55e'
+          : p.status === 'working'
+          ? '#eab308'
+          : '#ef4444',
+      color:'#fff',
+      border:'none',
+      borderRadius:8,
+      padding:'6px 12px'
+    }}
+  >
+    {
+      p.status === 'done'
+        ? (lang==='nl' ? 'Klaar' : 'Fertig')
+        : p.status === 'working'
+        ? (lang==='nl' ? 'In behandeling' : 'In Bearbeitung')
+        : (lang==='nl' ? 'Open' : 'Offen')
+    }
+  </button>
+</td>
 <td style={td}>{p.notes}</td>
 </tr>
 ))}
