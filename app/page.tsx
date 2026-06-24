@@ -188,31 +188,32 @@ async function editProject(p:any) {
 }
  function addMontageFile(){
   const name = prompt(lang==='de'?'Name der Datei?':'Naam van bestand?');
-  if(!name)return;
+  if(!name) return;
 
   const url = prompt(lang==='de'?'Excel-Link einfügen?':'Excel-link invoegen?');
-  if(!url)return;
+  if(!url) return;
 
-  setMontageFiles([{id:Date.now(),name,url},...montageFiles]);
+  setMontageFiles([{id:Date.now(),name:name,url:url},...montageFiles]);
 }
 
 function editMontageFile(f:any){
   const name = prompt(lang==='de'?'Name der Datei?':'Naam van bestand?',f.name) || f.name;
   const url = prompt(lang==='de'?'Excel-Link?':'Excel-link?',f.url) || f.url;
 
-  setMontageFiles(
-  montageFiles.map((x:any)=>
-    x.id === f.id
-      ? { ...x, name, url }
-      : x
-  )
-);
+  setMontageFiles(montageFiles.map((x:any)=>{
+    if(x.id === f.id){
+      return {...x,name:name,url:url};
+    }
+    return x;
+  }));
 }
 
 function deleteMontageFile(id:number){
   if(!confirm(lang==='de'?'Datei löschen?':'Bestand verwijderen?')) return;
 
-  setMontageFiles(montageFiles.filter((x:any)=>x.id !== id));
+  setMontageFiles(montageFiles.filter((x:any)=>{
+    return x.id !== id;
+  }));
 }
   return (
     <div style={app}>
