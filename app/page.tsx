@@ -591,7 +591,7 @@ function MiniCalendar({events,lang}:any){
                   style={{
                     fontSize:11,
                     marginTop:4,
-                    background:eventColor(ev.title),
+                    background:eventColor(ev.type || ev.title),
                     color:'#fff',
                     padding:'3px 6px',
                     borderRadius:6
