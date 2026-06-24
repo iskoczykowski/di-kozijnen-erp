@@ -349,7 +349,15 @@ async function editProject(p:any) {
 </td>
                     <td style={td}>{p.price}</td>
                     <td style={td}>
-                      <button onClick={()=>deleteProject(p.id)}>{t.del}</button>
+                      <td style={td}>
+  <button onClick={()=>editProject(p)}>
+    {lang==='de' ? 'Bearbeiten' : 'Bewerken'}
+  </button>
+
+  <button onClick={()=>deleteProject(p.id)}>
+    {lang==='de' ? 'Löschen' : 'Verwijderen'}
+  </button>
+</td>
                     </td>
                   </tr>
                 ))}
