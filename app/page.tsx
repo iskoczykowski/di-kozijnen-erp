@@ -460,31 +460,31 @@ function MiniCalendar({events,lang}:any){
 
           return (
             <div
-  key={day}
-  style={{
-    background:list.length ? '#dbeafe' : '#fff',
-    border:list.length ? '2px solid #2563eb' : '1px solid #ddd',
-    borderRadius:10,
-    padding:8,
-    minHeight:70
-  }}
->
+              key={day}
+              style={{
+                background:list.length?'#dbeafe':'#fff',
+                border:list.length?'2px solid #2563eb':'1px solid #ddd',
+                borderRadius:10,
+                padding:8,
+                minHeight:70
+              }}
+            >
               <b>{day}</b>
+
               {list.map((ev:any)=>(
                 <div
-  key={ev.id}
-  style={{
-    fontSize:11,
-    marginTop:4,
-    background:'#2563eb',
-    color:'#fff',
-    padding:'2px 6px',
-    borderRadius:6
-  }}
->
-                  🕗 {ev.time}
-<br/>
-<b>📌 {ev.title}</b>
+                  key={ev.id}
+                  style={{
+                    fontSize:11,
+                    marginTop:4,
+                    background:'#2563eb',
+                    color:'#fff',
+                    padding:'2px 6px',
+                    borderRadius:6
+                  }}
+                >
+                  🕗 {ev.time}<br/>
+                  <b>📌 {ev.title}</b>
                 </div>
               ))}
             </div>
