@@ -348,9 +348,33 @@ async function editProject(p:any) {
   </button>
 </td>
                     <td style={td}>{p.price}</td>
-                    <td style={td}>
-                      <button onClick={()=>deleteProject(p.id)}>{t.del}</button>
-                    </td>
+                    async function editProject(p:any) {
+
+  const project_name =
+    prompt(lang==='de' ? 'Projektname?' : 'Projectnaam?', p.project_name)
+    || p.project_name;
+
+  const customer =
+    prompt(lang==='de' ? 'Kunde?' : 'Klant?', p.customer)
+    || p.customer;
+
+  const price =
+    prompt(lang==='de' ? 'Preis?' : 'Prijs?', p.price)
+    || p.price;
+
+  const { error } = await supabase
+    .from('projects')
+    .update({
+      project_name,
+      customer,
+      price
+    })
+    .eq('id', p.id);
+
+  if (error) return alert(error.message);
+
+  loadProjects();
+}
                   </tr>
                 ))}
               </tbody>
