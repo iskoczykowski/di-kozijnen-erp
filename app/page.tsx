@@ -212,10 +212,8 @@ function editMontageFile(f:any){
 function deleteMontageFile(id:number){
   if(!confirm(lang==='de'?'Datei löschen?':'Bestand verwijderen?')) return;
 
-  setMontageFiles(
-    montageFiles.filter((x:any)=>x.id!==id)
-  );
-} 
+  setMontageFiles(montageFiles.filter((x:any)=>x.id !== id));
+}
   return (
     <div style={app}>
       <aside style={side}>
