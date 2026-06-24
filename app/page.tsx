@@ -151,13 +151,12 @@ useEffect(() => {
     .update({ status: nextStatus })
     .eq('id', p.id);
 
-  if (error) {
+  if (error) return
     alert(error.message);
-    return;
-  }
-
+    
   loadProjects();
 }
+
 async function editProject(p:any) {
 
   const project_name =
@@ -185,6 +184,7 @@ async function editProject(p:any) {
 
   loadProjects();
 }
+  
   return (
     <div style={app}>
       <aside style={side}>
