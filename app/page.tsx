@@ -137,6 +137,27 @@ useEffect(() => {
     if (error) return alert(error.message);
     loadProjects();
   }
+  async function changeProjectStatus(p:any) {
+
+  const nextStatus =
+    p.status === 'open'
+      ? 'working'
+      : p.status === 'working'
+      ? 'done'
+      : 'open';
+
+  const { error } = await supabase
+    .from('projects')
+    .update({ status: nextStatus })
+    .eq('id', p.id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  loadProjects();
+}
 
   return (
     <div style={app}>
@@ -275,7 +296,31 @@ useEffect(() => {
                     <td style={td}>{p.project_number}</td>
                     <td style={td}>{p.project_name}</td>
                     <td style={td}>{p.customer}</td>
-                    <td style={td}>{p.status}</td>
+                    <td style={td}>
+  <button
+    onClick={()=>changeProjectStatus(p)}
+    style={{
+      background:
+        p.status === 'done'
+          ? '#22c55e'
+          : p.status === 'working'
+          ? '#eab308'
+          : '#ef4444',
+      color:'#fff',
+      border:'none',
+      borderRadius:8,
+      padding:'6px 12px'
+    }}
+  >
+    {
+      p.status === 'done'
+        ? (lang==='de' ? 'Fertig' : 'Klaar')
+        : p.status === 'working'
+        ? (lang==='de' ? 'In Bearbeitung' : 'In behandeling')
+        : (lang==='de' ? 'Offen' : 'Open')
+    }
+  </button>
+</td>
                     <td style={td}>{p.price}</td>
                     <td style={td}>
                       <button onClick={()=>deleteProject(p.id)}>{t.del}</button>
