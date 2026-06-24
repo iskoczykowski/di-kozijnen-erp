@@ -369,58 +369,33 @@ function Stat({title,value}:any) {
 }
 
 function Calendar({events,setEvents,lang}:any) {
+  const chooseColor = () => {
+    return prompt(
+      lang==='nl'
+        ? 'Kleur?\nblue = blauw\ngreen = groen\norange = oranje\nred = rood\npurple = paars'
+        : 'Farbe?\nblue = blau\ngreen = grün\norange = orange\nred = rot\npurple = lila'
+    ) || 'blue';
+  };
+
   const addEvent = () => {
     const title = prompt(lang==='nl'?'Afspraak?':'Termin?');
     if(!title) return;
 
     const date = prompt(lang==='nl'?'Datum? bijv. 2026-06-24':'Datum? z.B. 2026-06-24') || '';
     const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?') || '';
+    const color = chooseColor();
 
-    const typeChoice = prompt(
-      lang==='nl'
-        ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
-        : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
-    ) || '1';
-
-    const typeMap:any = {
-      '1': lang==='nl'?'Klant':'Kunde',
-      '2': 'Montage',
-      '3': lang==='nl'?'Levering':'Lieferung',
-      '4': lang==='nl'?'Productie':'Produktion',
-      '5': lang==='nl'?'Belangrijk':'Wichtig'
-    };
-
-    const type = typeMap[typeChoice] || typeMap['1'];
-
-    setEvents([
-      {id:Date.now(),title,date,time,type},
-      ...(events || [])
-    ]);
+    setEvents([{id:Date.now(),title,date,time,color},...(events || [])]);
   };
 
   const editEvent = (ev:any) => {
     const title = prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title) || ev.title;
     const date = prompt(lang==='nl'?'Datum?':'Datum?',ev.date) || ev.date;
     const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time) || ev.time;
-
-    const typeChoice = prompt(
-      lang==='nl'
-        ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
-        : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
-    ) || '1';
-
-    const typeMap:any = {
-      '1': lang==='nl'?'Klant':'Kunde',
-      '2': 'Montage',
-      '3': lang==='nl'?'Levering':'Lieferung',
-      '4': lang==='nl'?'Productie':'Produktion',
-      '5': lang==='nl'?'Belangrijk':'Wichtig'
-    };
-
-    const type = typeMap[typeChoice] || ev.type || typeMap['1'];
+    const color = chooseColor();
 
     setEvents((events || []).map((e:any)=>
-      e.id===ev.id ? {...e,title,date,time,type} : e
+      e.id===ev.id ? {...e,title,date,time,color} : e
     ));
   };
 
@@ -429,19 +404,10 @@ function Calendar({events,setEvents,lang}:any) {
     setEvents((events || []).filter((e:any)=>e.id!==id));
   };
 
-  const eventColor=(type:string)=>{
-    if(type==='Montage')return '#22c55e';
-    if(type==='Lieferung' || type==='Levering')return '#eab308';
-    if(type==='Kunde' || type==='Klant')return '#2563eb';
-    if(type==='Produktion' || type==='Productie')return '#9333ea';
-    if(type==='Wichtig' || type==='Belangrijk')return '#dc2626';
-    return '#2563eb';
-  };
-
   return (
     <section style={card}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <h2>📅 {lang==='nl'?'Kalender':'Kalender'}</h2>
+        <h2>📅 Kalender</h2>
         <button onClick={addEvent} style={primary}>
           {lang==='nl'?'+ Afspraak toevoegen':'+ Termin hinzufügen'}
         </button>
@@ -450,37 +416,21 @@ function Calendar({events,setEvents,lang}:any) {
       <table style={table}>
         <thead>
           <tr>
-            <th style={th}>{lang==='nl'?'Datum':'Datum'}</th>
+            <th style={th}>Datum</th>
             <th style={th}>{lang==='nl'?'Tijd':'Uhrzeit'}</th>
-            <th style={th}>{lang==='nl'?'Soort':'Art'}</th>
-            <th style={th}>{lang==='nl'?'Afspraak':'Termin'}</th>
+            <th style={th}>Termin</th>
             <th style={th}>{lang==='nl'?'Actie':'Aktion'}</th>
           </tr>
         </thead>
-
         <tbody>
           {(events || []).map((ev:any)=>(
             <tr key={ev.id}>
               <td style={td}>{ev.date}</td>
               <td style={td}>{ev.time}</td>
-              <td style={td}>
-                <span style={{
-                  background:eventColor(ev.type),
-                  color:'#fff',
-                  padding:'4px 8px',
-                  borderRadius:8
-                }}>
-                  {ev.type}
-                </span>
-              </td>
               <td style={td}>{ev.title}</td>
               <td style={td}>
-                <button onClick={()=>editEvent(ev)}>
-                  {lang==='nl'?'Bewerken':'Bearbeiten'}
-                </button>
-                <button onClick={()=>deleteEvent(ev.id)}>
-                  {lang==='nl'?'Verwijderen':'Löschen'}
-                </button>
+                <button onClick={()=>editEvent(ev)}>{lang==='nl'?'Bewerken':'Bearbeiten'}</button>
+                <button onClick={()=>deleteEvent(ev.id)}>{lang==='nl'?'Verwijderen':'Löschen'}</button>
               </td>
             </tr>
           ))}
@@ -506,18 +456,15 @@ function MiniCalendar({events,lang}:any){
     if(next.getFullYear()>=2026 && next.getFullYear()<=2030)setDate(next);
   };
 
-  const eventColor=(title:string)=>{
-    const x=(title||'').toLowerCase();
-
-    if(x.includes('montage'))return '#22c55e';
-    if(x.includes('liefer') || x.includes('lever'))return '#eab308';
-    if(x.includes('kunde') || x.includes('klant'))return '#2563eb';
-    if(x.includes('produktion') || x.includes('productie'))return '#9333ea';
-    if(x.includes('wichtig') || x.includes('belangrijk'))return '#dc2626';
-
-    return '#2563eb';
-  };
-
+  const eventColor=(ev:any)=>{
+  switch(ev.color){
+    case 'green': return '#22c55e';
+    case 'orange': return '#f59e0b';
+    case 'red': return '#ef4444';
+    case 'purple': return '#9333ea';
+    default: return '#2563eb';
+  }
+};
   return (
     <div>
       <div style={topRow}>
