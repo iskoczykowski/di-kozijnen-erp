@@ -438,10 +438,23 @@ function MiniCalendar({events,lang}:any){
     : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
   const days=new Date(year,month+1,0).getDate();
+  const today=new Date();
 
   const move=(n:number)=>{
     const next=new Date(year,month+n,1);
     if(next.getFullYear()>=2026 && next.getFullYear()<=2030)setDate(next);
+  };
+
+  const eventColor=(title:string)=>{
+    const x=(title||'').toLowerCase();
+
+    if(x.includes('montage'))return '#22c55e';
+    if(x.includes('liefer') || x.includes('lever'))return '#eab308';
+    if(x.includes('kunde') || x.includes('klant'))return '#2563eb';
+    if(x.includes('produktion') || x.includes('productie'))return '#9333ea';
+    if(x.includes('wichtig') || x.includes('belangrijk'))return '#dc2626';
+
+    return '#2563eb';
   };
 
   return (
@@ -452,9 +465,36 @@ function MiniCalendar({events,lang}:any){
         <button onClick={()=>move(1)}>→</button>
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'repeat(7,1fr)',
+        gap:8,
+        marginBottom:8,
+        fontWeight:700
+      }}>
+        {(lang==='nl'
+          ? ['Ma','Di','Wo','Do','Vr','Za','Zo']
+          : ['Mo','Di','Mi','Do','Fr','Sa','So']
+        ).map((d:string)=>(
+          <div key={d} style={{textAlign:'center'}}>{d}</div>
+        ))}
+      </div>
+
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'repeat(7,1fr)',
+        gap:8
+      }}>
         {Array.from({length:days}).map((_,i)=>{
           const day=i+1;
+          const current=new Date(year,month,day);
+          const weekDay=current.getDay();
+          const isWeekend=weekDay===0 || weekDay===6;
+          const isToday=
+            today.getFullYear()===year &&
+            today.getMonth()===month &&
+            today.getDate()===day;
+
           const d=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
           const list=(events||[]).filter((e:any)=>e.date===d);
 
@@ -462,14 +502,27 @@ function MiniCalendar({events,lang}:any){
             <div
               key={day}
               style={{
-                background:list.length?'#dbeafe':'#fff',
-                border:list.length?'2px solid #2563eb':'1px solid #ddd',
+                background:isToday
+                  ? '#dcfce7'
+                  : list.length
+                    ? '#dbeafe'
+                    : isWeekend
+                      ? '#f1f5f9'
+                      : '#fff',
+                border:isToday
+                  ? '3px solid #22c55e'
+                  : list.length
+                    ? '2px solid #2563eb'
+                    : '1px solid #ddd',
                 borderRadius:10,
                 padding:8,
-                minHeight:70
+                minHeight:85
               }}
             >
-              <b>{day}</b>
+              <b>
+                {isToday ? '🟢 ' : ''}
+                {day}
+              </b>
 
               {list.map((ev:any)=>(
                 <div
@@ -477,9 +530,9 @@ function MiniCalendar({events,lang}:any){
                   style={{
                     fontSize:11,
                     marginTop:4,
-                    background:'#2563eb',
+                    background:eventColor(ev.title),
                     color:'#fff',
-                    padding:'2px 6px',
+                    padding:'3px 6px',
                     borderRadius:6
                   }}
                 >
@@ -490,6 +543,15 @@ function MiniCalendar({events,lang}:any){
             </div>
           );
         })}
+      </div>
+
+      <div style={{marginTop:14,fontSize:12,color:'#555'}}>
+        🟢 {lang==='nl'?'Vandaag':'Heute'} · 
+        🟢 Montage · 
+        🟡 {lang==='nl'?'Levering':'Lieferung'} · 
+        🔵 {lang==='nl'?'Klant':'Kunde'} · 
+        🟣 {lang==='nl'?'Productie':'Produktion'} · 
+        🔴 {lang==='nl'?'Belangrijk':'Wichtig'}
       </div>
     </div>
   );
