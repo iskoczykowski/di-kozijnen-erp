@@ -151,8 +151,10 @@ useEffect(() => {
     .update({ status: nextStatus })
     .eq('id', p.id);
 
-  if (error) return
-    alert(error.message);
+  if (error) {
+  alert(error.message);
+  return;
+}
     
   loadProjects();
 }
