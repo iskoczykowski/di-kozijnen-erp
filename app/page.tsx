@@ -365,9 +365,44 @@ async function deleteNote(id:number){
             </section>
 
             <section style={card}>
-              <h2>{t.notes}</h2>
-              <p>☐ Glas bestellen</p>
-              <small>{lang==='de'?'Lieferant kontaktieren':'Leverancier contacteren'}</small>
+              <h2>{lang==='de' ? 'Notizen' : 'Notities'}</h2>
+
+<button
+  onClick={addNote}
+  style={primary}
+>
+  ➕ {lang==='de' ? 'Neue Notiz' : 'Nieuwe notitie'}
+</button>
+
+{notes.map((n:any)=>(
+  <div
+    key={n.id}
+    style={{
+      display:'flex',
+      alignItems:'center',
+      gap:10,
+      marginTop:10
+    }}
+  >
+    <input
+      type="checkbox"
+      checked={n.done}
+      onChange={()=>toggleNote(n)}
+    />
+
+    <span
+      style={{
+        flex:1,
+        textDecoration:n.done ? 'line-through' : 'none'
+      }}
+    >
+      {n.text}
+    </span>
+
+    <button onClick={()=>editNote(n)}>✏️</button>
+    <button onClick={()=>deleteNote(n.id)}>🗑️</button>
+  </div>
+))}
             </section>
 
             <section style={card}>
