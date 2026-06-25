@@ -486,8 +486,8 @@ async function deleteNote(id:number){
 <h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
 
 <textarea
-value={newMessage}
-onChange={(e)=>setNewMessage(e.target.value)}
+value={chatText}
+onChange={(e)=>setChatText(e.target.value)}
 placeholder={
 lang === 'de'
 ? 'Nachricht schreiben...'
