@@ -466,6 +466,7 @@ async function deleteNote(id:number){
                   <th style={th}>{t.address}</th>
                   <th style={th}>{t.city}</th>
                   <th style={th}>{t.status}</th>
+                  <th style={th}>{lang==='de' ? 'Bezahlung' : 'Betaling'}</th>
                   <th style={th}>{t.action}</th>
                 </tr>
               </thead>
@@ -479,8 +480,27 @@ async function deleteNote(id:number){
                     <td style={td}>{c.city}</td>
                     <td style={td}>✅ {t.active}</td>
                     <td style={td}>
-                      <button onClick={()=>deleteCustomer(c)}>{t.del}</button>
-                    </td>
+  {c.payment_status}
+</td>
+                    <td style={td}>
+  <button onClick={()=>changeCustomerPaymentStatus(c,'approved')}>
+    {lang==='de'?'Genehmigt':'Goedgekeurd'}
+  </button>
+
+  <button onClick={()=>changeCustomerPaymentStatus(c,'working')}>
+    {lang==='de'?'In Bearbeitung':'In behandeling'}
+  </button>
+
+  <button onClick={()=>changeCustomerPaymentStatus(c,'rejected')}>
+    {lang==='de'?'Nicht genehmigt':'Niet goedgekeurd'}
+  </button>
+
+  <br/><br/>
+
+  <button onClick={()=>deleteCustomer(c)}>
+    {t.del}
+  </button>
+</td>
                   </tr>
                 ))}
               </tbody>
