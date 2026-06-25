@@ -449,12 +449,39 @@ async function deleteNote(id:number){
 </section>
 
             <section style={cardSmall}>
-              <h2>{t.info}</h2>
-              <Stat title={t.activeProjects} value="128"/>
-              <Stat title={t.doneOrders} value="57"/>
-              <Stat title={t.nextEvent} value="3h 12m"/>
-              <Stat title={t.openOrders} value="12"/>
-            </section>
+  <h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
+
+  <div style={{marginTop:20}}>
+    <textarea
+      placeholder={lang === 'de'
+        ? 'Nachricht schreiben...'
+        : 'Bericht schrijven...'}
+      style={{
+        width:'100%',
+        height:120,
+        padding:12,
+        borderRadius:10,
+        border:'1px solid #ddd',
+        resize:'none'
+      }}
+    />
+
+    <button
+      style={{
+        marginTop:12,
+        width:'100%',
+        padding:12,
+        border:'none',
+        borderRadius:10,
+        background:'#2563eb',
+        color:'#fff',
+        cursor:'pointer'
+      }}
+    >
+      {lang === 'de' ? 'Senden' : 'Verzenden'}
+    </button>
+  </div>
+</section>
 
             <section style={card}>
               <h2>{lang==='de' ? 'Notizen' : 'Notities'}</h2>
