@@ -72,6 +72,7 @@ const [chatReceiver, setChatReceiver] = useState('all');
   loadProjects();
   loadProduction();
   loadNotes();
+  loadMessages();  
   loadEvents();
   loadProductionDrawings();
 }, []);
@@ -315,6 +316,35 @@ async function editProject(p:any) {
 
   setNotes(data || []);
 }
+async function loadMessages(){
+  const { data, error } = await supabase
+    .from('messages')
+    .select('*')
+    .order('created_at', { ascending:false })
+    .limit(20);
+
+  if(error) return alert(error.message);
+
+  setMessages(data || []);
+}
+
+async function sendMessage(){
+  if(!chatText.trim()) return;
+
+  const { error } = await supabase
+    .from('messages')
+    .insert([{
+      sender:'Büro',
+      receiver:chatReceiver,
+      message:chatText,
+      is_read:false
+    }]);
+
+  if(error) return alert(error.message);
+
+  setChatText('');
+  loadMessages();
+}  
 
 async function addNote(){
   const text = prompt(lang==='de' ? 'Neue Notiz?' : 'Nieuwe notitie?');
