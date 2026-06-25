@@ -97,7 +97,16 @@ export default function Page() {
     if (error) return alert(error.message);
     loadCustomers();
   }
+async function changeCustomerPaymentStatus(c:any,status:string){
+  const { error } = await supabase
+    .from('customers')
+    .update({ payment_status: status })
+    .eq('id', c.id);
 
+  if(error) return alert(error.message);
+
+  loadCustomers();
+}
   async function addProject() {
     const project_number = prompt(t.number + '?');
     if (!project_number) return;
