@@ -142,7 +142,23 @@ export default function Page() {
 
   setProduction(data || []);
 }
-  
+ async function changeProjectStatus(p:any){
+  const nextStatus =
+    p.status === 'open'
+      ? 'working'
+      : p.status === 'working'
+      ? 'done'
+      : 'open';
+
+  const { error } = await supabase
+    .from('projects')
+    .update({ status: nextStatus })
+    .eq('id', p.id);
+
+  if(error) return alert(error.message);
+
+  loadProjects();
+} 
 async function uploadProductionFile(p:any,e:any){
   const file = e.target.files?.[0];
   if(!file) return;
