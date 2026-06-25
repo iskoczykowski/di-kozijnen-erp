@@ -131,6 +131,42 @@ useEffect(() => {
 
   setProduction(data || []);
 }
+  async function changeProductionStatus(p:any) {
+  const nextStatus =
+    p.status === 'open'
+      ? 'working'
+      : p.status === 'working'
+      ? 'done'
+      : 'open';
+
+  const { error } = await supabase
+    .from('production')
+    .update({ status: nextStatus })
+    .eq('id', p.id);
+
+  if (error) return alert(error.message);
+
+  loadProduction();
+}
+
+async function addProductionDrawing(p:any) {
+  const drawing_url =
+    prompt(
+      lang==='de'
+        ? 'Link zur Zeichnung oder Excel-Datei?'
+        : 'Link naar tekening of Excel-bestand?',
+      p.drawing_url || ''
+    ) || '';
+
+  const { error } = await supabase
+    .from('production')
+    .update({ drawing_url })
+    .eq('id', p.id);
+
+  if (error) return alert(error.message);
+
+  loadProduction();
+}
   async function deleteProject(id:any) {
     if (!confirm(t.deleteAsk)) return;
     const { error } = await supabase.from('projects').delete().eq('id', id);
@@ -366,57 +402,79 @@ async function editProject(p:any) {
           </section>
         )}
         {module === 'production' && (
-<section style={card}>
-<h2>🏭 {t.production}</h2>
+  <section style={card}>
+    <div style={topRow}>
+      <h2>🏭 {lang==='de' ? 'Produktion' : 'Productie'}</h2>
+    </div>
 
-<table style={table}>
-<thead>
-<tr>
-<th style={th}>{t.project}</th>
-<th style={th}>{t.item}</th>
-<th style={th}>{t.qty}</th>
-<th style={th}>{t.status}</th>
-<th style={th}>{t.notes}</th>
-</tr>
-</thead>
+    <table style={table}>
+      <thead>
+        <tr>
+          <th style={th}>{lang==='de' ? 'Projekt' : 'Project'}</th>
+          <th style={th}>{lang==='de' ? 'Teil' : 'Onderdeel'}</th>
+          <th style={th}>{lang==='de' ? 'Menge' : 'Aantal'}</th>
+          <th style={th}>Status</th>
+          <th style={th}>{lang==='de' ? 'Notizen' : 'Notities'}</th>
+          <th style={th}>{lang==='de' ? 'Zeichnung' : 'Tekening'}</th>
+          <th style={th}>{lang==='de' ? 'Aktion' : 'Actie'}</th>
+        </tr>
+      </thead>
 
-<tbody>
-{production.map((p:any)=>(
-<tr key={p.id}>
-<td style={td}>{p.project}</td>
-<td style={td}>{p.item}</td>
-<td style={td}>{p.qty}</td>
-<td style={td}>
-  <button
-    style={{
-      background:
-        p.status === 'done'
-          ? '#22c55e'
-          : p.status === 'working'
-          ? '#eab308'
-          : '#ef4444',
-      color:'#fff',
-      border:'none',
-      borderRadius:8,
-      padding:'6px 12px'
-    }}
-  >
-    {
-      p.status === 'done'
-        ? (lang==='nl' ? 'Klaar' : 'Fertig')
-        : p.status === 'working'
-        ? (lang==='nl' ? 'In behandeling' : 'In Bearbeitung')
-        : (lang==='nl' ? 'Open' : 'Offen')
-    }
-  </button>
-</td>
-<td style={td}>{p.notes}</td>
-</tr>
-))}
-</tbody>
+      <tbody>
+        {production.map((p:any)=>(
+          <tr key={p.id}>
+            <td style={td}>{p.project}</td>
+            <td style={td}>{p.item}</td>
+            <td style={td}>{p.qty}</td>
 
-</table>
-</section>
+            <td style={td}>
+              <button
+                onClick={()=>changeProductionStatus(p)}
+                style={{
+                  background:
+                    p.status === 'done'
+                      ? '#22c55e'
+                      : p.status === 'working'
+                      ? '#eab308'
+                      : '#ef4444',
+                  color:'#fff',
+                  border:'none',
+                  borderRadius:8,
+                  padding:'6px 12px'
+                }}
+              >
+                {
+                  p.status === 'done'
+                    ? (lang==='de' ? 'Fertig' : 'Klaar')
+                    : p.status === 'working'
+                    ? (lang==='de' ? 'In Bearbeitung' : 'In behandeling')
+                    : (lang==='de' ? 'Offen' : 'Open')
+                }
+              </button>
+            </td>
+
+            <td style={td}>{p.notes}</td>
+
+            <td style={td}>
+              {p.drawing_url ? (
+                <a href={p.drawing_url} target="_blank">
+                  {lang==='de' ? 'Öffnen' : 'Openen'}
+                </a>
+              ) : (
+                '-'
+              )}
+            </td>
+
+            <td style={td}>
+              <button onClick={()=>addProductionDrawing(p)}>
+                {lang==='de' ? 'Zeichnung hinzufügen' : 'Tekening toevoegen'}
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </section>
 )}
 
 {module === 'stock' && (
