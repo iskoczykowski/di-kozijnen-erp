@@ -538,7 +538,30 @@ async function deleteNote(id:number){
       : (lang==='de'?'Nicht genehmigt':'Afgekeurd')}
   </button>
 </td>
-
+<td style={td}>
+  <button
+    onClick={()=>changeCustomerPaymentStatus(c)}
+    style={{
+      background:
+        c.payment_status === 'paid'
+          ? '#22c55e'
+          : c.payment_status === 'unpaid'
+          ? '#ef4444'
+          : '#eab308',
+      color:'#fff',
+      border:'none',
+      borderRadius:8,
+      padding:'6px 12px',
+      fontWeight:'bold'
+    }}
+  >
+    {c.payment_status === 'paid'
+      ? (lang==='de'?'Bezahlt':'Betaald')
+      : c.payment_status === 'unpaid'
+      ? (lang==='de'?'Nicht bezahlt':'Niet betaald')
+      : (lang==='de'?'Noch offen':'Nog open')}
+  </button>
+</td>
         <td style={td}>
           <button onClick={()=>deleteCustomer(c)}>
             {t.del}
