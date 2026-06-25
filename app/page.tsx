@@ -735,7 +735,6 @@ function Calendar({events,setEvents,lang}:any) {
 
   if (error) return alert(error.message);
 
-  loadEvents();
 };
   const editEvent = (ev:any) => {
     const title = prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title) || ev.title;
