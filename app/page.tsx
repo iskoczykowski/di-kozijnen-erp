@@ -103,6 +103,16 @@ export default function Page() {
     if (error) return alert(error.message);
     loadCustomers();
   }
+  async function changeCustomerStatus(c:any,status:string){
+  const { error } = await supabase
+    .from('customers')
+    .update({ status })
+    .eq('id', c.id);
+
+  if(error) return alert(error.message);
+
+  loadCustomers();
+}
   async function addProject() {
     const project_number = prompt(t.number + '?');
     if (!project_number) return;
@@ -132,24 +142,7 @@ export default function Page() {
 
   setProduction(data || []);
 }
-  async function changeProductionStatus(p:any) {
-  const nextStatus =
-    p.status === 'open'
-      ? 'working'
-      : p.status === 'working'
-      ? 'done'
-      : 'open';
-
-  const { error } = await supabase
-    .from('production')
-    .update({ status: nextStatus })
-    .eq('id', p.id);
-
-  if (error) return alert(error.message);
-
-  loadProduction();
-}
-
+  
 async function uploadProductionFile(p:any,e:any){
   const file = e.target.files?.[0];
   if(!file) return;
