@@ -482,74 +482,104 @@ async function deleteNote(id:number){
 </section>
 
             <section style={cardSmall}>
-  <h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
 
-  <div style={{marginTop:20}}>
-    <textarea
-      placeholder={lang === 'de'
-        ? 'Nachricht schreiben...'
-        : 'Bericht schrijven...'}
-      style={{
-        width:'100%',
-        height:120,
-        padding:12,
-        borderRadius:10,
-        border:'1px solid #ddd',
-        resize:'none'
-      }}
-    />
+<h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
+
+<textarea
+value={newMessage}
+onChange={(e)=>setNewMessage(e.target.value)}
+placeholder={
+lang === 'de'
+? 'Nachricht schreiben...'
+: 'Bericht schrijven...'
+}
+style={{
+width:'100%',
+height:120,
+padding:12,
+borderRadius:10,
+border:'1px solid #ddd',
+resize:'none'
+}}
+/>
+
 <div
-  style={{
-    height:250,
-    overflowY:'auto',
-    border:'1px solid #ddd',
-    borderRadius:10,
-    padding:10,
-    marginTop:10,
-    marginBottom:10,
-    background:'#fafafa'
-  }}
+style={{
+height:250,
+overflowY:'auto',
+border:'1px solid #ddd',
+borderRadius:10,
+padding:10,
+marginTop:12,
+marginBottom:12,
+background:'#fafafa'
+}}
 >
 
+{messages.length===0 && (
+<p style={{color:'#888'}}>
+{lang==='de'
+?'Noch keine Nachrichten'
+:'Nog geen berichten'}
+</p>
+)}
+
 {messages.map((m:any)=>(
-  <div
-    key={m.id}
-    style={{
-      marginBottom:12,
-      padding:10,
-      background:'#fff',
-      borderRadius:8,
-      boxShadow:'0 1px 4px rgba(0,0,0,.08)'
-    }}
-  >
-    <b>{m.sender}</b>
+<div
+key={m.id}
+style={{
+background:'#fff',
+padding:12,
+borderRadius:10,
+marginBottom:10,
+boxShadow:'0 1px 4px rgba(0,0,0,.08)'
+}}
+>
 
-    <div style={{marginTop:5}}>
-      {m.message}
-    </div>
+<div
+style={{
+fontWeight:'bold',
+marginBottom:4
+}}
+>
+{m.sender}
+</div>
 
-    <small style={{color:'#777'}}>
-      {new Date(m.created_at).toLocaleString()}
-    </small>
-  </div>
+<div style={{whiteSpace:'pre-wrap'}}>
+{m.message}
+</div>
+
+<div
+style={{
+fontSize:12,
+color:'#777',
+marginTop:6
+}}
+>
+{new Date(m.created_at).toLocaleString()}
+</div>
+
+</div>
 ))}
 
 </div>
-    <button
-      style={{
-        marginTop:12,
-        width:'100%',
-        padding:12,
-        border:'none',
-        borderRadius:10,
-        background:'#2563eb',
-        color:'#fff',
-        cursor:'pointer'
-      }}
-    >
-      {lang === 'de' ? 'Senden' : 'Verzenden'}
-    </button>
-  </div>
+
+<button
+onClick={sendMessage}
+style={{
+marginTop:5,
+width:'100%',
+padding:12,
+border:'none',
+borderRadius:10,
+background:'#2563eb',
+color:'#fff',
+cursor:'pointer'
+}}
+>
+{lang==='de'?'Senden':'Verzenden'}
+</button>
+
 </section>
 
             <section style={card}>
