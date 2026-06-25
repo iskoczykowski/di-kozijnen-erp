@@ -26,6 +26,9 @@ export default function Page() {
   const [production,setProduction] = useState<any[]>([]);
   const [notes,setNotes]=useState<any[]>([]);
   const [productionDrawings,setProductionDrawings]=useState<any[]>([]);
+  const [messages, setMessages] = useState<any[]>([]);
+const [chatText, setChatText] = useState('');
+const [chatReceiver, setChatReceiver] = useState('all');
 
   const t:any = {
     de: {
