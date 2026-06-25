@@ -25,6 +25,7 @@ export default function Page() {
   const [projects, setProjects] = useState<any[]>([]);
   const [production,setProduction] = useState<any[]>([]);
   const [notes,setNotes]=useState<any[]>([]);
+  const [productionDrawings,setProductionDrawings]=useState<any[]>([]);
 
   const t:any = {
     de: {
@@ -69,6 +70,7 @@ export default function Page() {
   loadProduction();
   loadNotes();
   loadEvents();
+  loadProductionDrawings();
 }, []);
   
   async function addCustomer() {
@@ -101,6 +103,23 @@ export default function Page() {
     if (!confirm(t.deleteAsk)) return;
     const { error } = await supabase.from('customers').delete().eq('id', c.id);
     if (error) return alert(error.message);
+    loadCustomers();
+  }
+
+  async function editCustomer(c:any) {
+    const company_name = prompt(t.name + '?', c.company_name) || c.company_name;
+    const phone = prompt(t.phone + '?', c.phone) || c.phone;
+    const email = prompt(t.email + '?', c.email) || c.email;
+    const address = prompt(t.address + '?', c.address) || c.address;
+    const city = prompt(t.city + '?', c.city) || c.city;
+
+    const { error } = await supabase
+      .from('customers')
+      .update({ company_name, phone, email, address, city })
+      .eq('id', c.id);
+
+    if (error) return alert(error.message);
+
     loadCustomers();
   }
   async function changeCustomerStatus(c:any){
@@ -170,7 +189,20 @@ export default function Page() {
 
   loadProjects();
 } 
-async function uploadProductionFile(p:any,e:any){
+async function loadProductionDrawings() {
+  const { data } = await supabase
+    .from('production_drawings')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  setProductionDrawings(data || []);
+}
+
+function drawingsFor(productionId:any) {
+  return productionDrawings.filter((d:any)=>String(d.production_id) === String(productionId));
+}
+
+async function uploadProductionDrawing(p:any,e:any){
   const file = e.target.files?.[0];
   if(!file) return;
 
@@ -189,19 +221,34 @@ async function uploadProductionFile(p:any,e:any){
     .from('production-files')
     .getPublicUrl(path);
 
-  const { error:updateError } = await supabase
-    .from('production')
-    .update({
-      file_url:data.publicUrl
-    })
-    .eq('id',p.id);
+  const { error:insertError } = await supabase
+    .from('production_drawings')
+    .insert({
+      production_id:p.id,
+      name:file.name,
+      url:data.publicUrl
+    });
 
-  if(updateError){
-    alert(updateError.message);
+  if(insertError){
+    alert(insertError.message);
     return;
   }
 
-  loadProduction();
+  e.target.value = '';
+  loadProductionDrawings();
+}
+
+async function deleteProductionDrawing(d:any){
+  if(!confirm(lang==='de' ? 'Zeichnung löschen?' : 'Tekening verwijderen?')) return;
+
+  const { error } = await supabase
+    .from('production_drawings')
+    .delete()
+    .eq('id', d.id);
+
+  if(error) return alert(error.message);
+
+  loadProductionDrawings();
 }
   async function deleteProject(id:any) {
     if (!confirm(t.deleteAsk)) return;
@@ -341,22 +388,6 @@ async function deleteNote(id:number){
 
   loadProduction();
 } 
-  async function editCustomer(c:any){
-  const company_name = prompt(t.name + '?', c.company_name) || c.company_name;
-  const phone = prompt(t.phone + '?', c.phone) || c.phone;
-  const email = prompt(t.email + '?', c.email) || c.email;
-  const address = prompt(t.address + '?', c.address) || c.address;
-  const city = prompt(t.city + '?', c.city) || c.city;
-
-  const { error } = await supabase
-    .from('customers')
-    .update({ company_name, phone, email, address, city })
-    .eq('id', c.id);
-
-  if(error) return alert(error.message);
-
-  loadCustomers();
-}
   return (
     <div style={app}>
       <aside style={side}>
@@ -579,14 +610,13 @@ async function deleteNote(id:number){
   </button>
 </td>
         <td style={td}>
-  <button onClick={()=>editCustomer(c)}>
-    {lang==='de'?'Bearbeiten':'Bewerken'}
-  </button>
-
-  <button onClick={()=>deleteCustomer(c)}>
-    {t.del}
-  </button>
-</td>
+          <button onClick={()=>editCustomer(c)} style={{marginRight:6}}>
+            {lang==='de' ? 'Bearbeiten' : 'Bewerken'}
+          </button>
+          <button onClick={()=>deleteCustomer(c)}>
+            {t.del}
+          </button>
+        </td>
       </tr>
     ))}
   </tbody>
@@ -647,15 +677,13 @@ async function deleteNote(id:number){
 </td>
                     <td style={td}>{p.price}</td>
                     <td style={td}>
-                      <td style={td}>
-  <button onClick={()=>editProject(p)}>
-    {lang==='de' ? 'Bearbeiten' : 'Bewerken'}
-  </button>
+                      <button onClick={()=>editProject(p)} style={{marginRight:6}}>
+                        {lang==='de' ? 'Bearbeiten' : 'Bewerken'}
+                      </button>
 
-  <button onClick={()=>deleteProject(p.id)}>
-    {lang==='de' ? 'Löschen' : 'Verwijderen'}
-  </button>
-</td>
+                      <button onClick={()=>deleteProject(p.id)}>
+                        {lang==='de' ? 'Löschen' : 'Verwijderen'}
+                      </button>
                     </td>
                   </tr>
                 ))}
@@ -718,40 +746,43 @@ async function deleteNote(id:number){
             <td style={td}>{p.notes}</td>
 
             <td style={td}>
-  {p.file_url ? (
-    <a
-      href={p.file_url}
-      target="_blank"
-      rel="noreferrer"
-    >
-      📄 {lang==='de' ? 'Öffnen' : 'Openen'}
-    </a>
-  ) : (
-    "-"
-  )}
-</td>
+              {drawingsFor(p.id).length ? (
+                drawingsFor(p.id).map((d:any)=>(
+                  <div key={d.id} style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
+                    <a href={d.url} target="_blank" rel="noreferrer">
+                      📄 {d.name || (lang==='de' ? 'Zeichnung' : 'Tekening')}
+                    </a>
+                    <button onClick={()=>deleteProductionDrawing(d)}>
+                      🗑️
+                    </button>
+                  </div>
+                ))
+              ) : (
+                "-"
+              )}
+            </td>
 
             <td style={td}>
-  <label
-    style={{
-      background:"#2563eb",
-      color:"#fff",
-      padding:"6px 12px",
-      borderRadius:8,
-      cursor:"pointer",
-      display:"inline-block"
-    }}
-  >
-    📁 {lang==="de" ? "Datei auswählen" : "Bestand kiezen"}
+              <label
+                style={{
+                  background:"#2563eb",
+                  color:"#fff",
+                  padding:"6px 12px",
+                  borderRadius:8,
+                  cursor:"pointer",
+                  display:"inline-block"
+                }}
+              >
+                📁 {lang==="de" ? "Zeichnung hinzufügen" : "Tekening toevoegen"}
 
-    <input
-      type="file"
-      accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.doc,.docx"
-      style={{display:"none"}}
-      onChange={(e)=>uploadProductionFile(p,e)}
-    />
-  </label>
-</td>
+                <input
+                  type="file"
+                  accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.doc,.docx,.dwg,.dxf"
+                  style={{display:"none"}}
+                  onChange={(e)=>uploadProductionDrawing(p,e)}
+                />
+              </label>
+            </td>
           </tr>
         ))}
       </tbody>
@@ -856,6 +887,7 @@ const type = typeMap[typeChoice] || typeMap['1'];
 
   if (error) return alert(error.message);
 
+  loadEvents();
 };
   const editEvent = async (ev:any) => {
     const title = prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title) || ev.title;
@@ -888,9 +920,17 @@ if (error) return alert(error.message);
 loadEvents();
   };
 
-  const deleteEvent = (id:number) => {
+  const deleteEvent = async (id:number) => {
     if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?')) return;
-    setEvents((events || []).filter((e:any)=>e.id!==id));
+
+    const { error } = await supabase
+      .from('events')
+      .delete()
+      .eq('id', id);
+
+    if(error) return alert(error.message);
+
+    loadEvents();
   };
 
   const eventColor=(type:string)=>{
