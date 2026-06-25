@@ -350,7 +350,6 @@ async function deleteNote(id:number){
   lang={lang}
   loadEvents={loadEvents}
 />
-  />
 </section>
 
             <section style={cardSmall}>
