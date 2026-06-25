@@ -70,21 +70,7 @@ export default function Page() {
   loadNotes();
   loadEvents();
 }, []);
-  useEffect(() => {
-  const saved = localStorage.getItem('erp_events');
-
-  if (saved) {
-    setEvents(JSON.parse(saved));
-  }
-}, []);
-
-useEffect(() => {
-  localStorage.setItem(
-    'erp_events',
-    JSON.stringify(events)
-  );
-}, [events]);
-
+  
   async function addCustomer() {
     const company_name = prompt(t.name + '?');
     if (!company_name) return;
@@ -359,9 +345,11 @@ async function deleteNote(id:number){
 
             <section style={card}>
   <Calendar
-    events={events}
-    setEvents={setEvents}
-    lang={lang}
+  events={events}
+  setEvents={setEvents}
+  lang={lang}
+  loadEvents={loadEvents}
+/>
   />
 </section>
 
@@ -713,7 +701,7 @@ function Stat({title,value}:any) {
   );
 }
 
-function Calendar({events,setEvents,lang}:any) {
+function Calendar({events,setEvents,lang,loadEvents}:any) {
   const addEvent = async () => {
   const title = prompt(lang==='nl' ? 'Afspraak?' : 'Termin?');
   if (!title) return;
