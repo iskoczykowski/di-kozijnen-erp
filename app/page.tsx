@@ -149,21 +149,36 @@ useEffect(() => {
   loadProduction();
 }
 
-async function addProductionDrawing(p:any) {
-  const drawing_url =
-    prompt(
-      lang==='de'
-        ? 'Link zur Zeichnung oder Excel-Datei?'
-        : 'Link naar tekening of Excel-bestand?',
-      p.drawing_url || ''
-    ) || '';
+async function uploadProductionFile(p:any,e:any){
+  const file = e.target.files?.[0];
+  if(!file) return;
 
-  const { error } = await supabase
+  const path = `${p.id}/${Date.now()}-${file.name}`;
+
+  const { error } = await supabase.storage
+    .from('production-files')
+    .upload(path,file);
+
+  if(error){
+    alert(error.message);
+    return;
+  }
+
+  const { data } = supabase.storage
+    .from('production-files')
+    .getPublicUrl(path);
+
+  const { error:updateError } = await supabase
     .from('production')
-    .update({ drawing_url })
-    .eq('id', p.id);
+    .update({
+      file_url:data.publicUrl
+    })
+    .eq('id',p.id);
 
-  if (error) return alert(error.message);
+  if(updateError){
+    alert(updateError.message);
+    return;
+  }
 
   loadProduction();
 }
@@ -456,20 +471,40 @@ async function editProject(p:any) {
             <td style={td}>{p.notes}</td>
 
             <td style={td}>
-              {p.drawing_url ? (
-                <a href={p.drawing_url} target="_blank">
-                  {lang==='de' ? 'Öffnen' : 'Openen'}
-                </a>
-              ) : (
-                '-'
-              )}
-            </td>
+  {p.file_url ? (
+    <a
+      href={p.file_url}
+      target="_blank"
+      rel="noreferrer"
+    >
+      📄 {lang==='de' ? 'Öffnen' : 'Openen'}
+    </a>
+  ) : (
+    "-"
+  )}
+</td>
 
             <td style={td}>
-              <button onClick={()=>addProductionDrawing(p)}>
-                {lang==='de' ? 'Zeichnung hinzufügen' : 'Tekening toevoegen'}
-              </button>
-            </td>
+  <label
+    style={{
+      background:"#2563eb",
+      color:"#fff",
+      padding:"6px 12px",
+      borderRadius:8,
+      cursor:"pointer",
+      display:"inline-block"
+    }}
+  >
+    📁 {lang==="de" ? "Datei auswählen" : "Bestand kiezen"}
+
+    <input
+      type="file"
+      accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.doc,.docx"
+      style={{display:"none"}}
+      onChange={(e)=>uploadProductionFile(p,e)}
+    />
+  </label>
+</td>
           </tr>
         ))}
       </tbody>
