@@ -68,6 +68,7 @@ export default function Page() {
   loadProjects();
   loadProduction();
   loadNotes();
+  loadEvents();
 }, []);
   useEffect(() => {
   const saved = localStorage.getItem('erp_events');
@@ -297,6 +298,14 @@ async function deleteNote(id:number){
 
   loadNotes();
 }
+ async function loadEvents(){
+  const { data } = await supabase
+    .from('events')
+    .select('*')
+    .order('date',{ascending:true});
+
+  setEvents(data || []);
+} 
   return (
     <div style={app}>
       <aside style={side}>
