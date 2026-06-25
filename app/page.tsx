@@ -24,6 +24,7 @@ export default function Page() {
   const [customers, setCustomers] = useState<any[]>([]);
   const [projects, setProjects] = useState<any[]>([]);
   const [production,setProduction] = useState<any[]>([]);
+  const [notes,setNotes]=useState<any[]>([]);
 
   const t:any = {
     de: {
@@ -66,6 +67,7 @@ export default function Page() {
   loadCustomers();
   loadProjects();
   loadProduction();
+  loadNotes();
 }, []);
   useEffect(() => {
   const saved = localStorage.getItem('erp_events');
@@ -235,6 +237,65 @@ async function editProject(p:any) {
   if (error) return alert(error.message);
 
   loadProjects();
+}
+  async function loadNotes(){
+  const { data } = await supabase
+    .from('notes')
+    .select('*')
+    .order('created_at',{ascending:false});
+
+  setNotes(data || []);
+}
+
+async function addNote(){
+  const text = prompt(lang==='de' ? 'Neue Notiz?' : 'Nieuwe notitie?');
+  if(!text) return;
+
+  const { error } = await supabase
+    .from('notes')
+    .insert({ text, done:false });
+
+  if(error) return alert(error.message);
+
+  loadNotes();
+}
+
+async function editNote(n:any){
+  const text = prompt(lang==='de' ? 'Notiz bearbeiten?' : 'Notitie bewerken?', n.text);
+  if(!text) return;
+
+  const { error } = await supabase
+    .from('notes')
+    .update({ text })
+    .eq('id', n.id);
+
+  if(error) return alert(error.message);
+
+  loadNotes();
+}
+
+async function toggleNote(n:any){
+  const { error } = await supabase
+    .from('notes')
+    .update({ done: !n.done })
+    .eq('id', n.id);
+
+  if(error) return alert(error.message);
+
+  loadNotes();
+}
+
+async function deleteNote(id:number){
+  if(!confirm(lang==='de' ? 'Notiz löschen?' : 'Notitie verwijderen?')) return;
+
+  const { error } = await supabase
+    .from('notes')
+    .delete()
+    .eq('id', id);
+
+  if(error) return alert(error.message);
+
+  loadNotes();
 }
   return (
     <div style={app}>
