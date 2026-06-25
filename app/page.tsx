@@ -302,6 +302,23 @@ async function deleteNote(id:number){
 
   setEvents(data || []);
 } 
+ async function changeProductionStatus(p:any){
+  const nextStatus =
+    p.status === 'open'
+      ? 'working'
+      : p.status === 'working'
+      ? 'done'
+      : 'open';
+
+  const { error } = await supabase
+    .from('production')
+    .update({ status: nextStatus })
+    .eq('id', p.id);
+
+  if(error) return alert(error.message);
+
+  loadProduction();
+} 
   return (
     <div style={app}>
       <aside style={side}>
