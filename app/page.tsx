@@ -714,26 +714,29 @@ function Stat({title,value}:any) {
 }
 
 function Calendar({events,setEvents,lang}:any) {
-  const addEvent = () => {
-    const title = prompt(lang==='nl'?'Afspraak?':'Termin?');
-    if(!title) return;
+  const addEvent = async () => {
+  const title = prompt(lang==='nl' ? 'Afspraak?' : 'Termin?');
+  if (!title) return;
 
-    const date = prompt(lang==='nl'?'Datum? bijv. 2026-06-24':'Datum? z.B. 2026-06-24') || '';
-    const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?') || '';
+  const date = prompt(lang==='nl' ? 'Datum? bijv. 2026-06-24' : 'Datum? z.B. 2026-06-24');
+  if (!date) return;
 
-    const typeChoice = prompt(
-      lang==='nl'
-        ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
-        : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
-    ) || '1';
+  const time = prompt(lang==='nl' ? 'Tijd?' : 'Uhrzeit?') || '';
 
-    const typeMap:any = {
-      '1': lang==='nl'?'Klant':'Kunde',
-      '2': 'Montage',
-      '3': lang==='nl'?'Levering':'Lieferung',
-      '4': lang==='nl'?'Productie':'Produktion',
-      '5': lang==='nl'?'Belangrijk':'Wichtig'
-    };
+  const type = prompt(
+    lang==='nl'
+      ? 'Type? Klant / Montage / Levering / Productie / Belangrijk'
+      : 'Art? Kunde / Montage / Lieferung / Produktion / Wichtig'
+  ) || 'Kunde';
+
+  const { error } = await supabase
+    .from('events')
+    .insert({ title, date, time, type });
+
+  if (error) return alert(error.message);
+
+  loadEvents();
+};
 
     const type = typeMap[typeChoice] || typeMap['1'];
 
