@@ -710,11 +710,21 @@ function Calendar({events,setEvents,lang,loadEvents}:any) {
 
   const time = prompt(lang==='nl' ? 'Tijd?' : 'Uhrzeit?') || '';
 
-  const type = prompt(
-    lang==='nl'
-      ? 'Type? Klant / Montage / Levering / Productie / Belangrijk'
-      : 'Art? Kunde / Montage / Lieferung / Produktion / Wichtig'
-  ) || 'Kunde';
+  const typeChoice = prompt(
+  lang==='nl'
+    ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
+    : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
+) || '1';
+
+const typeMap:any = {
+  '1': lang==='nl' ? 'Klant' : 'Kunde',
+  '2': 'Montage',
+  '3': lang==='nl' ? 'Levering' : 'Lieferung',
+  '4': lang==='nl' ? 'Productie' : 'Produktion',
+  '5': lang==='nl' ? 'Belangrijk' : 'Wichtig'
+};
+
+const type = typeMap[typeChoice] || typeMap['1'];
 
   const { error } = await supabase
     .from('events')
