@@ -413,8 +413,27 @@ async function deleteNote(id:number){
 </section>
 
             <section style={cardSmall}>
-              <h2>{t.upcoming}</h2>
-              <Event color="#c93670" title={lang==='de'?'Kundentermin':'Klantafspraak'} time="Heute 08:30"/>
+              <h2>{lang==='de'?'Kommende Termine':'Komende afspraken'}</h2>
+
+{events
+  .filter((e:any)=>e.date >= new Date().toISOString().slice(0,10))
+  .sort((a:any,b:any)=>
+    `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)
+  )
+  .slice(0,5)
+  .map((e:any)=>(
+    <Event
+      key={e.id}
+      color={
+        e.type === 'montage' ? '#22c55e' :
+        e.type === 'delivery' ? '#eab308' :
+        e.type === 'production' ? '#6366f1' :
+        '#c93670'
+      }
+      title={e.title}
+      time={`${e.date} ${e.time}`}
+    />
+  ))}
             </section>
           </div>
         )}
