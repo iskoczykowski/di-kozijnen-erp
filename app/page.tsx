@@ -341,6 +341,22 @@ async function deleteNote(id:number){
 
   loadProduction();
 } 
+  async function editCustomer(c:any){
+  const company_name = prompt(t.name + '?', c.company_name) || c.company_name;
+  const phone = prompt(t.phone + '?', c.phone) || c.phone;
+  const email = prompt(t.email + '?', c.email) || c.email;
+  const address = prompt(t.address + '?', c.address) || c.address;
+  const city = prompt(t.city + '?', c.city) || c.city;
+
+  const { error } = await supabase
+    .from('customers')
+    .update({ company_name, phone, email, address, city })
+    .eq('id', c.id);
+
+  if(error) return alert(error.message);
+
+  loadCustomers();
+}
   return (
     <div style={app}>
       <aside style={side}>
@@ -563,10 +579,14 @@ async function deleteNote(id:number){
   </button>
 </td>
         <td style={td}>
-          <button onClick={()=>deleteCustomer(c)}>
-            {t.del}
-          </button>
-        </td>
+  <button onClick={()=>editCustomer(c)}>
+    {lang==='de'?'Bearbeiten':'Bewerken'}
+  </button>
+
+  <button onClick={()=>deleteCustomer(c)}>
+    {t.del}
+  </button>
+</td>
       </tr>
     ))}
   </tbody>
