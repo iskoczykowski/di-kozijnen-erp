@@ -103,11 +103,22 @@ export default function Page() {
     if (error) return alert(error.message);
     loadCustomers();
   }
-  async function changeCustomerStatus(c:any,status:string){
+  async function changeCustomerStatus(c:any){
+
+  let next = "working";
+
+  if(c.status === "working"){
+    next = "approved";
+  }else if(c.status === "approved"){
+    next = "rejected";
+  }else{
+    next = "working";
+  }
+
   const { error } = await supabase
-    .from('customers')
-    .update({ status })
-    .eq('id', c.id);
+    .from("customers")
+    .update({ status: next })
+    .eq("id", c.id);
 
   if(error) return alert(error.message);
 
@@ -492,50 +503,30 @@ async function deleteNote(id:number){
         <td style={td}>{c.city}</td>
 
         <td style={td}>
-          <button onClick={()=>changeCustomerStatus(c,'approved')} style={{
-            background:'#22c55e', color:'#fff', border:'none',
-            borderRadius:8, padding:'6px 10px', margin:3
-          }}>
-            {lang==='de'?'Genehmigt':'Goedgekeurd'}
-          </button>
-
-          <button onClick={()=>changeCustomerStatus(c,'working')} style={{
-            background:'#eab308', color:'#fff', border:'none',
-            borderRadius:8, padding:'6px 10px', margin:3
-          }}>
-            {lang==='de'?'In Bearbeitung':'In behandeling'}
-          </button>
-
-          <button onClick={()=>changeCustomerStatus(c,'rejected')} style={{
-            background:'#dc2626', color:'#fff', border:'none',
-            borderRadius:8, padding:'6px 10px', margin:3
-          }}>
-            {lang==='de'?'Nicht genehmigt':'Niet goedgekeurd'}
-          </button>
-        </td>
-
-        <td style={td}>
-          <button onClick={()=>changeCustomerPaymentStatus(c,'paid')} style={{
-            background:'#22c55e', color:'#fff', border:'none',
-            borderRadius:8, padding:'6px 10px', margin:3
-          }}>
-            {lang==='de'?'Bezahlt':'Betaald'}
-          </button>
-
-          <button onClick={()=>changeCustomerPaymentStatus(c,'open')} style={{
-            background:'#eab308', color:'#fff', border:'none',
-            borderRadius:8, padding:'6px 10px', margin:3
-          }}>
-            {lang==='de'?'Noch offen':'Nog open'}
-          </button>
-
-          <button onClick={()=>changeCustomerPaymentStatus(c,'unpaid')} style={{
-            background:'#dc2626', color:'#fff', border:'none',
-            borderRadius:8, padding:'6px 10px', margin:3
-          }}>
-            {lang==='de'?'Nicht bezahlt':'Niet betaald'}
-          </button>
-        </td>
+  <button
+    onClick={()=>changeCustomerStatus(c)}
+    style={{
+      background:
+        c.status==='approved'
+          ? '#22c55e'
+          : c.status==='working'
+          ? '#eab308'
+          : '#ef4444',
+      color:'#fff',
+      border:'none',
+      borderRadius:8,
+      padding:'6px 12px',
+      margin:3,
+      fontWeight:'bold'
+    }}
+  >
+    {c.status==='approved'
+      ? (lang==='de'?'Genehmigt':'Goedgekeurd')
+      : c.status==='working'
+      ? (lang==='de'?'In Bearbeitung':'In behandeling')
+      : (lang==='de'?'Nicht genehmigt':'Afgekeurd')}
+  </button>
+</td>
 
         <td style={td}>
           <button onClick={()=>deleteCustomer(c)}>
