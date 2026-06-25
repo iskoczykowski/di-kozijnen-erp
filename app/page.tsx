@@ -79,7 +79,14 @@ export default function Page() {
     const address = prompt(t.address + '?') || '';
     const city = prompt(t.city + '?') || '';
 
-    const { error } = await supabase.from('customers').insert([{company_name, phone, email, address, city}]);
+    const { error } = await supabase.from('customers').insert([{
+  company_name,
+  phone,
+  email,
+  address,
+  city,
+  payment_status: 'pending'
+}]);
     if (error) return alert(error.message);
     loadCustomers();
   }
