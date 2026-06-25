@@ -723,7 +723,7 @@ function Calendar({events,setEvents,lang,loadEvents}:any) {
   if (error) return alert(error.message);
 
 };
-  const editEvent = (ev:any) => {
+  const editEvent = async (ev:any) => {
     const title = prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title) || ev.title;
     const date = prompt(lang==='nl'?'Datum?':'Datum?',ev.date) || ev.date;
     const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time) || ev.time;
