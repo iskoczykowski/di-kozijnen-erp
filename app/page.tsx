@@ -744,9 +744,14 @@ function Calendar({events,setEvents,lang,loadEvents}:any) {
 
     const type = typeMap[typeChoice] || ev.type || typeMap['1'];
 
-    setEvents((events || []).map((e:any)=>
-      e.id===ev.id ? {...e,title,date,time,type} : e
-    ));
+    const { error } = await supabase
+  .from('events')
+  .update({ title, date, time, type })
+  .eq('id', ev.id);
+
+if (error) return alert(error.message);
+
+loadEvents();
   };
 
   const deleteEvent = (id:number) => {
