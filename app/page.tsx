@@ -268,11 +268,23 @@ async function editProject(p:any) {
         {module === 'dashboard' && (
           <div style={grid}>
             <section style={card}>
-              <h2>{t.today}</h2>
-              <Event color="#c93670" title="Montage Müller" time="08:30"/>
-              <Event color="#38a852" title={lang==='de'?'Kundentermin':'Klantafspraak'} time="11:40"/>
-              <Event color="#29a9c9" title={lang==='de'?'Lieferung Glas':'Glaslevering'} time="14:00"/>
-              <Event color="#c85a12" title="Produktion Projekt A" time="16:30"/>
+              <h2>{lang==='de'?'Heute':'Vandaag'}</h2>
+
+{events
+  .filter((e:any)=>e.date === new Date().toISOString().slice(0,10))
+  .map((e:any)=>(
+    <Event
+      key={e.id}
+      color={
+        e.type === 'montage' ? '#22c55e' :
+        e.type === 'delivery' ? '#eab308' :
+        e.type === 'production' ? '#6366f1' :
+        '#2563eb'
+      }
+      title={e.title}
+      time={e.time}
+    />
+  ))}
             </section>
 
             <section style={card}>
