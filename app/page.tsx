@@ -421,22 +421,7 @@ async function deleteNote(id:number){
 
   loadProduction();
 } 
-  async function sendMessage(){
-  if(!chatText.trim()) return;
-
-  const { error } = await supabase
-    .from('messages')
-    .insert([{
-      sender: lang === 'de' ? 'Büro' : 'Kantoor',
-      receiver: chatReceiver,
-      message: chatText,
-      is_read:false
-    }]);
-
-  if(error) return alert(error.message);
-
-  setChatText('');
-}
+ 
   return (
     <div style={app}>
       <aside style={side}>
