@@ -209,11 +209,22 @@ async function uploadProductionFile(p:any,e:any){
     if (error) return alert(error.message);
     loadProjects();
   }
-  async function changeCustomerPaymentStatus(c:any,payment_status:string){
+  async function changeCustomerPaymentStatus(c:any){
+
+  let next = "open";
+
+  if(c.payment_status === "open"){
+    next = "paid";
+  }else if(c.payment_status === "paid"){
+    next = "unpaid";
+  }else{
+    next = "open";
+  }
+
   const { error } = await supabase
-    .from('customers')
-    .update({ payment_status })
-    .eq('id', c.id);
+    .from("customers")
+    .update({ payment_status: next })
+    .eq("id", c.id);
 
   if(error) return alert(error.message);
 
@@ -566,7 +577,7 @@ async function deleteNote(id:number){
                     <td style={td}>{p.customer}</td>
                     <td style={td}>
   <button
-    onClick={()=>changeProjectStatus(p)}
+    onClick={() => changeProjectStatus(p)}
     style={{
       background:
         p.status === 'done'
@@ -574,18 +585,20 @@ async function deleteNote(id:number){
           : p.status === 'working'
           ? '#eab308'
           : '#ef4444',
-      color:'#fff',
-      border:'none',
-      borderRadius:8,
-      padding:'6px 12px'
+      color: '#fff',
+      border: 'none',
+      borderRadius: 8,
+      padding: '6px 12px',
+      cursor: 'pointer',
+      fontWeight: 'bold'
     }}
   >
     {
       p.status === 'done'
-        ? (lang==='de' ? 'Fertig' : 'Klaar')
+        ? (lang === 'de' ? 'Fertig' : 'Klaar')
         : p.status === 'working'
-        ? (lang==='de' ? 'In Bearbeitung' : 'In behandeling')
-        : (lang==='de' ? 'Offen' : 'Open')
+        ? (lang === 'de' ? 'In Bearbeitung' : 'In behandeling')
+        : (lang === 'de' ? 'Nicht fertig' : 'Niet klaar')
     }
   </button>
 </td>
