@@ -72,24 +72,30 @@ export default function Page() {
 }, []);
   
   async function addCustomer() {
-    const company_name = prompt(t.name + '?');
-    if (!company_name) return;
-    const phone = prompt(t.phone + '?') || '';
-    const email = prompt(t.email + '?') || '';
-    const address = prompt(t.address + '?') || '';
-    const city = prompt(t.city + '?') || '';
+  const company_name = prompt(t.name + '?');
+  if (!company_name) return;
 
-    const { error } = await supabase.from('customers').insert([{
-  company_name,
-  phone,
-  email,
-  address,
-  city,
-  payment_status: 'pending'
-}]);
-    if (error) return alert(error.message);
-    loadCustomers();
-  }
+  const phone = prompt(t.phone + '?') || '';
+  const email = prompt(t.email + '?') || '';
+  const address = prompt(t.address + '?') || '';
+  const city = prompt(t.city + '?') || '';
+
+  const { error } = await supabase
+    .from('customers')
+    .insert([{
+      company_name,
+      phone,
+      email,
+      address,
+      city,
+      status: 'working',
+      payment_status: 'open'
+    }]);
+
+  if (error) return alert(error.message);
+
+  loadCustomers();
+}
 
   async function deleteCustomer(c:any) {
     if (!confirm(t.deleteAsk)) return;
@@ -193,26 +199,15 @@ async function uploadProductionFile(p:any,e:any){
     if (error) return alert(error.message);
     loadProjects();
   }
-  async function changeProjectStatus(p:any) {
-
-  const nextStatus =
-    p.status === 'open'
-      ? 'working'
-      : p.status === 'working'
-      ? 'done'
-      : 'open';
-
+  async function changeCustomerPaymentStatus(c:any,payment_status:string){
   const { error } = await supabase
-    .from('projects')
-    .update({ status: nextStatus })
-    .eq('id', p.id);
+    .from('customers')
+    .update({ payment_status })
+    .eq('id', c.id);
 
-  if (error) {
-    alert(error.message);
-    return;
-  }
+  if(error) return alert(error.message);
 
-  loadProjects();
+  loadCustomers();
 }
 async function editProject(p:any) {
 
@@ -458,53 +453,83 @@ async function deleteNote(id:number){
             </div>
 
             <table style={table}>
-              <thead>
-                <tr>
-                  <th style={th}>{t.name}</th>
-                  <th style={th}>{t.phone}</th>
-                  <th style={th}>{t.email}</th>
-                  <th style={th}>{t.address}</th>
-                  <th style={th}>{t.city}</th>
-                  <th style={th}>{t.status}</th>
-                  <th style={th}>{lang==='de' ? 'Bezahlung' : 'Betaling'}</th>
-                  <th style={th}>{t.action}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {customers.map((c:any)=>(
-                  <tr key={c.id}>
-                    <td style={td}>{c.company_name}</td>
-                    <td style={td}>{c.phone}</td>
-                    <td style={td}>{c.email}</td>
-                    <td style={td}>{c.address}</td>
-                    <td style={td}>{c.city}</td>
-                    <td style={td}>✅ {t.active}</td>
-                    <td style={td}>
-  {c.payment_status}
-</td>
-                    <td style={td}>
-  <button onClick={()=>changeCustomerPaymentStatus(c,'approved')}>
-    {lang==='de'?'Genehmigt':'Goedgekeurd'}
-  </button>
+  <thead>
+    <tr>
+      <th style={th}>{t.name}</th>
+      <th style={th}>{t.phone}</th>
+      <th style={th}>{t.email}</th>
+      <th style={th}>{t.address}</th>
+      <th style={th}>{t.city}</th>
+      <th style={th}>{t.status}</th>
+      <th style={th}>{lang==='de'?'Bezahlung':'Betaling'}</th>
+      <th style={th}>{t.action}</th>
+    </tr>
+  </thead>
 
-  <button onClick={()=>changeCustomerPaymentStatus(c,'working')}>
-    {lang==='de'?'In Bearbeitung':'In behandeling'}
-  </button>
+  <tbody>
+    {customers.map((c:any)=>(
+      <tr key={c.id}>
+        <td style={td}>{c.company_name}</td>
+        <td style={td}>{c.phone}</td>
+        <td style={td}>{c.email}</td>
+        <td style={td}>{c.address}</td>
+        <td style={td}>{c.city}</td>
 
-  <button onClick={()=>changeCustomerPaymentStatus(c,'rejected')}>
-    {lang==='de'?'Nicht genehmigt':'Niet goedgekeurd'}
-  </button>
+        <td style={td}>
+          <button onClick={()=>changeCustomerStatus(c,'approved')} style={{
+            background:'#22c55e', color:'#fff', border:'none',
+            borderRadius:8, padding:'6px 10px', margin:3
+          }}>
+            {lang==='de'?'Genehmigt':'Goedgekeurd'}
+          </button>
 
-  <br/><br/>
+          <button onClick={()=>changeCustomerStatus(c,'working')} style={{
+            background:'#eab308', color:'#fff', border:'none',
+            borderRadius:8, padding:'6px 10px', margin:3
+          }}>
+            {lang==='de'?'In Bearbeitung':'In behandeling'}
+          </button>
 
-  <button onClick={()=>deleteCustomer(c)}>
-    {t.del}
-  </button>
-</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+          <button onClick={()=>changeCustomerStatus(c,'rejected')} style={{
+            background:'#dc2626', color:'#fff', border:'none',
+            borderRadius:8, padding:'6px 10px', margin:3
+          }}>
+            {lang==='de'?'Nicht genehmigt':'Niet goedgekeurd'}
+          </button>
+        </td>
+
+        <td style={td}>
+          <button onClick={()=>changeCustomerPaymentStatus(c,'paid')} style={{
+            background:'#22c55e', color:'#fff', border:'none',
+            borderRadius:8, padding:'6px 10px', margin:3
+          }}>
+            {lang==='de'?'Bezahlt':'Betaald'}
+          </button>
+
+          <button onClick={()=>changeCustomerPaymentStatus(c,'open')} style={{
+            background:'#eab308', color:'#fff', border:'none',
+            borderRadius:8, padding:'6px 10px', margin:3
+          }}>
+            {lang==='de'?'Noch offen':'Nog open'}
+          </button>
+
+          <button onClick={()=>changeCustomerPaymentStatus(c,'unpaid')} style={{
+            background:'#dc2626', color:'#fff', border:'none',
+            borderRadius:8, padding:'6px 10px', margin:3
+          }}>
+            {lang==='de'?'Nicht bezahlt':'Niet betaald'}
+          </button>
+        </td>
+
+        <td style={td}>
+          <button onClick={()=>deleteCustomer(c)}>
+            {t.del}
+          </button>
+        </td>
+      </tr>
+    ))}
+  </tbody>
+</table>
           </section>
         )}
 
