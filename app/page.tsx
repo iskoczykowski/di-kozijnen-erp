@@ -336,10 +336,12 @@ async function sendMessage(){
   const { error } = await supabase
     .from('messages')
     .insert({
-  sender: "Büro",
-  receiver: chatReceiver,
-  text: chatText,
-  fileName: chatFile?.name || null
+    sender: chatSender,
+    receiver: chatReceiver,
+    message: chatText,
+    fileName: chatFile?.name || null,
+    fileUrl: null,
+    is_read: false
 })
 
   if(error) return alert(error.message);
