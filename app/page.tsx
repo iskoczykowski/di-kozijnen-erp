@@ -438,103 +438,50 @@ async function deleteNote(id:number){
       </aside>
 
       <main style={main}>
-        <header
+       <header
   style={{
-    display: "flex",
-    justifyContent: "space-between",
-    alignItems: "center",
-    background: "#fff",
-    padding: 20,
-    borderRadius: 18,
-    marginBottom: 20,
-    boxShadow: "0 4px 12px rgba(0,0,0,.08)"
+    display:'flex',
+    justifyContent:'space-between',
+    alignItems:'center',
+    background:'#fff',
+    padding:20,
+    borderRadius:18,
+    marginBottom:20,
+    boxShadow:'0 4px 12px rgba(0,0,0,.08)'
   }}
 >
-
-  <div style={{display:"flex",alignItems:"center",gap:18}}>
-
-    <img
-      src="/logo.png"
-      style={{
-        width:180,
-        height:"auto"
-      }}
-    />
-
-    <div
-      style={{
-        width:1,
-        height:70,
-        background:"#ddd"
-      }}
-    />
+  <div style={{display:'flex',alignItems:'center',gap:18}}>
+    <div style={{fontSize:34,fontWeight:800}}>
+      D&I
+    </div>
 
     <div>
-      <div style={{fontSize:34,fontWeight:700}}>
-        {new Date().toLocaleTimeString(lang==="de"?"de-DE":"nl-NL",{
-          hour:"2-digit",
-          minute:"2-digit"
-        })}
+      <div style={{fontSize:34,fontWeight:800}}>
+        {new Date().toLocaleTimeString(lang==='de'?'de-DE':'nl-NL',{hour:'2-digit',minute:'2-digit'})}
       </div>
-
-      <div style={{color:"#666",fontSize:15}}>
-        {new Date().toLocaleDateString(
-          lang==="de"?"de-DE":"nl-NL",
-          {
-            weekday:"long",
-            day:"numeric",
-            month:"long",
-            year:"numeric"
-          }
-        )}
+      <div style={{color:'#666'}}>
+        {new Date().toLocaleDateString(lang==='de'?'de-DE':'nl-NL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
       </div>
     </div>
 
-    <div
-      style={{
-        width:1,
-        height:70,
-        background:"#ddd"
-      }}
-    />
-
     <div>
-
-      <div
-        style={{
-          fontWeight:700,
-          fontSize:24
-        }}
-      >
-        {lang==="de"?"Büro":"Kantoor"}
+      <div style={{fontSize:24,fontWeight:800}}>
+        {lang==='de'?'Büro':'Kantoor'}
       </div>
-
-      <div
-        style={{
-          color:"#16a34a",
-          fontWeight:600
-        }}
-      >
+      <div style={{color:'#16a34a',fontWeight:700}}>
         ● Online
       </div>
-
     </div>
-
   </div>
 
-  <select
-    value={lang}
-    onChange={(e)=>setLang(e.target.value as Lang)}
-    style={{
-      padding:"10px 18px",
-      borderRadius:12,
-      fontSize:16
-    }}
-  >
-    <option value="de">DE</option>
-    <option value="nl">NL</option>
-  </select>
+  <div style={{display:'flex',gap:12}}>
+    <input placeholder={t.search} style={search}/>
 
+    <select value={lang} onChange={(e)=>setLang(e.target.value as Lang)} style={select}>
+      <option value="de">DE</option>
+      <option value="nl">NL</option>
+    </select>
+  </div>
 </header>
 
         {module === 'dashboard' && (
