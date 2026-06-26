@@ -334,16 +334,17 @@ async function sendMessage(){
 
   const { error } = await supabase
     .from('messages')
-    .insert([{
-      sender:'Büro',
-      receiver:chatReceiver,
-      message:chatText,
-      is_read:false
-    }]);
+    .insert({
+  sender: "Büro",
+  receiver: chatReceiver,
+  text: chatText,
+  fileName: chatFile?.name || null
+})
 
   if(error) return alert(error.message);
 
   setChatText('');
+  setChatFile(null);
   loadMessages();
 }  
 
