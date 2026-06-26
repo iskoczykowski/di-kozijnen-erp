@@ -647,7 +647,9 @@ background:'#fafafa'
 </p>
 )}
 
-{messages.map((m:any)=>(
+{messages
+  .filter((m:any)=>m.receiver === chatReceiver || m.receiver === 'all')
+  .map((m:any)=>(
 <div
 key={m.id}
 style={{
