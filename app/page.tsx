@@ -30,6 +30,7 @@ export default function Page() {
 const [chatText, setChatText] = useState('');
   const [chatReceiver, setChatReceiver] = useState("office");
   const [chatFile, setChatFile] = useState<any>(null);
+  const [chatSender, setChatSender] = useState("office");
 
   const t:any = {
     de: {
@@ -561,6 +562,29 @@ async function deleteNote(id:number){
             <section style={cardSmall}>
 
 <h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
+              <div style={{ marginBottom:12 }}>
+  <label style={{ fontWeight:"bold" }}>
+    {lang==="de" ? "Absender" : "Afzender"}
+  </label>
+
+  <select
+    value={chatSender}
+    onChange={(e)=>setChatSender(e.target.value)}
+    style={{
+      width:"100%",
+      padding:10,
+      borderRadius:10,
+      marginTop:6
+    }}
+  >
+    <option value="office">{lang==="de"?"🏢 Büro":"🏢 Kantoor"}</option>
+    <option value="orders">{lang==="de"?"📦 Bestellungen":"📦 Bestellingen"}</option>
+    <option value="production">{lang==="de"?"🏭 Produktion":"🏭 Productie"}</option>
+    <option value="montage">🔧 Montage</option>
+    <option value="bus1">🚌 Bus 1</option>
+    <option value="bus2">🚌 Bus 2</option>
+  </select>
+</div>
 <div style={{ marginBottom: 12 }}>
   <label style={{ fontWeight: 700 }}>
     {lang === "de" ? "Empfänger" : "Ontvanger"}
