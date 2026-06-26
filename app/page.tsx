@@ -29,6 +29,7 @@ export default function Page() {
   const [messages, setMessages] = useState<any[]>([]);
 const [chatText, setChatText] = useState('');
   const [chatReceiver, setChatReceiver] = useState("office");
+  const [chatFile, setChatFile] = useState<any>(null);
 
   const t:any = {
     de: {
@@ -600,6 +601,29 @@ border:'1px solid #ddd',
 resize:'none'
 }}
 />
+              <input
+  type="file"
+  accept="image/*,.pdf,.xlsx,.xls"
+  onChange={(e)=>setChatFile(e.target.files?.[0] || null)}
+  style={{
+    marginTop:10,
+    marginBottom:10,
+    width:"100%"
+  }}
+/>
+
+{chatFile && (
+  <div style={{
+    fontSize:13,
+    color:"#666",
+    marginBottom:10
+  }}>
+    {lang==="de"
+      ? "📎 Datei ausgewählt: "
+      : "📎 Bestand gekozen: "}
+    {chatFile.name}
+  </div>
+)}
 
 <div
 style={{
