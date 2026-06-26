@@ -425,7 +425,7 @@ async function deleteNote(id:number){
   return (
     <div style={app}>
       <aside style={side}>
-        <div style={logo}></div>
+        <div style={logo}>D&amp;I</div>
         <button onClick={()=>setModule('dashboard')} style={iconBtn}>🏠</button>
         <button onClick={()=>setModule('customers')} style={iconBtn}>👥</button>
         <button onClick={()=>setModule('projects')} style={iconBtn}>📁</button>
@@ -1249,7 +1249,20 @@ function MiniCalendar({events,lang}:any){
 
 const app:any = {minHeight:'100vh',background:'#f4f7fb',fontFamily:'Arial',display:'flex'};
 const side:any = {width:82,background:'#fff',padding:18,boxShadow:'0 20px 60px #0001'};
-const logo:any = {width:44,height:44,borderRadius:14,background:'#2563eb',marginBottom:24};
+const logo:any = {
+  width:54,
+  height:54,
+  borderRadius:14,
+  background:'#050505',
+  color:'#fff',
+  display:'flex',
+  alignItems:'center',
+  justifyContent:'center',
+  fontWeight:'900',
+  fontSize:20,
+  border:'2px solid #fff',
+  boxShadow:'0 6px 18px rgba(0,0,0,.25)'
+}
 const iconBtn:any = {display:'block',width:'100%',border:0,background:'transparent',fontSize:22,padding:14,cursor:'pointer'};
 const main:any = {flex:1,padding:32};
 const header:any = {display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:28};
