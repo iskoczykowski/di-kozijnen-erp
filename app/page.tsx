@@ -432,11 +432,9 @@ async function deleteNote(id:number){
         <button onClick={() => setModule('production')} style={iconBtn}>🏭</button>
         <button onClick={() => setModule('stock')} style={iconBtn}>📦</button>
         <button onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
-        <button onClick={() => setModule('orders')} style={iconBtn}>📋</button>
         <button onClick={() => setModule('montage')} style={iconBtn}>🔧</button>
-        <button onClick={() => setModule('calendar')} style={iconBtn}>📅</button>
         <button onClick={() => setModule('employees')} style={iconBtn}>👷</button>
-        <button onClick={() => setModule('messages')} style={iconBtn}>💬</button>
+        
       </aside>
 
       <main style={main}>
