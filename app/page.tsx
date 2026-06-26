@@ -1086,9 +1086,115 @@ cursor:'pointer'
 )}
 
 {module === 'montage' && (
-  <div>
-    <h2>🔧 Montage</h2>
-  </div>
+  <section style={card}>
+    <h2>{lang === 'de' ? '🔧 Montage' : '🔧 Montage'}</h2>
+
+    <div style={{
+      background:'#fff',
+      border:'1px solid #ddd',
+      padding:20,
+      borderRadius:12
+    }}>
+
+      <div style={{display:'flex',justifyContent:'space-between',gap:20}}>
+        <div style={{fontSize:34,fontWeight:800}}>
+          D&I ◆
+          <span style={{fontSize:22,marginLeft:12}}>
+            Kunststoff Kozijnen B.V.
+          </span>
+        </div>
+
+        <div>
+          <label>{lang==='de'?'Datum':'Datum'}</label>
+          <input type="date" style={search}/>
+          <div style={{marginTop:10}}>
+            {lang==='de'?'Arbeit fertig':'Werk gereed'}:
+            <label style={{marginLeft:10}}>Ja <input type="radio" name="ready"/></label>
+            <label style={{marginLeft:10}}>Nein <input type="radio" name="ready"/></label>
+          </div>
+        </div>
+      </div>
+
+      <hr/>
+
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+        <div>
+          {['Klant','Referentie','Adres','Plaats','Tel.nr'].map((x)=>(
+            <div key={x} style={{display:'grid',gridTemplateColumns:'120px 1fr',marginBottom:6}}>
+              <b>{x}:</b>
+              <input style={search}/>
+            </div>
+          ))}
+
+          <h3>Bestellijst productie</h3>
+          {['Profiel','Dorpel','Deurgreep','Cilinders','Roosters','','',''].map((x,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 120px',gap:6,marginBottom:4}}>
+              <select style={search}><option>{x}</option></select>
+              <input style={search}/>
+              <input type="date" style={search}/>
+            </div>
+          ))}
+
+          <h3>Glas / Vulling</h3>
+          {['Triple zonwerend','HR++ veiligheidsglas'].map((x)=>(
+            <select key={x} style={{...search,width:'100%',marginBottom:4}}>
+              <option>{x}</option>
+            </select>
+          ))}
+
+          <h3>{lang==='de'?'Bemerkungen':'Opmerkingen'}</h3>
+          <textarea style={{...search,width:'100%',height:90}}/>
+        </div>
+
+        <div>
+          <h3>Raamdecoratie / Rolluiken enz</h3>
+          {['Horren','Raamdecoratie','Rolluiken','','',''].map((x,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
+              <select style={search}><option>{x}</option></select>
+              <select style={search}>
+                <option>Aluminium inzet hor</option>
+                <option>Plissé</option>
+                <option>Rolluik elektrisch schakelaar</option>
+                <option>Rolluik Solar</option>
+              </select>
+              <select style={search}>
+                <option>1</option><option>2</option><option>3</option>
+                <option>1 meter</option><option>2 meter</option><option>3 meter</option>
+              </select>
+            </div>
+          ))}
+
+          <h3>Extra's</h3>
+          {['Vensterbank','Dakraam vervangen','Waterslagdorpels','Voetvastzetter','',''].map((x,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
+              <select style={search}><option>{x}</option></select>
+              <input style={search}/>
+              <select style={search}><option>1</option><option>2</option><option>3</option></select>
+            </div>
+          ))}
+
+          <h3>Benodigdheden</h3>
+          {['Kraan Pieter','Steiger','',''].map((x,i)=>(
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
+              <select style={search}><option>{x}</option><option>Ladder</option><option>Container</option></select>
+              <input style={search}/>
+              <input style={search}/>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div style={{display:'flex',gap:20,marginTop:20}}>
+        <button onClick={()=>window.print()} style={primary}>
+          🖨️ {lang==='de'?'PDF drucken':'PDF afdrukken'}
+        </button>
+
+        <button style={{...primary,background:'#16a34a'}}>
+          📊 Excel export
+        </button>
+      </div>
+    </div>
+  </section>
 )}
 
 {module === 'calendar' && (
