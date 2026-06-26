@@ -451,9 +451,50 @@ async function deleteNote(id:number){
   }}
 >
   <div style={{display:'flex',alignItems:'center',gap:18}}>
-    <div style={{fontSize:34,fontWeight:800}}>
+
+  <div
+    style={{
+      display:'flex',
+      alignItems:'center',
+      gap:18
+    }}
+  >
+
+    <div
+      style={{
+        fontFamily:'Georgia',
+        fontSize:48,
+        fontWeight:700
+      }}
+    >
       D&I
     </div>
+
+    <div
+      style={{
+        width:42,
+        height:42,
+        background:'#7b7b7b',
+        transform:'rotate(45deg)',
+        borderRadius:3
+      }}
+    />
+
+    <div>
+      <div style={{fontSize:28,fontWeight:700}}>
+        {lang==='de'
+          ? 'Kunststoff Kozijnen'
+          : 'Kunststof Kozijnen'}
+      </div>
+
+      <div style={{fontSize:22,color:'#666'}}>
+        {lang==='de'
+          ? 'und Rollläden'
+          : 'en Rolluiken'}
+      </div>
+    </div>
+
+  </div>
 
     <div>
       <div style={{fontSize:34,fontWeight:800}}>
