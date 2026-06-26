@@ -28,7 +28,7 @@ export default function Page() {
   const [productionDrawings,setProductionDrawings]=useState<any[]>([]);
   const [messages, setMessages] = useState<any[]>([]);
 const [chatText, setChatText] = useState('');
-const [chatReceiver, setChatReceiver] = useState('all');
+  const [chatReceiver, setChatReceiver] = useState("office");
 
   const t:any = {
     de: {
@@ -559,7 +559,30 @@ async function deleteNote(id:number){
             <section style={cardSmall}>
 
 <h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
+<div style={{ marginBottom: 12 }}>
+  <label style={{ fontWeight: 700 }}>
+    {lang === "de" ? "Empfänger" : "Ontvanger"}
+  </label>
 
+  <select
+    value={chatReceiver}
+    onChange={(e)=>setChatReceiver(e.target.value)}
+    style={{
+      width:"100%",
+      padding:12,
+      marginTop:6,
+      borderRadius:10,
+      border:"1px solid #ddd"
+    }}
+  >
+    <option value="office">{lang==="de"?"🏢 Büro":"🏢 Kantoor"}</option>
+    <option value="orders">{lang==="de"?"📦 Bestellungen":"📦 Bestellingen"}</option>
+    <option value="production">{lang==="de"?"🏭 Produktion":"🏭 Productie"}</option>
+    <option value="montage">🔧 Montage</option>
+    <option value="bus1">🚌 Bus 1</option>
+    <option value="bus2">🚌 Bus 2</option>
+  </select>
+</div>
 <textarea
 value={chatText}
 onChange={(e)=>setChatText(e.target.value)}
