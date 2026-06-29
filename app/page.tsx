@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import * as XLSX from "xlsx";
 
 type Lang = 'de' | 'nl';
 type Module =
@@ -32,6 +33,8 @@ const [chatText, setChatText] = useState('');
   const [chatFile, setChatFile] = useState<any>(null);
   const [chatSender, setChatSender] = useState("office");
   const [selectedMontageCustomer, setSelectedMontageCustomer] = useState<any>(null);
+  const [montagePhotos, setMontagePhotos] = useState<any[]>([]);
+const [montageExcelName, setMontageExcelName] = useState("");
 
   const t:any = {
     de: {
@@ -1357,6 +1360,54 @@ cursor:'pointer'
           ))}
         </div>
       </div>
+      <h3>{lang==="de" ? "Fotos" : "Foto's"}</h3>
+
+<input
+  type="file"
+  accept="image/*"
+  capture="environment"
+  multiple
+  onChange={(e)=>{
+    const files = Array.from(e.target.files || []);
+    setMontagePhotos(files);
+  }}
+/>
+
+<div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:10}}>
+  {montagePhotos.map((file:any,i:number)=>(
+    <img
+      key={i}
+      src={URL.createObjectURL(file)}
+      style={{width:120,height:90,objectFit:"cover",borderRadius:10}}
+    />
+  ))}
+</div>
+ <h3>{lang==="de" ? "Excel importieren" : "Excel importeren"}</h3>
+
+<input
+  type="file"
+  accept=".xlsx,.xls"
+  onChange={async (e)=>{
+    const file = e.target.files?.[0];
+    if(!file) return;
+
+    setMontageExcelName(file.name);
+
+    const data = await file.arrayBuffer();
+    const workbook = XLSX.read(data);
+    const sheet = workbook.Sheets[workbook.SheetNames[0]];
+    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+    console.log(rows);
+    alert(lang==="de" ? "Excel wurde gelesen" : "Excel is gelezen");
+  }}
+/>
+
+{montageExcelName && (
+  <div style={{marginTop:8,fontSize:13}}>
+    📊 {lang==="de" ? "Gewählt" : "Gekozen"}: {montageExcelName}
+  </div>
+)}     
 
       <div style={{display:'flex',gap:16,marginTop:24,borderTop:'1px solid #ddd',paddingTop:18}}>
         <button onClick={()=>window.print()} style={primary}>
