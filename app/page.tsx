@@ -1227,7 +1227,6 @@ cursor:'pointer'
                 <option>1 meter</option><option>2 meter</option><option>3 meter</option>
               </select>
             </div>
-          ))}
 
           <h3>Extra's</h3>
           {['Vensterbank','Dakraam vervangen','Waterslagdorpels','Voetvastzetter','',''].map((x,i)=>(
