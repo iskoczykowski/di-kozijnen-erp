@@ -31,6 +31,7 @@ const [chatText, setChatText] = useState('');
   const [chatReceiver, setChatReceiver] = useState("office");
   const [chatFile, setChatFile] = useState<any>(null);
   const [chatSender, setChatSender] = useState("office");
+  const [selectedMontageCustomer, setSelectedMontageCustomer] = useState<any>(null);
 
   const t:any = {
     de: {
@@ -1148,7 +1149,65 @@ cursor:'pointer'
 
         <div>
           <h3>Raamdecoratie / Rolluiken enz</h3>
-          {['Horren','Raamdecoratie','Rolluiken','','',''].map((x,i)=>(
+          {[
+  'Horren',
+  'Raamdecoratie',
+  'Rolluiken',
+  '',
+  '',
+  ''
+].map((x,i)=>(
+<div
+  key={i}
+  style={{
+    display:'grid',
+    gridTemplateColumns:'1fr 1.4fr 100px',
+    gap:6,
+    marginBottom:4
+  }}
+>
+
+<select style={search} defaultValue={x}>
+  <option>Horren</option>
+  <option>Raamdecoratie</option>
+  <option>Rolluiken</option>
+  <option>Screens</option>
+  <option>Zonwering</option>
+</select>
+
+<select style={search}>
+  <option></option>
+
+  <option>Aluminium inzet hor</option>
+  <option>Plissé</option>
+  <option>Plissé hordeur</option>
+  <option>Rolhor</option>
+  <option>Schuifhordeur</option>
+
+  <option>Lamellen</option>
+  <option>Jaloezie</option>
+  <option>Rolgordijn</option>
+
+  <option>Rolluik hand</option>
+  <option>Rolluik elektrisch</option>
+  <option>Rolluik Solar</option>
+
+  <option>Screen hand</option>
+  <option>Screen elektrisch</option>
+  <option>Screen Solar</option>
+
+  <option>Zonnescherm</option>
+  <option>Uitvalscherm</option>
+</select>
+
+<select style={search}>
+  {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+    <option key={n}>{n}</option>
+  ))}
+</select>
+
+</div>
+))}
             <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
               <select style={search}><option>{x}</option></select>
               <select style={search}>
