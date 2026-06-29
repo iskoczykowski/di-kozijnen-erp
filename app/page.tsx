@@ -1118,15 +1118,7 @@ cursor:'pointer'
 
       <hr/>
 
-      <div
-  style={{
-    display: 'grid',
-    gridTemplateColumns: '60% 40%',
-    gap: 40,
-    alignItems: 'start',
-    width: '100%',
-  }}
->
+      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:40,alignItems:'start'}}>
         <div>
           {['Klant','Referentie','Adres','Plaats','Tel.nr'].map((x)=>(
             <div key={x} style={{display:'grid',gridTemplateColumns:'140px 1fr',marginBottom:6}}>
@@ -1149,7 +1141,7 @@ cursor:'pointer'
 ].map((x,i)=>(
   <div key={i} style={{
     display:'grid',
-    gridTemplateColumns:'1fr 1.7fr 130px',
+    gridTemplateColumns:'1fr 1fr 120px',
     gap:6,
     marginBottom:4
   }}>
@@ -1237,7 +1229,7 @@ cursor:'pointer'
   key={i}
   style={{
     display:'grid',
-    gridTemplateColumns:'160px 1fr 90px',
+    gridTemplateColumns:'1fr 1fr 90px',
     gap:6,
     marginBottom:4
   }}
