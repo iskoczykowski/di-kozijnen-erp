@@ -1128,13 +1128,81 @@ cursor:'pointer'
           ))}
 
           <h3>Bestellijst productie</h3>
-          {['Profiel','Dorpel','Deurgreep','Cilinders','Roosters','','',''].map((x,i)=>(
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 120px',gap:6,marginBottom:4}}>
-              <select style={search}><option>{x}</option></select>
-              <input style={search}/>
-              <input type="date" style={search}/>
-            </div>
-          ))}
+          {[
+  'Profiel',
+  'Dorpel',
+  'Cilinders',
+  'Deurgreep',
+  'Roosters',
+  'Paneel',
+  'Rabat',
+  'Schuifpui',
+  'Afwerking'
+].map((x,i)=>(
+  <div key={i} style={{
+    display:'grid',
+    gridTemplateColumns:'1fr 1.7fr 130px',
+    gap:6,
+    marginBottom:4
+  }}>
+    <select style={search} defaultValue={x}>
+      <option>Profiel</option>
+      <option>Dorpel</option>
+      <option>Cilinders</option>
+      <option>Deurgreep</option>
+      <option>Roosters</option>
+      <option>Paneel</option>
+      <option>Rabat</option>
+      <option>Schuifpui</option>
+      <option>Afwerking</option>
+    </select>
+
+    <select style={search}>
+      <option></option>
+      <option>Wit kunststof vensterbank</option>
+      <option>Steenlook vensterbank</option>
+      <option>Crème kunststof vensterbank</option>
+      <option>Aluminium deurknop met cilinder kerntrek beveiliging</option>
+      <option>Zwarte deurknop met cilinder kerntrek beveiliging</option>
+      <option>RVS 400 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 600 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 800 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 1000 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 1200 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 1400 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 1600 mm greep met cilinder kerntrek beveiliging</option>
+      <option>RVS 1800 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 400 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 600 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 800 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 1000 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 1200 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 1400 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 1600 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Zwarte 1800 mm greep met cilinder kerntrek beveiliging</option>
+      <option>Euro cilinder met 3 sleutels</option>
+      <option>Euro cilinder met 6 sleutels</option>
+      <option>Euro cilinder met 9 sleutels</option>
+      <option>Eurocilinder gelijksluitend</option>
+      <option>Knopcilinder</option>
+      <option>Knopcilinder met 3 sleutels</option>
+      <option>Knopcilinder met 6 sleutels</option>
+      <option>Knopcilinder met 9 sleutels</option>
+      <option>Knopcilinder gelijksluitend</option>
+      <option>1</option>
+      <option>2</option>
+      <option>3</option>
+      <option>4</option>
+      <option>5</option>
+      <option>6</option>
+      <option>7</option>
+      <option>8</option>
+      <option>9</option>
+    </select>
+
+    <input type="date" style={search}/>
+  </div>
+))}
 
           <h3>Glas / Vulling</h3>
           {['Triple zonwerend','HR++ veiligheidsglas'].map((x)=>(
