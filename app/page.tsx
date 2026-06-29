@@ -3,6 +3,13 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import MontageModule from "./MontageModule";
+import KundenModule from "./KundenModule";
+import ProduktionModule from "./ProduktionModule";
+import ProjekteModule from "./ProjekteModule";
+import KalenderModule from "./KalenderModule";
+import LagerModule from "./LagerModule";
+import NachrichtenModule from "./NachrichtenModule";
+import MitarbeiterModule from "./MitarbeiterModule";
 
 type Lang = 'de' | 'nl';
 type Module =
@@ -819,99 +826,7 @@ cursor:'pointer'
           </div>
         )}
 
-        {module === 'customers' && (
-          <section style={cardWide}>
-            <div style={topRow}>
-              <h2>👥 {t.customers}</h2>
-              <button onClick={addCustomer} style={primary}>+ {t.addCustomer}</button>
-            </div>
-
-            <table style={table}>
-  <thead>
-    <tr>
-      <th style={th}>{t.name}</th>
-      <th style={th}>{t.phone}</th>
-      <th style={th}>{t.email}</th>
-      <th style={th}>{t.address}</th>
-      <th style={th}>{t.city}</th>
-      <th style={th}>{t.status}</th>
-      <th style={th}>{lang==='de'?'Bezahlung':'Betaling'}</th>
-      <th style={th}>{t.action}</th>
-    </tr>
-  </thead>
-
-  <tbody>
-    {customers.map((c:any)=>(
-      <tr key={c.id}>
-        <td style={td}>{c.company_name}</td>
-        <td style={td}>{c.phone}</td>
-        <td style={td}>{c.email}</td>
-        <td style={td}>{c.address}</td>
-        <td style={td}>{c.city}</td>
-
-        <td style={td}>
-  <button
-    onClick={()=>changeCustomerStatus(c)}
-    style={{
-      background:
-        c.status==='approved'
-          ? '#22c55e'
-          : c.status==='working'
-          ? '#eab308'
-          : '#ef4444',
-      color:'#fff',
-      border:'none',
-      borderRadius:8,
-      padding:'6px 12px',
-      margin:3,
-      fontWeight:'bold'
-    }}
-  >
-    {c.status==='approved'
-      ? (lang==='de'?'Genehmigt':'Goedgekeurd')
-      : c.status==='working'
-      ? (lang==='de'?'In Bearbeitung':'In behandeling')
-      : (lang==='de'?'Nicht genehmigt':'Afgekeurd')}
-  </button>
-</td>
-<td style={td}>
-  <button
-    onClick={()=>changeCustomerPaymentStatus(c)}
-    style={{
-      background:
-        c.payment_status === 'paid'
-          ? '#22c55e'
-          : c.payment_status === 'unpaid'
-          ? '#ef4444'
-          : '#eab308',
-      color:'#fff',
-      border:'none',
-      borderRadius:8,
-      padding:'6px 12px',
-      fontWeight:'bold'
-    }}
-  >
-    {c.payment_status === 'paid'
-      ? (lang==='de'?'Bezahlt':'Betaald')
-      : c.payment_status === 'unpaid'
-      ? (lang==='de'?'Nicht bezahlt':'Niet betaald')
-      : (lang==='de'?'Noch offen':'Nog open')}
-  </button>
-</td>
-        <td style={td}>
-          <button onClick={()=>editCustomer(c)} style={{marginRight:6}}>
-            {lang==='de' ? 'Bearbeiten' : 'Bewerken'}
-          </button>
-          <button onClick={()=>deleteCustomer(c)}>
-            {t.del}
-          </button>
-        </td>
-      </tr>
-    ))}
-  </tbody>
-</table>
-          </section>
-        )}
+        {module === "customers" && <KundenModule lang={lang} />}
 
         {module === 'projects' && (
           <section style={cardWide}>
