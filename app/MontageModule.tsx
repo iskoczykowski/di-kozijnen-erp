@@ -250,7 +250,7 @@ export default function MontageModule({ lang = "de" }: { lang?: Lang }) {
           <div style={{ borderLeft:"1px solid #dfe3eb", paddingLeft:24 }}>
             <h3 style={sectionTitle}>Raamdecoratie / Rolluiken enz</h3>
             {active.raam.map((row, i) => (
-              <div key={i} style={{ display:"grid", gridTemplateColumns:"220px 260px 50px", gap:7, marginBottom:6 }}>
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"150px 190px 45px", gap:7, marginBottom:6 }}>
                 <select style={inputStyle} value={row.a} onChange={(e) => updateRow("raam", i, "a", e.target.value)}>{raamTypes.map((x) => <option key={x}>{x}</option>)}</select>
                 <select style={inputStyle} value={row.b} onChange={(e) => updateRow("raam", i, "b", e.target.value)}>{raamOptions.map((x) => <option key={x}>{x}</option>)}</select>
                 <select style={smallInputStyle} value={row.qty} onChange={(e) => updateRow("raam", i, "qty", e.target.value)}>{qty.map((x) => <option key={x}>{x}</option>)}</select>
@@ -259,7 +259,7 @@ export default function MontageModule({ lang = "de" }: { lang?: Lang }) {
 
             <h3 style={sectionTitle}>Extra&apos;s</h3>
             {active.extras.map((row, i) => (
-              <div key={i} style={{ display:"grid", gridTemplateColumns:"220px 260px 50px", gap:7, marginBottom:6 }}>
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"150px 190px 45px", gap:7, marginBottom:6 }}>
                 <select style={inputStyle} value={row.a} onChange={(e) => updateRow("extras", i, "a", e.target.value)}>{extraTypes.map((x) => <option key={x}>{x}</option>)}</select>
                 <select style={inputStyle} value={row.b} onChange={(e) => updateRow("extras", i, "b", e.target.value)}>{extraOptions.map((x) => <option key={x}>{x}</option>)}</select>
                 <select style={smallInputStyle} value={row.qty} onChange={(e) => updateRow("extras", i, "qty", e.target.value)}>{qty.map((x) => <option key={x}>{x}</option>)}</select>
@@ -268,7 +268,7 @@ export default function MontageModule({ lang = "de" }: { lang?: Lang }) {
 
             <h3 style={sectionTitle}>{lang === "de" ? "Benötigt" : "Benodigdheden"}</h3>
             {active.benodigdheden.map((row, i) => (
-              <div key={i} style={{ display:"grid", gridTemplateColumns:"220px 260px 50px", gap:7, marginBottom:6 }}>
+              <div key={i} style={{ display:"grid", gridTemplateColumns:"150px 190px 45px", gap:7, marginBottom:6 }}>
                 <select style={inputStyle} value={row.a} onChange={(e) => updateRow("benodigdheden", i, "a", e.target.value)}>{neededTypes.map((x) => <option key={x}>{x}</option>)}</select>
                 <input style={inputStyle} value={row.b} onChange={(e) => updateRow("benodigdheden", i, "b", e.target.value)} />
                 <select style={smallInputStyle} value={row.qty} onChange={(e) => updateRow("benodigdheden", i, "qty", e.target.value)}>{qty.map((x) => <option key={x}>{x}</option>)}</select>
