@@ -1,470 +1,444 @@
-// KundenModule.tsx
-// D&I Kozijnen ERP - Kundenmodul
-// Speichern unter: app/KundenModule.tsx
-// In page.tsx oben einfügen: import KundenModule from "./KundenModule";
-// Alten Kunden-Block ersetzen durch: {module === "customers" && <KundenModule lang={lang} />}
+'use client';
 
-"use client";
+import React, { useEffect, useMemo, useState } from 'react';
 
-import React, { useEffect, useMemo, useState } from "react";
-
-type Lang = "de" | "nl";
-type CustomerStatus = "active" | "planning" | "production" | "montage" | "done";
-
-type CustomerFile = {
-  id: string;
-  name: string;
-  url: string;
-  type: string;
-};
+type Lang = 'de' | 'nl';
 
 type Customer = {
   id: string;
   name: string;
-  reference: string;
-  contact: string;
-  phone: string;
+  referenz: string;
   email: string;
-  street: string;
-  city: string;
-  postalCode: string;
-  note: string;
-  status: CustomerStatus;
-  photos: CustomerFile[];
-  docs: CustomerFile[];
-  createdAt: string;
-  updatedAt: string;
+  telefon: string;
+  adresse: string;
+  plz: string;
+  plaats: string;
+  notizen: string;
+  fotos: string[];
+  dokumente: string[];
 };
 
-const STORAGE_KEY = "di_customers_v1";
-
-function newId() {
-  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function nowText() {
-  return new Date().toLocaleString();
-}
-
-function emptyCustomer(lang: Lang): Customer {
-  const now = nowText();
-  return {
-    id: newId(),
-    name: lang === "de" ? "Neuer Kunde" : "Nieuwe klant",
-    reference: "",
-    contact: "",
-    phone: "",
-    email: "",
-    street: "",
-    city: "",
-    postalCode: "",
-    note: "",
-    status: "active",
-    photos: [],
-    docs: [],
-    createdAt: now,
-    updatedAt: now,
-  };
-}
-
-const inputStyle: React.CSSProperties = {
-  width: "100%",
-  height: 38,
-  border: "1px solid #d7dde8",
-  borderRadius: 10,
-  padding: "0 10px",
-  background: "#fff",
-  fontSize: 13,
-  boxSizing: "border-box",
+type OrderLite = {
+  id: string;
+  nummer: string;
+  kunde: string;
+  referenz: string;
+  adresse: string;
+  ort: string;
+  telefon: string;
+  email?: string;
+  status?: string;
+  bestelldatum?: string;
+  lieferdatum?: string;
+  montageDatum?: string;
 };
 
-const textAreaStyle: React.CSSProperties = {
-  ...inputStyle,
-  height: 90,
-  paddingTop: 10,
-  resize: "vertical",
+const CUSTOMER_KEY = 'di_customers_v1';
+const ORDER_KEY = 'di_orders_v1';
+const MONTAGE_KEY = 'di_montage_lists_v1';
+
+const input: React.CSSProperties = {
+  width: '100%',
+  minHeight: 40,
+  border: '1px solid #d7dde8',
+  borderRadius: 12,
+  padding: '0 12px',
+  background: '#fff',
+  boxSizing: 'border-box',
+};
+
+const textarea: React.CSSProperties = {
+  ...input,
+  minHeight: 100,
+  padding: 12,
+  resize: 'vertical',
+};
+
+const card: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #dfe3eb',
+  borderRadius: 18,
+  padding: 18,
+  boxShadow: '0 6px 18px rgba(15,23,42,0.05)',
 };
 
 const primary: React.CSSProperties = {
   border: 0,
   borderRadius: 10,
-  background: "#2563eb",
-  color: "#fff",
-  padding: "10px 14px",
-  fontWeight: 700,
-  cursor: "pointer",
+  padding: '10px 14px',
+  background: '#2563eb',
+  color: '#fff',
+  fontWeight: 800,
+  cursor: 'pointer',
 };
 
-const secondary: React.CSSProperties = {
+const ghost: React.CSSProperties = {
+  border: '1px solid #d7dde8',
+  borderRadius: 10,
+  padding: '10px 14px',
+  background: '#fff',
+  color: '#0f172a',
+  fontWeight: 800,
+  cursor: 'pointer',
+};
+
+const danger: React.CSSProperties = {
   ...primary,
-  background: "#475569",
+  background: '#dc2626',
 };
 
-function statusLabel(status: CustomerStatus, lang: Lang) {
-  const de: Record<CustomerStatus, string> = {
-    active: "🟢 Aktiv",
-    planning: "🔵 Planung",
-    production: "🟡 Produktion",
-    montage: "🟣 Montage",
-    done: "✅ Fertig",
-  };
-  const nl: Record<CustomerStatus, string> = {
-    active: "🟢 Actief",
-    planning: "🔵 Planning",
-    production: "🟡 Productie",
-    montage: "🟣 Montage",
-    done: "✅ Klaar",
-  };
-  return (lang === "de" ? de : nl)[status];
+function makeId() {
+  return 'cus_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 }
 
-async function convertFiles(files: FileList | null): Promise<CustomerFile[]> {
-  if (!files) return [];
-  const out: CustomerFile[] = [];
+function makeOrderNumber() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const n = String(Date.now()).slice(-5);
+  return `AU-${y}${m}-${n}`;
+}
 
-  for (const file of Array.from(files)) {
-    const url = await new Promise<string>((resolve) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(String(reader.result || ""));
-      reader.readAsDataURL(file);
-    });
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
 
-    out.push({
-      id: newId(),
-      name: file.name,
-      url,
-      type: file.type,
-    });
+function emptyCustomer(lang: Lang): Customer {
+  return {
+    id: makeId(),
+    name: lang === 'de' ? 'Neuer Kunde' : 'Nieuwe klant',
+    referenz: '',
+    email: '',
+    telefon: '',
+    adresse: '',
+    plz: '',
+    plaats: '',
+    notizen: '',
+    fotos: [],
+    dokumente: [],
+  };
+}
+
+function readArray<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
-
-  return out;
 }
 
-export default function KundenModule({ lang = "de" }: { lang?: Lang }) {
-  const first = useMemo(() => emptyCustomer(lang), []);
+function writeArray<T>(key: string, value: T[]) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
+
+export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
+  const first = useMemo(() => emptyCustomer(lang), [lang]);
+
   const [customers, setCustomers] = useState<Customer[]>([first]);
   const [activeId, setActiveId] = useState(first.id);
-  const [query, setQuery] = useState("");
+  const [query, setQuery] = useState('');
 
   useEffect(() => {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw);
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        setCustomers(parsed);
-        setActiveId(parsed[0].id);
+      const raw = localStorage.getItem(CUSTOMER_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          setCustomers(parsed);
+          setActiveId(parsed[0].id);
+        }
       }
     } catch {}
   }, []);
 
   useEffect(() => {
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(customers));
-    } catch {}
+    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customers));
   }, [customers]);
 
   const active = customers.find((c) => c.id === activeId) || customers[0];
 
+  const orders = readArray<OrderLite>(ORDER_KEY).filter(
+    (o) => o.kunde === active?.name || o.telefon === active?.telefon || o.referenz === active?.referenz
+  );
+
+  const montageLists = readArray<any>(MONTAGE_KEY).filter(
+    (m) => m.kunde === active?.name || m.telefon === active?.telefon || m.referenz === active?.referenz
+  );
+
   const filtered = customers.filter((c) => {
-    const s = `${c.name} ${c.reference} ${c.contact} ${c.phone} ${c.email} ${c.street} ${c.city}`.toLowerCase();
-    return s.includes(query.toLowerCase());
+    const text = `${c.name} ${c.referenz} ${c.email} ${c.telefon} ${c.adresse} ${c.plz} ${c.plaats}`.toLowerCase();
+    return text.includes(query.toLowerCase());
   });
 
-  function patchActive(patch: Partial<Customer>) {
-    setCustomers((old) =>
-      old.map((c) => (c.id === active.id ? { ...c, ...patch, updatedAt: nowText() } : c))
-    );
+  function updateCustomer(key: keyof Customer, value: any) {
+    setCustomers((prev) => prev.map((c) => (c.id === active.id ? { ...c, [key]: value } : c)));
   }
 
   function addCustomer() {
-    const c = emptyCustomer(lang);
-    setCustomers((old) => [c, ...old]);
-    setActiveId(c.id);
+    const customer = emptyCustomer(lang);
+    setCustomers((prev) => [customer, ...prev]);
+    setActiveId(customer.id);
   }
 
-  function duplicateCustomer() {
-    const c = {
-      ...active,
-      id: newId(),
-      name: `${active.name} Kopie`,
-      createdAt: nowText(),
-      updatedAt: nowText(),
-    };
-    setCustomers((old) => [c, ...old]);
-    setActiveId(c.id);
-  }
+  function deleteCustomer() {
+    if (!active) return;
+    const ok = confirm(lang === 'de' ? 'Kunde wirklich löschen?' : 'Klant echt verwijderen?');
+    if (!ok) return;
 
-  function deleteCustomer(id = active.id) {
-    if (customers.length <= 1) {
-      alert(lang === "de" ? "Mindestens ein Kunde muss bleiben." : "Minimaal één klant moet blijven.");
+    const next = customers.filter((c) => c.id !== active.id);
+    if (!next.length) {
+      const customer = emptyCustomer(lang);
+      setCustomers([customer]);
+      setActiveId(customer.id);
       return;
     }
 
-    if (!confirm(lang === "de" ? "Kunden wirklich löschen?" : "Klant echt verwijderen?")) return;
-
-    const rest = customers.filter((c) => c.id !== id);
-    setCustomers(rest);
-    setActiveId(rest[0].id);
+    setCustomers(next);
+    setActiveId(next[0].id);
   }
 
-  function googleMapsLink() {
-    const address = `${active.street} ${active.postalCode} ${active.city}`.trim();
-    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address || active.name)}`;
+  async function filesToBase64(files: File[]) {
+    return Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.readAsDataURL(file);
+          })
+      )
+    );
   }
 
-  async function addPhotos(files: FileList | null) {
-    const items = await convertFiles(files);
-    patchActive({ photos: [...active.photos, ...items] });
+  async function addPhotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    const urls = await filesToBase64(files);
+    updateCustomer('fotos', [...active.fotos, ...urls]);
   }
 
-  async function addDocs(files: FileList | null) {
-    const items = await convertFiles(files);
-    patchActive({ docs: [...active.docs, ...items] });
+  async function addDocuments(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    const urls = await filesToBase64(files);
+    updateCustomer('dokumente', [...active.dokumente, ...urls]);
   }
 
-  function removePhoto(id: string) {
-    patchActive({ photos: active.photos.filter((p) => p.id !== id) });
+  function createOrder() {
+    const order: OrderLite = {
+      id: 'ord_' + Date.now(),
+      nummer: makeOrderNumber(),
+      kunde: active.name,
+      referenz: active.referenz,
+      adresse: active.adresse,
+      ort: `${active.plz} ${active.plaats}`.trim(),
+      telefon: active.telefon,
+      email: active.email,
+      status: 'open',
+      bestelldatum: today(),
+      lieferdatum: '',
+      montageDatum: '',
+    };
+
+    const old = readArray<OrderLite>(ORDER_KEY);
+    writeArray(ORDER_KEY, [order, ...old]);
+
+    alert(lang === 'de' ? 'Auftrag wurde erstellt.' : 'Order is aangemaakt.');
   }
 
-  function removeDoc(id: string) {
-    patchActive({ docs: active.docs.filter((p) => p.id !== id) });
-  }
+  function createMontage() {
+    const montage = {
+      id: 'mon_' + Date.now(),
+      kunde: active.name,
+      referenz: active.referenz,
+      adresse: active.adresse,
+      ort: `${active.plz} ${active.plaats}`.trim(),
+      telefon: active.telefon,
+      createdAt: new Date().toISOString(),
+    };
 
-  function exportCustomers() {
-    const rows = customers.map((c) => ({
-      Name: c.name,
-      Referenz: c.reference,
-      Ansprechpartner: c.contact,
-      Telefon: c.phone,
-      Email: c.email,
-      Adresse: c.street,
-      PLZ: c.postalCode,
-      Ort: c.city,
-      Status: statusLabel(c.status, lang),
-      Notiz: c.note,
-      Erstellt: c.createdAt,
-      Geändert: c.updatedAt,
-    }));
+    const old = readArray<any>(MONTAGE_KEY);
+    writeArray(MONTAGE_KEY, [montage, ...old]);
 
-    const blob = new Blob([JSON.stringify(rows, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "kunden-export.json";
-    a.click();
-    URL.revokeObjectURL(url);
+    alert(lang === 'de' ? 'Montageliste wurde erstellt.' : 'Montagelijst is aangemaakt.');
   }
 
   if (!active) return null;
 
   return (
     <section>
-      <div style={{ display: "flex", gap: 10, marginBottom: 14, alignItems: "center", flexWrap: "wrap" }}>
+      <div className="no-print" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
         <button style={primary} onClick={addCustomer}>
-          ➕ {lang === "de" ? "Neuer Kunde" : "Nieuwe klant"}
+          + {lang === 'de' ? 'Neuer Kunde' : 'Nieuwe klant'}
         </button>
 
-        <button style={secondary} onClick={duplicateCustomer}>
-          📄 {lang === "de" ? "Kopieren" : "Kopiëren"}
+        <button style={ghost} onClick={createOrder}>
+          📋 {lang === 'de' ? 'Auftrag erstellen' : 'Order maken'}
         </button>
 
-        <button style={{ ...primary, background: "#dc2626" }} onClick={() => deleteCustomer()}>
-          🗑️ {lang === "de" ? "Löschen" : "Verwijderen"}
+        <button style={ghost} onClick={createMontage}>
+          🔧 {lang === 'de' ? 'Montageliste erstellen' : 'Montagelijst maken'}
         </button>
 
-        <button style={{ ...primary, background: "#16a34a" }} onClick={exportCustomers}>
-          📦 Export
+        <button style={danger} onClick={deleteCustomer}>
+          {lang === 'de' ? 'Löschen' : 'Verwijderen'}
         </button>
 
         <input
-          style={{ ...inputStyle, width: 280 }}
-          placeholder={lang === "de" ? "Kunden suchen..." : "Klant zoeken..."}
+          style={{ ...input, maxWidth: 280 }}
+          placeholder={lang === 'de' ? 'Kunde suchen...' : 'Klant zoeken...'}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
         />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "360px 1fr", gap: 18 }}>
-        <div style={{ background: "#fff", border: "1px solid #dfe3eb", borderRadius: 16, padding: 14 }}>
-          <h2 style={{ marginTop: 0 }}>👥 {lang === "de" ? "Kunden" : "Klanten"}</h2>
+      <div style={{ display: 'grid', gridTemplateColumns: '310px 1fr', gap: 18 }}>
+        <aside className="no-print" style={card}>
+          <h2 style={{ marginTop: 0 }}>{lang === 'de' ? 'Kunden' : 'Klanten'}</h2>
 
-          {filtered.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => setActiveId(c.id)}
-              style={{
-                width: "100%",
-                textAlign: "left",
-                padding: 12,
-                borderRadius: 12,
-                border: c.id === active.id ? "2px solid #2563eb" : "1px solid #e5e7eb",
-                background: c.id === active.id ? "#eff6ff" : "#fff",
-                marginBottom: 8,
-                cursor: "pointer",
-              }}
-            >
-              <div style={{ fontWeight: 800 }}>{c.name || "-"}</div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>
-                {c.reference || "-"} · {statusLabel(c.status, lang)}
-              </div>
-              <div style={{ fontSize: 12, color: "#64748b" }}>{c.city || c.phone || c.email}</div>
-            </button>
-          ))}
-        </div>
-
-        <div style={{ background: "#fff", border: "1px solid #dfe3eb", borderRadius: 16, padding: 20 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "start" }}>
-            <div>
-              <h2 style={{ margin: 0 }}>👤 {active.name}</h2>
-              <div style={{ color: "#64748b", marginTop: 4 }}>
-                {lang === "de" ? "Geändert" : "Gewijzigd"}: {active.updatedAt}
-              </div>
-            </div>
-
-            <a
-              href={googleMapsLink()}
-              target="_blank"
-              rel="noreferrer"
-              style={{ ...primary, textDecoration: "none", display: "inline-block" }}
-            >
-              📍 Google Maps
-            </a>
+          <div style={{ display: 'grid', gap: 8 }}>
+            {filtered.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setActiveId(c.id)}
+                style={{
+                  textAlign: 'left',
+                  border: c.id === activeId ? '2px solid #2563eb' : '1px solid #d7dde8',
+                  borderRadius: 12,
+                  padding: 12,
+                  background: c.id === activeId ? '#eff6ff' : '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                <b>{c.name}</b>
+                <div style={{ color: '#64748b' }}>{c.plz} {c.plaats}</div>
+                <small>{c.telefon}</small>
+              </button>
+            ))}
           </div>
+        </aside>
 
-          <hr style={{ border: 0, borderTop: "1px solid #e5e7eb", margin: "18px 0" }} />
+        <main style={card}>
+          <h2 style={{ marginTop: 0 }}>{lang === 'de' ? 'Kundendaten' : 'Klantgegevens'}</h2>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
             <label>
-              <b>{lang === "de" ? "Kundenname" : "Klantnaam"}</b>
-              <input style={inputStyle} value={active.name} onChange={(e) => patchActive({ name: e.target.value })} />
+              <b>{lang === 'de' ? 'Name' : 'Naam'}</b>
+              <input style={input} value={active.name} onChange={(e) => updateCustomer('name', e.target.value)} />
             </label>
 
             <label>
-              <b>{lang === "de" ? "Referenz" : "Referentie"}</b>
-              <input style={inputStyle} value={active.reference} onChange={(e) => patchActive({ reference: e.target.value })} />
-            </label>
-
-            <label>
-              <b>{lang === "de" ? "Ansprechpartner" : "Contactpersoon"}</b>
-              <input style={inputStyle} value={active.contact} onChange={(e) => patchActive({ contact: e.target.value })} />
-            </label>
-
-            <label>
-              <b>Status</b>
-              <select style={inputStyle} value={active.status} onChange={(e) => patchActive({ status: e.target.value as CustomerStatus })}>
-                <option value="active">{statusLabel("active", lang)}</option>
-                <option value="planning">{statusLabel("planning", lang)}</option>
-                <option value="production">{statusLabel("production", lang)}</option>
-                <option value="montage">{statusLabel("montage", lang)}</option>
-                <option value="done">{statusLabel("done", lang)}</option>
-              </select>
-            </label>
-
-            <label>
-              <b>Telefon</b>
-              <input style={inputStyle} value={active.phone} onChange={(e) => patchActive({ phone: e.target.value })} />
+              <b>{lang === 'de' ? 'Referenz' : 'Referentie'}</b>
+              <input style={input} value={active.referenz} onChange={(e) => updateCustomer('referenz', e.target.value)} />
             </label>
 
             <label>
               <b>E-Mail</b>
-              <input style={inputStyle} value={active.email} onChange={(e) => patchActive({ email: e.target.value })} />
+              <input style={input} value={active.email} onChange={(e) => updateCustomer('email', e.target.value)} />
             </label>
 
-            <label style={{ gridColumn: "1 / 3" }}>
-              <b>{lang === "de" ? "Adresse" : "Adres"}</b>
-              <input style={inputStyle} value={active.street} onChange={(e) => patchActive({ street: e.target.value })} />
+            <label>
+              <b>{lang === 'de' ? 'Telefon' : 'Telefoon'}</b>
+              <input style={input} value={active.telefon} onChange={(e) => updateCustomer('telefon', e.target.value)} />
+            </label>
+
+            <label style={{ gridColumn: '1 / 3' }}>
+              <b>{lang === 'de' ? 'Adresse' : 'Adres'}</b>
+              <input style={input} value={active.adresse} onChange={(e) => updateCustomer('adresse', e.target.value)} />
             </label>
 
             <label>
               <b>PLZ</b>
-              <input style={inputStyle} value={active.postalCode} onChange={(e) => patchActive({ postalCode: e.target.value })} />
+              <input style={input} value={active.plz} onChange={(e) => updateCustomer('plz', e.target.value)} />
             </label>
 
             <label>
-              <b>{lang === "de" ? "Ort" : "Plaats"}</b>
-              <input style={inputStyle} value={active.city} onChange={(e) => patchActive({ city: e.target.value })} />
+              <b>{lang === 'de' ? 'Ort' : 'Plaats'}</b>
+              <input style={input} value={active.plaats} onChange={(e) => updateCustomer('plaats', e.target.value)} />
             </label>
 
-            <label style={{ gridColumn: "1 / 3" }}>
-              <b>{lang === "de" ? "Notizen" : "Notities"}</b>
-              <textarea style={textAreaStyle} value={active.note} onChange={(e) => patchActive({ note: e.target.value })} />
+            <label style={{ gridColumn: '1 / 3' }}>
+              <b>{lang === 'de' ? 'Notizen' : 'Notities'}</b>
+              <textarea style={textarea} value={active.notizen} onChange={(e) => updateCustomer('notizen', e.target.value)} />
+            </label>
+
+            <label>
+              <b>📷 {lang === 'de' ? 'Fotos' : 'Foto’s'}</b>
+              <input type="file" multiple accept="image/*" style={input} onChange={addPhotos} />
+            </label>
+
+            <label>
+              <b>📎 {lang === 'de' ? 'Dokumente / Zeichnungen' : 'Documenten / Tekeningen'}</b>
+              <input type="file" multiple accept="image/*,.pdf,.xlsx,.xls" style={input} onChange={addDocuments} />
             </label>
           </div>
 
-          <hr style={{ border: 0, borderTop: "1px solid #e5e7eb", margin: "18px 0" }} />
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginTop: 22 }}>
+            <div style={card}>
+              <h3>📋 {lang === 'de' ? 'Auftrag' : 'Order'}</h3>
+              <p style={{ color: '#64748b' }}>
+                {orders.length
+                  ? `${orders.length} ${lang === 'de' ? 'verknüpft' : 'gekoppeld'}`
+                  : lang === 'de'
+                  ? 'Noch nicht verknüpft'
+                  : 'Nog niet gekoppeld'}
+              </p>
+              <button style={ghost} onClick={createOrder}>
+                {lang === 'de' ? 'Erstellen' : 'Maken'}
+              </button>
+            </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18 }}>
-            <div>
-              <h3>📷 {lang === "de" ? "Fotos" : "Foto’s"}</h3>
-              <input type="file" accept="image/*" capture="environment" multiple onChange={(e) => addPhotos(e.target.files)} />
+            <div style={card}>
+              <h3>🏭 {lang === 'de' ? 'Produktion' : 'Productie'}</h3>
+              <p style={{ color: '#64748b' }}>
+                {orders.some((o) => o.status === 'production')
+                  ? lang === 'de'
+                    ? 'In Produktion'
+                    : 'In productie'
+                  : lang === 'de'
+                  ? 'Noch nicht gestartet'
+                  : 'Nog niet gestart'}
+              </p>
+            </div>
 
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 10 }}>
-                {active.photos.map((p) => (
-                  <div key={p.id} style={{ position: "relative" }}>
-                    <img src={p.url} style={{ width: 110, height: 82, objectFit: "cover", borderRadius: 10, border: "1px solid #e5e7eb" }} />
-                    <button
-                      onClick={() => removePhoto(p.id)}
-                      style={{ position: "absolute", top: -6, right: -6, border: 0, borderRadius: 20, background: "#dc2626", color: "#fff", cursor: "pointer" }}
-                    >
-                      ×
-                    </button>
-                  </div>
+            <div style={card}>
+              <h3>🔧 Montage</h3>
+              <p style={{ color: '#64748b' }}>
+                {montageLists.length
+                  ? `${montageLists.length} ${lang === 'de' ? 'Liste(n)' : 'lijst(en)'}`
+                  : lang === 'de'
+                  ? 'Noch nicht verknüpft'
+                  : 'Nog niet gekoppeld'}
+              </p>
+              <button style={ghost} onClick={createMontage}>
+                {lang === 'de' ? 'Erstellen' : 'Maken'}
+              </button>
+            </div>
+
+            <div style={card}>
+              <h3>🧾 {lang === 'de' ? 'Rechnung' : 'Factuur'}</h3>
+              <p style={{ color: '#64748b' }}>
+                {lang === 'de' ? 'Später' : 'Later'}
+              </p>
+            </div>
+          </div>
+
+          {active.fotos.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <h3>📷 {lang === 'de' ? 'Fotos' : 'Foto’s'}</h3>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {active.fotos.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt={`Foto ${i + 1}`}
+                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 10, border: '1px solid #d7dde8' }}
+                  />
                 ))}
               </div>
             </div>
-
-            <div>
-              <h3>📎 {lang === "de" ? "Dokumente / Zeichnungen" : "Documenten / Tekeningen"}</h3>
-              <input type="file" multiple onChange={(e) => addDocs(e.target.files)} />
-
-              <div style={{ marginTop: 10 }}>
-                {active.docs.map((d) => (
-                  <div
-                    key={d.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "center",
-                      padding: 8,
-                      border: "1px solid #e5e7eb",
-                      borderRadius: 10,
-                      marginBottom: 6,
-                    }}
-                  >
-                    <a href={d.url} download={d.name} style={{ color: "#2563eb", fontWeight: 700 }}>
-                      📄 {d.name}
-                    </a>
-                    <button onClick={() => removeDoc(d.id)} style={{ ...primary, background: "#dc2626", padding: "5px 9px" }}>
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <hr style={{ border: 0, borderTop: "1px solid #e5e7eb", margin: "18px 0" }} />
-
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 10 }}>
-            <div style={{ padding: 12, borderRadius: 12, background: "#f8fafc" }}>
-              <b>Projekte</b>
-              <div style={{ color: "#64748b" }}>Noch nicht verknüpft</div>
-            </div>
-            <div style={{ padding: 12, borderRadius: 12, background: "#f8fafc" }}>
-              <b>Produktion</b>
-              <div style={{ color: "#64748b" }}>Noch nicht verknüpft</div>
-            </div>
-            <div style={{ padding: 12, borderRadius: 12, background: "#f8fafc" }}>
-              <b>Montage</b>
-              <div style={{ color: "#64748b" }}>Wird als Nächstes verbunden</div>
-            </div>
-            <div style={{ padding: 12, borderRadius: 12, background: "#f8fafc" }}>
-              <b>Rechnung</b>
-              <div style={{ color: "#64748b" }}>Später</div>
-            </div>
-          </div>
-        </div>
+          )}
+        </main>
       </div>
     </section>
   );
