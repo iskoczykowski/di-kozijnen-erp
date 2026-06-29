@@ -444,8 +444,7 @@ async function deleteNote(id:number){
 
   if(error) return alert(error.message);
 
-  loadProduction();
-} 
+  loadProduction(); 
  
   return (
     <div style={app}>
