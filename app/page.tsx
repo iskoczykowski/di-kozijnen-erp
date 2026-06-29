@@ -1141,7 +1141,7 @@ cursor:'pointer'
 ].map((x,i)=>(
   <div key={i} style={{
     display:'grid',
-    gridTemplateColumns:'1fr 1fr 120px',
+   gridTemplateColumns:'1fr 1fr 70px',
     gap:6,
     marginBottom:4
   }}>
@@ -1296,9 +1296,12 @@ cursor:'pointer'
               </select>
             </div>
 
-          <h3>Extra's</h3>
+          <div style={{marginTop:20}}>
+  <h3>Extra's</h3>
+  ...
+</div>
           {['Vensterbank','Dakraam vervangen','Waterslagdorpels','Voetvastzetter','',''].map((x,i)=>(
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 45px',gap:6,marginBottom:4}}>
               <select style={search}><option>{x}</option></select>
               <input style={search}/>
               <select style={search}><option>1</option><option>2</option><option>3</option></select>
@@ -1307,7 +1310,7 @@ cursor:'pointer'
 
           <h3>Benodigdheden</h3>
           {['Kraan Pieter','Steiger','',''].map((x,i)=>(
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 45px',gap:6,marginBottom:4}}>
               <select style={search}><option>{x}</option><option>Ladder</option><option>Container</option></select>
               <input style={search}/>
               <input style={search}/>
