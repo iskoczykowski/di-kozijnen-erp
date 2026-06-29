@@ -1148,7 +1148,7 @@ cursor:'pointer'
           <h3>{lang==='de'?'Bestellliste Produktion':'Bestellijst productie'}</h3>
 
           {['Profiel','Dorpel','Cilinders','Deurgreep','Roosters','Paneel','Rabat','Schuifpui','Afwerking'].map((x,i)=>(
-            <div key={i} style={{display:'grid',gridTemplateColumns:'160px 1fr 95px',gap:8,marginBottom:6}}>
+            <div key={i} style={{display:'grid',gridTemplateColumns: '80px 1fr 95px',gap:8,marginBottom:6}}>
               <select style={search} defaultValue={x}>
                 <option>Profiel</option><option>Dorpel</option><option>Cilinders</option>
                 <option>Deurgreep</option><option>Roosters</option><option>Paneel</option>
