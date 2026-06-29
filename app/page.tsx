@@ -1088,126 +1088,149 @@ cursor:'pointer'
 
 {module === 'montage' && (
   <section style={card}>
-    <h2>{lang === 'de' ? '🔧 Montage' : '🔧 Montage'}</h2>
+    <h2>🔧 {lang === 'de' ? 'Montage' : 'Montage'}</h2>
 
     <div style={{
       background:'#fff',
       border:'1px solid #ddd',
-      padding:20,
-      borderRadius:12
+      borderRadius:14,
+      padding:24,
+      overflowX:'auto'
     }}>
 
-      <div style={{display:'flex',justifyContent:'space-between',gap:20}}>
-        <div style={{fontSize:34,fontWeight:800}}>
-          D&I ◆
-          <span style={{fontSize:22,marginLeft:12}}>
-            Kunststoff Kozijnen B.V.
-          </span>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',borderBottom:'1px solid #ddd',paddingBottom:18}}>
+        <div>
+          <div style={{fontSize:30,fontWeight:900}}>D&I ◆ Kunststof Kozijnen B.V.</div>
+          <div style={{marginTop:8,fontWeight:700}}>
+            {lang==='de'?'Bestell- / Montageliste':'Bestel- / Montagelijst'}
+          </div>
         </div>
 
-        <div>
-          <label>{lang==='de'?'Datum':'Datum'}</label>
-          <input type="date" style={search}/>
-          <div style={{marginTop:10}}>
-            {lang==='de'?'Arbeit fertig':'Werk gereed'}:
+        <div style={{width:300}}>
+          <div style={{display:'grid',gridTemplateColumns:'80px 1fr',gap:8,alignItems:'center'}}>
+            <b>{lang==='de'?'Datum':'Datum'}</b>
+            <input type="date" style={{...search,width:'100%'}}/>
+          </div>
+
+          <div style={{marginTop:12}}>
+            <b>{lang==='de'?'Arbeit fertig':'Werk gereed'}:</b>
             <label style={{marginLeft:10}}>Ja <input type="radio" name="ready"/></label>
             <label style={{marginLeft:10}}>Nein <input type="radio" name="ready"/></label>
           </div>
         </div>
       </div>
 
-      <hr/>
+      <div style={{
+        display:'grid',
+        gridTemplateColumns:'1fr 1fr',
+        gap:36,
+        alignItems:'start',
+        marginTop:22
+      }}>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:40,alignItems:'start'}}>
+        {/* LINKE SEITE */}
         <div>
-          {['Klant','Referentie','Adres','Plaats','Tel.nr'].map((x)=>(
-            <div key={x} style={{display:'grid',gridTemplateColumns:'140px 1fr',marginBottom:6}}>
-              <b>{x}:</b>
-              <input style={search}/>
+          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
+            <b>{lang==='de'?'Kunde':'Klant'}:</b>
+            <input style={search}/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
+            <b>{lang==='de'?'Referenz':'Referentie'}:</b>
+            <input style={search}/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
+            <b>{lang==='de'?'Adresse':'Adres'}:</b>
+            <input style={search}/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
+            <b>{lang==='de'?'Ort':'Plaats'}:</b>
+            <input style={search}/>
+          </div>
+          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:18}}>
+            <b>{lang==='de'?'Telefon':'Tel.nr'}:</b>
+            <input style={search}/>
+          </div>
+
+          <h3>{lang==='de'?'Bestellliste Produktion':'Bestellijst productie'}</h3>
+
+          {['Profiel','Dorpel','Cilinders','Deurgreep','Roosters','Paneel','Rabat','Schuifpui','Afwerking'].map((x,i)=>(
+            <div key={i} style={{
+              display:'grid',
+              gridTemplateColumns:'170px 1fr 105px',
+              gap:8,
+              marginBottom:6
+            }}>
+              <select style={search} defaultValue={x}>
+                <option>Profiel</option>
+                <option>Dorpel</option>
+                <option>Cilinders</option>
+                <option>Deurgreep</option>
+                <option>Roosters</option>
+                <option>Paneel</option>
+                <option>Rabat</option>
+                <option>Schuifpui</option>
+                <option>Afwerking</option>
+              </select>
+
+              <select style={search}>
+                <option></option>
+                <option>Wit kunststof vensterbank</option>
+                <option>Steenlook vensterbank</option>
+                <option>Crème kunststof vensterbank</option>
+                <option>Aluminium deurknop met cilinder kerntrek beveiliging</option>
+                <option>Zwarte deurknop met cilinder kerntrek beveiliging</option>
+                <option>RVS 400 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 600 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 800 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 1000 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 1200 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 1400 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 1600 mm greep met cilinder kerntrek beveiliging</option>
+                <option>RVS 1800 mm greep met cilinder kerntrek beveiliging</option>
+                <option>Euro cilinder met 3 sleutels</option>
+                <option>Euro cilinder met 6 sleutels</option>
+                <option>Euro cilinder met 9 sleutels</option>
+                <option>Eurocilinder gelijksluitend</option>
+                <option>Knopcilinder</option>
+                <option>Knopcilinder met 3 sleutels</option>
+                <option>Knopcilinder met 6 sleutels</option>
+                <option>Knopcilinder met 9 sleutels</option>
+              </select>
+
+              <input type="date" style={search}/>
             </div>
           ))}
 
-          <h3>Bestellijst productie</h3>
+          <h3>{lang==='de'?'Glas / Füllung':'Glas / Vulling'}</h3>
+
           {[
-  'Profiel',
-  'Dorpel',
-  'Cilinders',
-  'Deurgreep',
-  'Roosters',
-  'Paneel',
-  'Rabat',
-  'Schuifpui',
-  'Afwerking'
-].map((x,i)=>(
-  <div key={i} style={{
-    display:'grid',
-   gridTemplateColumns:'1fr 1fr 70px',
-    gap:6,
-    marginBottom:4
-  }}>
-    <select style={search} defaultValue={x}>
-      <option>Profiel</option>
-      <option>Dorpel</option>
-      <option>Cilinders</option>
-      <option>Deurgreep</option>
-      <option>Roosters</option>
-      <option>Paneel</option>
-      <option>Rabat</option>
-      <option>Schuifpui</option>
-      <option>Afwerking</option>
-    </select>
-
-    <select style={search}>
-      <option></option>
-      <option>Wit kunststof vensterbank</option>
-      <option>Steenlook vensterbank</option>
-      <option>Crème kunststof vensterbank</option>
-      <option>Aluminium deurknop met cilinder kerntrek beveiliging</option>
-      <option>Zwarte deurknop met cilinder kerntrek beveiliging</option>
-      <option>RVS 400 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 600 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 800 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 1000 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 1200 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 1400 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 1600 mm greep met cilinder kerntrek beveiliging</option>
-      <option>RVS 1800 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 400 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 600 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 800 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 1000 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 1200 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 1400 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 1600 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Zwarte 1800 mm greep met cilinder kerntrek beveiliging</option>
-      <option>Euro cilinder met 3 sleutels</option>
-      <option>Euro cilinder met 6 sleutels</option>
-      <option>Euro cilinder met 9 sleutels</option>
-      <option>Eurocilinder gelijksluitend</option>
-      <option>Knopcilinder</option>
-      <option>Knopcilinder met 3 sleutels</option>
-      <option>Knopcilinder met 6 sleutels</option>
-      <option>Knopcilinder met 9 sleutels</option>
-      <option>Knopcilinder gelijksluitend</option>
-      <option>1</option>
-      <option>2</option>
-      <option>3</option>
-      <option>4</option>
-      <option>5</option>
-      <option>6</option>
-      <option>7</option>
-      <option>8</option>
-      <option>9</option>
-    </select>
-
-    <input type="date" style={search}/>
-  </div>
-))}
-
-          <h3>Glas / Vulling</h3>
-          {['Triple zonwerend','HR++ veiligheidsglas'].map((x)=>(
-            <select key={x} style={{...search,width:'100%',marginBottom:4}}>
+            'Triple',
+            'HR++',
+            'Triple MAT',
+            'HR++ MAT',
+            'Triple veiligheidsglas',
+            'HR++ veiligheidsglas',
+            'Triple zonwerend',
+            'HR++ zonwerend',
+            'Triple met roeden',
+            'HR++ met roeden',
+            'Triple Melk',
+            'HR++ Melk'
+          ].slice(0,2).map((x,i)=>(
+            <select key={i} style={{...search,width:'100%',marginBottom:6}}>
               <option>{x}</option>
+              <option>Triple</option>
+              <option>HR++</option>
+              <option>Triple MAT</option>
+              <option>HR++ MAT</option>
+              <option>Triple veiligheidsglas</option>
+              <option>HR++ veiligheidsglas</option>
+              <option>Triple zonwerend</option>
+              <option>HR++ zonwerend</option>
+              <option>Triple met roeden</option>
+              <option>HR++ met roeden</option>
+              <option>Triple Melk</option>
+              <option>HR++ Melk</option>
             </select>
           ))}
 
@@ -1215,117 +1238,133 @@ cursor:'pointer'
           <textarea style={{...search,width:'100%',height:90}}/>
         </div>
 
-        <div>
+        {/* RECHTE SEITE */}
+        <div style={{borderLeft:'1px solid #ddd',paddingLeft:28}}>
           <h3>Raamdecoratie / Rolluiken enz</h3>
-          {[
-  'Horren',
-  'Raamdecoratie',
-  'Rolluiken',
-  '',
-  '',
-  ''
-].map((x,i)=>(
-<div
-  key={i}
-  style={{
-    display:'grid',
-    gridTemplateColumns:'1fr 1fr 90px',
-    gap:6,
-    marginBottom:4
-  }}
->
 
-<select style={search} defaultValue={x}>
-  <option>Horren</option>
-  <option>Raamdecoratie</option>
-  <option>Rolluiken</option>
-  <option>Screens</option>
-  <option>Zonwering</option>
-</select>
+          {['Horren','Raamdecoratie','Rolluiken','Horren','Horren'].map((x,i)=>(
+            <div key={i} style={{
+              display:'grid',
+              gridTemplateColumns:'1fr 1fr 70px',
+              gap:8,
+              marginBottom:6
+            }}>
+              <select style={search} defaultValue={x}>
+                <option>Horren</option>
+                <option>Raamdecoratie</option>
+                <option>Rolluiken</option>
+                <option>Screens</option>
+                <option>Zonwering</option>
+              </select>
 
-<select style={search}>
-  <option></option>
-
-  <option>Aluminium inzet hor</option>
-  <option>Plissé</option>
-  <option>Plissé hordeur</option>
-  <option>Rolhor</option>
-  <option>Schuifhordeur</option>
-
-  <option>Lamellen</option>
-  <option>Jaloezie</option>
-  <option>Rolgordijn</option>
-
-  <option>Rolluik hand</option>
-  <option>Rolluik elektrisch</option>
-  <option>Rolluik Solar</option>
-
-  <option>Screen hand</option>
-  <option>Screen elektrisch</option>
-  <option>Screen Solar</option>
-
-  <option>Zonnescherm</option>
-  <option>Uitvalscherm</option>
-</select>
-
-<select style={search}>
-  {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-    <option key={n}>{n}</option>
-  ))}
-</select>
-
-</div>
-))}
-            <div key={Math.random()} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
               <select style={search}>
-  <option>Horren</option>
-  <option>Raamdecoratie</option>
-  <option>Rolluiken</option>
-  <option>Screens</option>
-  <option>Zonwering</option>
-</select>
-              <select style={search}>
+                <option></option>
                 <option>Aluminium inzet hor</option>
                 <option>Plissé</option>
-                <option>Rolluik elektrisch schakelaar</option>
+                <option>Plissé hordeur</option>
+                <option>Rolhor</option>
+                <option>Schuifhordeur</option>
+                <option>Lamellen</option>
+                <option>Jaloezie</option>
+                <option>Rolgordijn</option>
+                <option>Rolluik hand</option>
+                <option>Rolluik elektrisch</option>
                 <option>Rolluik Solar</option>
+                <option>Screen hand</option>
+                <option>Screen elektrisch</option>
+                <option>Screen Solar</option>
+                <option>Zonnescherm</option>
+                <option>Uitvalscherm</option>
               </select>
-              <select style={search}>
-                <option>1</option><option>2</option><option>3</option>
-                <option>1 meter</option><option>2 meter</option><option>3 meter</option>
-              </select>
-            </div>
 
-          <div style={{marginTop:20}}>
-  <h3>Extra's</h3>
-  ...
-</div>
-          {['Vensterbank','Dakraam vervangen','Waterslagdorpels','Voetvastzetter','',''].map((x,i)=>(
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 45px',gap:6,marginBottom:4}}>
-              <select style={search}><option>{x}</option></select>
-              <input style={search}/>
-              <select style={search}><option>1</option><option>2</option><option>3</option></select>
+              <select style={search}>
+                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+                  <option key={n}>{n}</option>
+                ))}
+              </select>
             </div>
           ))}
 
-          <h3>Benodigdheden</h3>
-          {['Kraan Pieter','Steiger','',''].map((x,i)=>(
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 45px',gap:6,marginBottom:4}}>
-              <select style={search}><option>{x}</option><option>Ladder</option><option>Container</option></select>
+          <h3 style={{marginTop:24}}>Extra's</h3>
+
+          {['Vensterbank','Dakraam vervangen','Waterslagdorpels','Voetvastzetter',''].map((x,i)=>(
+            <div key={i} style={{
+              display:'grid',
+              gridTemplateColumns:'1fr 1fr 70px',
+              gap:8,
+              marginBottom:6
+            }}>
+              <select style={search} defaultValue={x}>
+                <option></option>
+                <option>Vensterbank</option>
+                <option>Dakraam nieuw</option>
+                <option>Dakraam vervangen</option>
+                <option>Waterslagdorpels</option>
+                <option>Voetvastzetter</option>
+                <option>Extra cilinder</option>
+                <option>Rabat</option>
+                <option>Boeidelen</option>
+                <option>Paneel</option>
+                <option>Afwerking</option>
+              </select>
+
+              <select style={search}>
+                <option></option>
+                <option>Wit kunststof vensterbank</option>
+                <option>Steenlook vensterbank</option>
+                <option>Crème kunststof vensterbank</option>
+                <option>Aluminium</option>
+                <option>Zwart</option>
+                <option>Verzinkt</option>
+              </select>
+
+              <select style={search}>
+                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+                  <option key={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+          ))}
+
+          <h3 style={{marginTop:24}}>{lang==='de'?'Benötigt':'Benodigdheden'}</h3>
+
+          {['Kraan Pieter','Steiger',''].map((x,i)=>(
+            <div key={i} style={{
+              display:'grid',
+              gridTemplateColumns:'1fr 1fr 70px',
+              gap:8,
+              marginBottom:6
+            }}>
+              <select style={search} defaultValue={x}>
+                <option></option>
+                <option>Kraan Pieter</option>
+                <option>Kraan Rutten</option>
+                <option>Steiger</option>
+                <option>Ladder</option>
+                <option>Container</option>
+                <option>Hoogwerker</option>
+                <option>Glaslift</option>
+              </select>
+
               <input style={search}/>
-              <input style={search}/>
+
+              <select style={search}>
+                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
+                  <option key={n}>{n}</option>
+                ))}
+              </select>
             </div>
           ))}
         </div>
       </div>
 
-      <div style={{display:'flex',gap:20,marginTop:20}}>
+      <div style={{display:'flex',gap:16,marginTop:24,borderTop:'1px solid #ddd',paddingTop:18}}>
         <button onClick={()=>window.print()} style={primary}>
           🖨️ {lang==='de'?'PDF drucken':'PDF afdrukken'}
         </button>
 
         <button style={{...primary,background:'#16a34a'}}>
-          📊 Excel export
+          📊 {lang==='de'?'Excel exportieren':'Excel export'}
         </button>
       </div>
     </div>
