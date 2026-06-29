@@ -2,14 +2,15 @@
 
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import MontageModule from "./MontageModule";
 import KundenModule from "./KundenModule";
+import MontageModule from "./MontageModule";
 import ProduktionModule from "./ProduktionModule";
 import ProjekteModule from "./ProjekteModule";
 import KalenderModule from "./KalenderModule";
 import LagerModule from "./LagerModule";
 import NachrichtenModule from "./NachrichtenModule";
 import MitarbeiterModule from "./MitarbeiterModule";
+import LieferungModule from "./LieferungModule";
 
 type Lang = 'de' | 'nl';
 type Module =
@@ -828,215 +829,28 @@ cursor:'pointer'
 
         {module === "customers" && <KundenModule lang={lang} />}
 
-        {module === 'projects' && (
-          <section style={cardWide}>
-            <div style={topRow}>
-              <h2>📁 {t.projects}</h2>
-              <button onClick={addProject} style={primary}>+ {t.addProject}</button>
-            </div>
+{module === "projects" && <ProjekteModule lang={lang} />}
 
-            <table style={table}>
-              <thead>
-                <tr>
-                  <th style={th}>{t.number}</th>
-                  <th style={th}>{t.project}</th>
-                  <th style={th}>{t.customer}</th>
-                  <th style={th}>{t.status}</th>
-                  <th style={th}>{t.price}</th>
-                  <th style={th}>{t.action}</th>
-                </tr>
-              </thead>
-              <tbody>
-                {projects.map((p:any)=>(
-                  <tr key={p.id}>
-                    <td style={td}>{p.project_number}</td>
-                    <td style={td}>{p.project_name}</td>
-                    <td style={td}>{p.customer}</td>
-                    <td style={td}>
-  <button
-    onClick={() => changeProjectStatus(p)}
-    style={{
-      background:
-        p.status === 'done'
-          ? '#22c55e'
-          : p.status === 'working'
-          ? '#eab308'
-          : '#ef4444',
-      color: '#fff',
-      border: 'none',
-      borderRadius: 8,
-      padding: '6px 12px',
-      cursor: 'pointer',
-      fontWeight: 'bold'
-    }}
-  >
-    {
-      p.status === 'done'
-        ? (lang === 'de' ? 'Fertig' : 'Klaar')
-        : p.status === 'working'
-        ? (lang === 'de' ? 'In Bearbeitung' : 'In behandeling')
-        : (lang === 'de' ? 'Nicht fertig' : 'Niet klaar')
-    }
-  </button>
-</td>
-                    <td style={td}>{p.price}</td>
-                    <td style={td}>
-                      <button onClick={()=>editProject(p)} style={{marginRight:6}}>
-                        {lang==='de' ? 'Bearbeiten' : 'Bewerken'}
-                      </button>
+{module === "production" && <ProduktionModule lang={lang} />}
 
-                      <button onClick={()=>deleteProject(p.id)}>
-                        {lang==='de' ? 'Löschen' : 'Verwijderen'}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </section>
-        )}
-        {module === 'production' && (
-  <section style={card}>
-    <div style={topRow}>
-      <h2>🏭 {lang==='de' ? 'Produktion' : 'Productie'}</h2>
-    </div>
+{module === "stock" && <LagerModule lang={lang} />}
 
-    <table style={table}>
-      <thead>
-        <tr>
-          <th style={th}>{lang==='de' ? 'Projekt' : 'Project'}</th>
-          <th style={th}>{lang==='de' ? 'Teil' : 'Onderdeel'}</th>
-          <th style={th}>{lang==='de' ? 'Menge' : 'Aantal'}</th>
-          <th style={th}>Status</th>
-          <th style={th}>{lang==='de' ? 'Notizen' : 'Notities'}</th>
-          <th style={th}>{lang==='de' ? 'Zeichnung' : 'Tekening'}</th>
-          <th style={th}>{lang==='de' ? 'Aktion' : 'Actie'}</th>
-        </tr>
-      </thead>
+{module === "delivery" && <LieferungModule lang={lang} />}
 
-      <tbody>
-        {production.map((p:any)=>(
-          <tr key={p.id}>
-            <td style={td}>{p.project}</td>
-            <td style={td}>{p.item}</td>
-            <td style={td}>{p.qty}</td>
-
-            <td style={td}>
-              <button
-                onClick={()=>changeProductionStatus(p)}
-                style={{
-                  background:
-                    p.status === 'done'
-                      ? '#22c55e'
-                      : p.status === 'working'
-                      ? '#eab308'
-                      : '#ef4444',
-                  color:'#fff',
-                  border:'none',
-                  borderRadius:8,
-                  padding:'6px 12px'
-                }}
-              >
-                {
-                  p.status === 'done'
-                    ? (lang==='de' ? 'Fertig' : 'Klaar')
-                    : p.status === 'working'
-                    ? (lang==='de' ? 'In Bearbeitung' : 'In behandeling')
-                    : (lang==='de' ? 'Offen' : 'Open')
-                }
-              </button>
-            </td>
-
-            <td style={td}>{p.notes}</td>
-
-            <td style={td}>
-              {drawingsFor(p.id).length ? (
-                drawingsFor(p.id).map((d:any)=>(
-                  <div key={d.id} style={{display:'flex',gap:8,alignItems:'center',marginBottom:6}}>
-                    <a href={d.url} target="_blank" rel="noreferrer">
-                      📄 {d.name || (lang==='de' ? 'Zeichnung' : 'Tekening')}
-                    </a>
-                    <button onClick={()=>deleteProductionDrawing(d)}>
-                      🗑️
-                    </button>
-                  </div>
-                ))
-              ) : (
-                "-"
-              )}
-            </td>
-
-            <td style={td}>
-              <label
-                style={{
-                  background:"#2563eb",
-                  color:"#fff",
-                  padding:"6px 12px",
-                  borderRadius:8,
-                  cursor:"pointer",
-                  display:"inline-block"
-                }}
-              >
-                📁 {lang==="de" ? "Zeichnung hinzufügen" : "Tekening toevoegen"}
-
-                <input
-                  type="file"
-                  accept=".xlsx,.xls,.pdf,.png,.jpg,.jpeg,.doc,.docx,.dwg,.dxf"
-                  style={{display:"none"}}
-                  onChange={(e)=>uploadProductionDrawing(p,e)}
-                />
-              </label>
-            </td>
-          </tr>
-        ))}
-      </tbody>
-    </table>
+{module === "orders" && (
+  <section>
+    <h2>{lang === "de" ? "📋 Aufträge" : "📋 Orders"}</h2>
   </section>
 )}
 
-{module === 'stock' && (
-  <div>
-    <h2>📦 Lager</h2>
-  </div>
-)}
+{module === "montage" && <MontageModule lang={lang} />}
 
-{module === 'delivery' && (
-  <div>
-    <h2>🚚 Lieferungen</h2>
-  </div>
-)}
+{module === "calendar" && <KalenderModule lang={lang} />}
 
-{module === 'orders' && (
-  <div>
-    <h2>📋 Aufträge</h2>
-  </div>
-)}
+{module === "employees" && <MitarbeiterModule lang={lang} />}
 
-{module === 'montage' && <MontageModule lang={lang} />}
-
-{module === 'calendar' && (
-  <div>
-    <h2>📅 Kalender</h2>
-  </div>
-)}
-
-{module === 'employees' && (
-  <div>
-    <h2>👷 Mitarbeiter</h2>
-  </div>
-)}
-
-{module === 'messages' && (
-  <div>
-    <h2>💬 Nachrichten</h2>
-  </div>
-)}
-      </main>
-    </div>
-  );
-}
-
-
+{module === "messages" && <NachrichtenModule lang={lang} />}
+        
 function Event({color,title,time}:any) {
   return (
     <div style={event}>
