@@ -35,6 +35,14 @@ const [chatText, setChatText] = useState('');
   const [selectedMontageCustomer, setSelectedMontageCustomer] = useState<any>(null);
   const [montagePhotos, setMontagePhotos] = useState<any[]>([]);
 const [montageExcelName, setMontageExcelName] = useState("");
+  const [montageForm, setMontageForm] = useState<any>({
+  klant: '',
+  referentie: '',
+  adres: '',
+  plaats: '',
+  telefoon: '',
+  opmerkingen: '',
+});
 
   const t:any = {
     de: {
@@ -1091,88 +1099,60 @@ cursor:'pointer'
 
 {module === 'montage' && (
   <section style={card}>
-    <h2>🔧 {lang === 'de' ? 'Montage' : 'Montage'}</h2>
+    <h2>🔧 Montage</h2>
 
-    <div style={{
-      background:'#fff',
-      border:'1px solid #ddd',
-      borderRadius:14,
-      padding:24,
-      overflowX:'auto'
-    }}>
-
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start',borderBottom:'1px solid #ddd',paddingBottom:18}}>
+    <div style={{background:'#fff',padding:24,borderRadius:16,overflowX:'auto'}}>
+      <div style={{display:'flex',justifyContent:'space-between',borderBottom:'1px solid #ddd',paddingBottom:16}}>
         <div>
-          <div style={{fontSize:30,fontWeight:900}}>D&I ◆ Kunststof Kozijnen B.V.</div>
-          <div style={{marginTop:8,fontWeight:700}}>
-            {lang==='de'?'Bestell- / Montageliste':'Bestel- / Montagelijst'}
-          </div>
+          <div style={{fontSize:28,fontWeight:900}}>D&I ◆ Kunststof Kozijnen B.V.</div>
+          <b>{lang==='de'?'Bestell- / Montageliste':'Bestel- / Montagelijst'}</b>
         </div>
 
-        <div style={{width:300}}>
-          <div style={{display:'grid',gridTemplateColumns:'80px 1fr',gap:8,alignItems:'center'}}>
-            <b>{lang==='de'?'Datum':'Datum'}</b>
-            <input type="date" style={{...search,width:'100%'}}/>
-          </div>
-
-          <div style={{marginTop:12}}>
+        <div style={{width:260}}>
+          <label>Datum</label>
+          <input type="date" style={{...search,width:'100%'}}/>
+          <div style={{marginTop:10}}>
             <b>{lang==='de'?'Arbeit fertig':'Werk gereed'}:</b>
-            <label style={{marginLeft:10}}>Ja <input type="radio" name="ready"/></label>
-            <label style={{marginLeft:10}}>Nein <input type="radio" name="ready"/></label>
+            <label style={{marginLeft:8}}>Ja <input type="radio" name="ready"/></label>
+            <label style={{marginLeft:8}}>Nein <input type="radio" name="ready"/></label>
           </div>
         </div>
       </div>
 
       <div style={{
         display:'grid',
-        gridTemplateColumns:'1fr 1fr',
-        gap:36,
+        gridTemplateColumns:'minmax(520px,1fr) minmax(420px,0.8fr)',
+        gap:32,
         alignItems:'start',
         marginTop:22
       }}>
 
-        {/* LINKE SEITE */}
         <div>
-          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
-            <b>{lang==='de'?'Kunde':'Klant'}:</b>
-            <input style={search}/>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
-            <b>{lang==='de'?'Referenz':'Referentie'}:</b>
-            <input style={search}/>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
-            <b>{lang==='de'?'Adresse':'Adres'}:</b>
-            <input style={search}/>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:6}}>
-            <b>{lang==='de'?'Ort':'Plaats'}:</b>
-            <input style={search}/>
-          </div>
-          <div style={{display:'grid',gridTemplateColumns:'130px 1fr',gap:8,marginBottom:18}}>
-            <b>{lang==='de'?'Telefon':'Tel.nr'}:</b>
-            <input style={search}/>
-          </div>
+          {[
+            ['klant', lang==='de'?'Kunde':'Klant'],
+            ['referentie', lang==='de'?'Referenz':'Referentie'],
+            ['adres', lang==='de'?'Adresse':'Adres'],
+            ['plaats', lang==='de'?'Ort':'Plaats'],
+            ['telefoon', lang==='de'?'Telefon':'Tel.nr']
+          ].map(([key,label])=>(
+            <div key={key} style={{display:'grid',gridTemplateColumns:'120px 1fr',gap:8,marginBottom:7}}>
+              <b>{label}:</b>
+              <input
+                style={search}
+                value={montageForm[key] || ''}
+                onChange={(e)=>setMontageForm({...montageForm,[key]:e.target.value})}
+              />
+            </div>
+          ))}
 
           <h3>{lang==='de'?'Bestellliste Produktion':'Bestellijst productie'}</h3>
 
           {['Profiel','Dorpel','Cilinders','Deurgreep','Roosters','Paneel','Rabat','Schuifpui','Afwerking'].map((x,i)=>(
-            <div key={i} style={{
-              display:'grid',
-              gridTemplateColumns:'170px 1fr 105px',
-              gap:8,
-              marginBottom:6
-            }}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'160px 1fr 95px',gap:8,marginBottom:6}}>
               <select style={search} defaultValue={x}>
-                <option>Profiel</option>
-                <option>Dorpel</option>
-                <option>Cilinders</option>
-                <option>Deurgreep</option>
-                <option>Roosters</option>
-                <option>Paneel</option>
-                <option>Rabat</option>
-                <option>Schuifpui</option>
-                <option>Afwerking</option>
+                <option>Profiel</option><option>Dorpel</option><option>Cilinders</option>
+                <option>Deurgreep</option><option>Roosters</option><option>Paneel</option>
+                <option>Rabat</option><option>Schuifpui</option><option>Afwerking</option>
               </select>
 
               <select style={search}>
@@ -1187,17 +1167,9 @@ cursor:'pointer'
                 <option>RVS 800 mm greep met cilinder kerntrek beveiliging</option>
                 <option>RVS 1000 mm greep met cilinder kerntrek beveiliging</option>
                 <option>RVS 1200 mm greep met cilinder kerntrek beveiliging</option>
-                <option>RVS 1400 mm greep met cilinder kerntrek beveiliging</option>
-                <option>RVS 1600 mm greep met cilinder kerntrek beveiliging</option>
-                <option>RVS 1800 mm greep met cilinder kerntrek beveiliging</option>
                 <option>Euro cilinder met 3 sleutels</option>
                 <option>Euro cilinder met 6 sleutels</option>
-                <option>Euro cilinder met 9 sleutels</option>
-                <option>Eurocilinder gelijksluitend</option>
                 <option>Knopcilinder</option>
-                <option>Knopcilinder met 3 sleutels</option>
-                <option>Knopcilinder met 6 sleutels</option>
-                <option>Knopcilinder met 9 sleutels</option>
               </select>
 
               <input type="date" style={search}/>
@@ -1206,214 +1178,134 @@ cursor:'pointer'
 
           <h3>{lang==='de'?'Glas / Füllung':'Glas / Vulling'}</h3>
 
-          {[
-            'Triple',
-            'HR++',
-            'Triple MAT',
-            'HR++ MAT',
-            'Triple veiligheidsglas',
-            'HR++ veiligheidsglas',
-            'Triple zonwerend',
-            'HR++ zonwerend',
-            'Triple met roeden',
-            'HR++ met roeden',
-            'Triple Melk',
-            'HR++ Melk'
-          ].slice(0,2).map((x,i)=>(
+          {['Triple zonwerend','HR++ veiligheidsglas'].map((x,i)=>(
             <select key={i} style={{...search,width:'100%',marginBottom:6}}>
               <option>{x}</option>
-              <option>Triple</option>
-              <option>HR++</option>
-              <option>Triple MAT</option>
-              <option>HR++ MAT</option>
-              <option>Triple veiligheidsglas</option>
-              <option>HR++ veiligheidsglas</option>
-              <option>Triple zonwerend</option>
-              <option>HR++ zonwerend</option>
-              <option>Triple met roeden</option>
-              <option>HR++ met roeden</option>
-              <option>Triple Melk</option>
-              <option>HR++ Melk</option>
+              <option>Triple</option><option>HR++</option><option>Triple MAT</option>
+              <option>HR++ MAT</option><option>Triple veiligheidsglas</option>
+              <option>HR++ veiligheidsglas</option><option>Triple zonwerend</option>
+              <option>HR++ zonwerend</option><option>Triple Melk</option><option>HR++ Melk</option>
             </select>
           ))}
 
           <h3>{lang==='de'?'Bemerkungen':'Opmerkingen'}</h3>
-          <textarea style={{...search,width:'100%',height:90}}/>
+          <textarea
+            style={{...search,width:'100%',height:90}}
+            value={montageForm.opmerkingen}
+            onChange={(e)=>setMontageForm({...montageForm,opmerkingen:e.target.value})}
+          />
         </div>
 
-        {/* RECHTE SEITE */}
-        <div style={{borderLeft:'1px solid #ddd',paddingLeft:28}}>
+        <div style={{borderLeft:'1px solid #ddd',paddingLeft:26}}>
           <h3>Raamdecoratie / Rolluiken enz</h3>
 
           {['Horren','Raamdecoratie','Rolluiken','Horren','Horren'].map((x,i)=>(
-            <div key={i} style={{
-              display:'grid',
-              gridTemplateColumns:'1fr 1fr 70px',
-              gap:8,
-              marginBottom:6
-            }}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 55px',gap:8,marginBottom:6}}>
               <select style={search} defaultValue={x}>
-                <option>Horren</option>
-                <option>Raamdecoratie</option>
-                <option>Rolluiken</option>
-                <option>Screens</option>
-                <option>Zonwering</option>
+                <option>Horren</option><option>Raamdecoratie</option><option>Rolluiken</option>
+                <option>Screens</option><option>Zonwering</option>
               </select>
-
               <select style={search}>
                 <option></option>
-                <option>Aluminium inzet hor</option>
-                <option>Plissé</option>
-                <option>Plissé hordeur</option>
-                <option>Rolhor</option>
-                <option>Schuifhordeur</option>
-                <option>Lamellen</option>
-                <option>Jaloezie</option>
-                <option>Rolgordijn</option>
-                <option>Rolluik hand</option>
-                <option>Rolluik elektrisch</option>
-                <option>Rolluik Solar</option>
-                <option>Screen hand</option>
-                <option>Screen elektrisch</option>
-                <option>Screen Solar</option>
-                <option>Zonnescherm</option>
-                <option>Uitvalscherm</option>
+                <option>Aluminium inzet hor</option><option>Plissé</option><option>Plissé hordeur</option>
+                <option>Rolhor</option><option>Schuifhordeur</option><option>Rolluik elektrisch</option>
+                <option>Rolluik Solar</option><option>Screen elektrisch</option>
               </select>
-
-              <select style={search}>
-                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-                  <option key={n}>{n}</option>
-                ))}
-              </select>
+              <select style={search}>{[1,2,3,4,5,6,7,8,9,10].map(n=><option key={n}>{n}</option>)}</select>
             </div>
           ))}
 
-          <h3 style={{marginTop:24}}>Extra's</h3>
+          <h3 style={{marginTop:22}}>Extra's</h3>
 
           {['Vensterbank','Dakraam vervangen','Waterslagdorpels','Voetvastzetter',''].map((x,i)=>(
-            <div key={i} style={{
-              display:'grid',
-              gridTemplateColumns:'1fr 1fr 70px',
-              gap:8,
-              marginBottom:6
-            }}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 55px',gap:8,marginBottom:6}}>
               <select style={search} defaultValue={x}>
-                <option></option>
-                <option>Vensterbank</option>
-                <option>Dakraam nieuw</option>
-                <option>Dakraam vervangen</option>
-                <option>Waterslagdorpels</option>
-                <option>Voetvastzetter</option>
-                <option>Extra cilinder</option>
-                <option>Rabat</option>
-                <option>Boeidelen</option>
-                <option>Paneel</option>
-                <option>Afwerking</option>
+                <option></option><option>Vensterbank</option><option>Dakraam nieuw</option>
+                <option>Dakraam vervangen</option><option>Waterslagdorpels</option>
+                <option>Voetvastzetter</option><option>Extra cilinder</option><option>Rabat</option>
               </select>
-
               <select style={search}>
-                <option></option>
-                <option>Wit kunststof vensterbank</option>
-                <option>Steenlook vensterbank</option>
-                <option>Crème kunststof vensterbank</option>
-                <option>Aluminium</option>
-                <option>Zwart</option>
-                <option>Verzinkt</option>
+                <option></option><option>Wit kunststof vensterbank</option>
+                <option>Steenlook vensterbank</option><option>Crème kunststof vensterbank</option>
               </select>
-
-              <select style={search}>
-                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-                  <option key={n}>{n}</option>
-                ))}
-              </select>
+              <select style={search}>{[1,2,3,4,5,6,7,8,9,10].map(n=><option key={n}>{n}</option>)}</select>
             </div>
           ))}
 
-          <h3 style={{marginTop:24}}>{lang==='de'?'Benötigt':'Benodigdheden'}</h3>
+          <h3 style={{marginTop:22}}>{lang==='de'?'Benötigt':'Benodigdheden'}</h3>
 
           {['Kraan Pieter','Steiger',''].map((x,i)=>(
-            <div key={i} style={{
-              display:'grid',
-              gridTemplateColumns:'1fr 1fr 70px',
-              gap:8,
-              marginBottom:6
-            }}>
+            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 55px',gap:8,marginBottom:6}}>
               <select style={search} defaultValue={x}>
-                <option></option>
-                <option>Kraan Pieter</option>
-                <option>Kraan Rutten</option>
-                <option>Steiger</option>
-                <option>Ladder</option>
-                <option>Container</option>
-                <option>Hoogwerker</option>
-                <option>Glaslift</option>
+                <option></option><option>Kraan Pieter</option><option>Kraan Rutten</option>
+                <option>Steiger</option><option>Ladder</option><option>Container</option><option>Glaslift</option>
               </select>
-
               <input style={search}/>
-
-              <select style={search}>
-                {[1,2,3,4,5,6,7,8,9,10].map(n=>(
-                  <option key={n}>{n}</option>
-                ))}
-              </select>
+              <select style={search}>{[1,2,3,4,5,6,7,8,9,10].map(n=><option key={n}>{n}</option>)}</select>
             </div>
           ))}
+
+          <h3 style={{marginTop:22}}>{lang==='de'?'Fotos / Excel':'Foto’s / Excel'}</h3>
+
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            multiple
+            onChange={(e)=>setMontagePhotos(Array.from(e.target.files || []))}
+          />
+
+          <div style={{display:'flex',gap:8,flexWrap:'wrap',marginTop:10}}>
+            {montagePhotos.map((file:any,i:number)=>(
+              <img key={i} src={URL.createObjectURL(file)} style={{width:90,height:70,objectFit:'cover',borderRadius:8}}/>
+            ))}
+          </div>
+
+          <input
+            type="file"
+            accept=".xlsx,.xls"
+            style={{marginTop:14}}
+            onChange={async(e)=>{
+              const file = e.target.files?.[0];
+              if(!file) return;
+
+              setMontageExcelName(file.name);
+
+              const data = await file.arrayBuffer();
+              const workbook = XLSX.read(data);
+              const sheet = workbook.Sheets[workbook.SheetNames[0]];
+              const rows:any = XLSX.utils.sheet_to_json(sheet,{header:1});
+
+              const cell = (r:number,c:number)=>rows?.[r]?.[c] || '';
+
+              setMontageForm({
+                klant: cell(3,0),
+                referentie: cell(4,0),
+                adres: cell(5,0),
+                plaats: cell(6,0),
+                telefoon: cell(7,0),
+                opmerkingen: cell(26,0),
+              });
+
+              alert(lang==='de'
+                ? 'Excel wurde importiert und Felder wurden ausgefüllt.'
+                : 'Excel is geïmporteerd en velden zijn ingevuld.'
+              );
+            }}
+          />
+
+          {montageExcelName && (
+            <div style={{marginTop:8,fontSize:13}}>
+              📊 {lang==='de'?'Excel gewählt':'Excel gekozen'}: {montageExcelName}
+            </div>
+          )}
         </div>
       </div>
-      <h3>{lang==="de" ? "Fotos" : "Foto's"}</h3>
-
-<input
-  type="file"
-  accept="image/*"
-  capture="environment"
-  multiple
-  onChange={(e)=>{
-    const files = Array.from(e.target.files || []);
-    setMontagePhotos(files);
-  }}
-/>
-
-<div style={{display:"flex",gap:10,flexWrap:"wrap",marginTop:10}}>
-  {montagePhotos.map((file:any,i:number)=>(
-    <img
-      key={i}
-      src={URL.createObjectURL(file)}
-      style={{width:120,height:90,objectFit:"cover",borderRadius:10}}
-    />
-  ))}
-</div>
- <h3>{lang==="de" ? "Excel importieren" : "Excel importeren"}</h3>
-
-<input
-  type="file"
-  accept=".xlsx,.xls"
-  onChange={async (e)=>{
-    const file = e.target.files?.[0];
-    if(!file) return;
-
-    setMontageExcelName(file.name);
-
-    const data = await file.arrayBuffer();
-    const workbook = XLSX.read(data);
-    const sheet = workbook.Sheets[workbook.SheetNames[0]];
-    const rows = XLSX.utils.sheet_to_json(sheet, { header: 1 });
-
-    console.log(rows);
-    alert(lang==="de" ? "Excel wurde gelesen" : "Excel is gelezen");
-  }}
-/>
-
-{montageExcelName && (
-  <div style={{marginTop:8,fontSize:13}}>
-    📊 {lang==="de" ? "Gewählt" : "Gekozen"}: {montageExcelName}
-  </div>
-)}     
 
       <div style={{display:'flex',gap:16,marginTop:24,borderTop:'1px solid #ddd',paddingTop:18}}>
         <button onClick={()=>window.print()} style={primary}>
           🖨️ {lang==='de'?'PDF drucken':'PDF afdrukken'}
         </button>
-
         <button style={{...primary,background:'#16a34a'}}>
           📊 {lang==='de'?'Excel exportieren':'Excel export'}
         </button>
