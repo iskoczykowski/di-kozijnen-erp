@@ -1118,10 +1118,18 @@ cursor:'pointer'
 
       <hr/>
 
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:24}}>
+      <div
+  style={{
+    display: 'grid',
+    gridTemplateColumns: '60% 40%',
+    gap: 40,
+    alignItems: 'start',
+    width: '100%',
+  }}
+>
         <div>
           {['Klant','Referentie','Adres','Plaats','Tel.nr'].map((x)=>(
-            <div key={x} style={{display:'grid',gridTemplateColumns:'120px 1fr',marginBottom:6}}>
+            <div key={x} style={{display:'grid',gridTemplateColumns:'140px 1fr',marginBottom:6}}>
               <b>{x}:</b>
               <input style={search}/>
             </div>
@@ -1229,7 +1237,7 @@ cursor:'pointer'
   key={i}
   style={{
     display:'grid',
-    gridTemplateColumns:'1fr 1.4fr 100px',
+    gridTemplateColumns:'160px 1fr 90px',
     gap:6,
     marginBottom:4
   }}
