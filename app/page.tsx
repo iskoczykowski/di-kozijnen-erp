@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import KundenModule from './KundenModule';
 import MontageModule from './MontageModule';
 import ProduktionModule from './ProduktionModule';
-import ProjekteModule from './ProjekteModule';
+import AuftraegeModule from './AuftraegeModule';
 import KalenderModule from './KalenderModule';
 import LagerModule from './LagerModule';
 import NachrichtenModule from './NachrichtenModule';
@@ -17,7 +17,7 @@ type Lang = 'de' | 'nl';
 type Module =
   | 'dashboard'
   | 'customers'
-  | 'projects'
+  | 'orders'
   | 'production'
   | 'stock'
   | 'delivery'
@@ -190,7 +190,7 @@ export default function Page() {
 
         <button title="Dashboard" onClick={() => setModule('dashboard')} style={iconBtn}>🏠</button>
         <button title="Kunden" onClick={() => setModule('customers')} style={iconBtn}>👥</button>
-        <button title="Projekte" onClick={() => setModule('projects')} style={iconBtn}>📁</button>
+        <button title='Orders' onClick={() => setModule('orders')}tyle={iconBtn}>📋</button>
         <button title="Produktion" onClick={() => setModule('production')} style={iconBtn}>🏭</button>
         <button title="Lager" onClick={() => setModule('stock')} style={iconBtn}>📦</button>
         <button title="Lieferung" onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
@@ -304,7 +304,7 @@ export default function Page() {
         )}
 
         {module === 'customers' && <KundenModule lang={lang} />}
-        {module === 'projects' && <ProjekteModule lang={lang} />}
+        {module === 'orders' && <AuftraegeModule lang={lang} />}
         {module === 'production' && <ProduktionModule lang={lang} />}
         {module === 'stock' && <LagerModule lang={lang} />}
         {module === 'delivery' && <LieferungModule lang={lang} />}
