@@ -446,14 +446,12 @@ async function deleteNote(id:number){
 
   loadProduction();
 } 
- function Event({color,title,time}:any) {
-  return (
-    <div style={event}>
-      <span><b style={{color}}>●</b> {title}</span>
-      <small>{time}</small>
-    </div>
-  );
-}
+ const Event = ({ color, title, time }: any) => (
+  <div style={event}>
+    <span><b style={{ color }}>●</b> {title}</span>
+    <small>{time}</small>
+  </div>
+);
   return (
     <div style={app}>
       <aside style={side}>
