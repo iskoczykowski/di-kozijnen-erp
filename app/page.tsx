@@ -1,18 +1,19 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
-import KundenModule from "./KundenModule";
-import MontageModule from "./MontageModule";
-import ProduktionModule from "./ProduktionModule";
-import ProjekteModule from "./ProjekteModule";
-import KalenderModule from "./KalenderModule";
-import LagerModule from "./LagerModule";
-import NachrichtenModule from "./NachrichtenModule";
-import MitarbeiterModule from "./MitarbeiterModule";
-import LieferungModule from "./LieferungModule";
+import React, { useEffect, useState } from 'react';
+
+import KundenModule from './KundenModule';
+import MontageModule from './MontageModule';
+import ProduktionModule from './ProduktionModule';
+import ProjekteModule from './ProjekteModule';
+import KalenderModule from './KalenderModule';
+import LagerModule from './LagerModule';
+import NachrichtenModule from './NachrichtenModule';
+import MitarbeiterModule from './MitarbeiterModule';
+import LieferungModule from './LieferungModule';
 
 type Lang = 'de' | 'nl';
+
 type Module =
   | 'dashboard'
   | 'customers'
@@ -26,1155 +27,305 @@ type Module =
   | 'employees'
   | 'messages';
 
+const app: React.CSSProperties = {
+  minHeight: '100vh',
+  background: '#eef2f7',
+  display: 'grid',
+  gridTemplateColumns: '82px 1fr',
+  fontFamily: 'Arial, sans-serif',
+  color: '#0f172a',
+};
+
+const side: React.CSSProperties = {
+  background: '#111827',
+  color: '#fff',
+  padding: '18px 10px',
+  display: 'flex',
+  flexDirection: 'column',
+  alignItems: 'center',
+  gap: 14,
+  position: 'sticky',
+  top: 0,
+  height: '100vh',
+};
+
+const logo: React.CSSProperties = {
+  width: 54,
+  height: 54,
+  borderRadius: 14,
+  border: '2px solid #fff',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  fontWeight: 900,
+  fontSize: 20,
+  marginBottom: 8,
+};
+
+const iconBtn: React.CSSProperties = {
+  width: 48,
+  height: 48,
+  border: 0,
+  borderRadius: 14,
+  background: 'transparent',
+  color: '#fff',
+  fontSize: 22,
+  cursor: 'pointer',
+};
+
+const main: React.CSSProperties = {
+  padding: 24,
+  overflowX: 'auto',
+};
+
+const header: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #dfe3eb',
+  borderRadius: 22,
+  padding: '18px 22px',
+  marginBottom: 22,
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  boxShadow: '0 6px 18px rgba(15,23,42,0.06)',
+};
+
+const card: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #dfe3eb',
+  borderRadius: 18,
+  padding: 20,
+  boxShadow: '0 6px 18px rgba(15,23,42,0.05)',
+};
+
+const statGrid: React.CSSProperties = {
+  display: 'grid',
+  gridTemplateColumns: 'repeat(4, minmax(180px, 1fr))',
+  gap: 16,
+  marginBottom: 18,
+};
+
+const statCard: React.CSSProperties = {
+  ...card,
+  minHeight: 92,
+};
+
+const search: React.CSSProperties = {
+  height: 38,
+  border: '1px solid #d7dde8',
+  borderRadius: 12,
+  padding: '0 12px',
+  background: '#f8fafc',
+  minWidth: 230,
+};
+
+const smallBtn: React.CSSProperties = {
+  border: 0,
+  borderRadius: 10,
+  padding: '9px 12px',
+  background: '#2563eb',
+  color: '#fff',
+  fontWeight: 700,
+  cursor: 'pointer',
+};
+
+function moduleTitle(module: Module, lang: Lang) {
+  const de: Record<Module, string> = {
+    dashboard: 'Dashboard',
+    customers: 'Kunden',
+    projects: 'Projekte',
+    production: 'Produktion',
+    stock: 'Lager',
+    delivery: 'Lieferung',
+    orders: 'Aufträge',
+    montage: 'Montage',
+    calendar: 'Kalender',
+    employees: 'Mitarbeiter',
+    messages: 'Nachrichten',
+  };
+
+  const nl: Record<Module, string> = {
+    dashboard: 'Dashboard',
+    customers: 'Klanten',
+    projects: 'Projecten',
+    production: 'Productie',
+    stock: 'Magazijn',
+    delivery: 'Levering',
+    orders: 'Orders',
+    montage: 'Montage',
+    calendar: 'Kalender',
+    employees: 'Medewerkers',
+    messages: 'Berichten',
+  };
+
+  return lang === 'de' ? de[module] : nl[module];
+}
+
 export default function Page() {
   const [lang, setLang] = useState<Lang>('de');
   const [module, setModule] = useState<Module>('dashboard');
-  const [events,setEvents] = useState<any[]>([]);
-  const [customers, setCustomers] = useState<any[]>([]);
-  const [projects, setProjects] = useState<any[]>([]);
-  const [production,setProduction] = useState<any[]>([]);
-  const [notes,setNotes]=useState<any[]>([]);
-  const [productionDrawings,setProductionDrawings]=useState<any[]>([]);
-  const [messages, setMessages] = useState<any[]>([]);
-const [chatText, setChatText] = useState('');
-  const [chatReceiver, setChatReceiver] = useState("office");
-  const [chatFile, setChatFile] = useState<any>(null);
-  const [chatSender, setChatSender] = useState("office");
-  const [selectedMontageCustomer, setSelectedMontageCustomer] = useState<any>(null);
-  const [montagePhotos, setMontagePhotos] = useState<any[]>([]);
-const [montageExcelName, setMontageExcelName] = useState("");
-  const [montageForm, setMontageForm] = useState<any>({
-  klant: '',
-  referentie: '',
-  adres: '',
-  plaats: '',
-  telefoon: '',
-  opmerkingen: '',
-});
-
-  const t:any = {
-    de: {
-      search:'Suchen...', today:'Heute', calendar:'Kalender', info:'Informationen',
-      customers:'Kunden', projects:'Projekte', addCustomer:'Kunde hinzufügen',
-      addProject:'Projekt hinzufügen', name:'Name', phone:'Telefon', email:'E-Mail',
-      address:'Adresse', city:'Ort', status:'Status', active:'Aktiv',
-      number:'Nummer', project:'Projekt', customer:'Kunde', price:'Preis',
-      action:'Aktion', edit:'Bearbeiten', del:'Löschen',
-      activeProjects:'Aktive Projekte', doneOrders:'Fertige Aufträge',
-      nextEvent:'Nächster Termin', openOrders:'Offene Aufträge',
-      notes:'Notizen', important:'Wichtige Ereignisse', upcoming:'Kommende Termine',
-      deleteAsk:'Löschen?'
-    },
-    nl: {
-      search:'Zoeken...', today:'Vandaag', calendar:'Kalender', info:'Informatie',
-      customers:'Klanten', projects:'Projecten', addCustomer:'Klant toevoegen',
-      addProject:'Project toevoegen', name:'Naam', phone:'Telefoon', email:'E-mail',
-      address:'Adres', city:'Plaats', status:'Status', active:'Actief',
-      number:'Nummer', project:'Project', customer:'Klant', price:'Prijs',
-      action:'Actie', edit:'Bewerken', del:'Verwijderen',
-      activeProjects:'Actieve projecten', doneOrders:'Afgeronde opdrachten',
-      nextEvent:'Volgende afspraak', openOrders:'Openstaande opdrachten',
-      notes:'Notities', important:'Belangrijke gebeurtenissen', upcoming:'Aankomende afspraken',
-      deleteAsk:'Verwijderen?'
-    }
-  }[lang];
-
-  async function loadCustomers() {
-    const { data } = await supabase.from('customers').select('*').order('created_at',{ascending:false});
-    setCustomers(data || []);
-  }
-
-  async function loadProjects() {
-    const { data } = await supabase.from('projects').select('*').order('created_at',{ascending:false});
-    setProjects(data || []);
-  }
+  const [clock, setClock] = useState(new Date());
 
   useEffect(() => {
-  loadCustomers();
-  loadProjects();
-  loadProduction();
-  loadNotes();
-  loadMessages();  
-  loadEvents();
-  loadProductionDrawings();
-}, []);
-  
-  async function addCustomer() {
-  const company_name = prompt(t.name + '?');
-  if (!company_name) return;
+    const timer = setInterval(() => setClock(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const dateText = clock.toLocaleDateString(lang === 'de' ? 'de-DE' : 'nl-NL', {
+    weekday: 'long',
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const timeText = clock.toLocaleTimeString(lang === 'de' ? 'de-DE' : 'nl-NL', {
+    hour: '2-digit',
+    minute: '2-digit',
+  });
 
-  const phone = prompt(t.phone + '?') || '';
-  const email = prompt(t.email + '?') || '';
-  const address = prompt(t.address + '?') || '';
-  const city = prompt(t.city + '?') || '';
-
-  const { error } = await supabase
-    .from('customers')
-    .insert([{
-      company_name,
-      phone,
-      email,
-      address,
-      city,
-      status: 'working',
-      payment_status: 'open'
-    }]);
-
-  if (error) return alert(error.message);
-
-  loadCustomers();
-}
-
-  async function deleteCustomer(c:any) {
-    if (!confirm(t.deleteAsk)) return;
-    const { error } = await supabase.from('customers').delete().eq('id', c.id);
-    if (error) return alert(error.message);
-    loadCustomers();
-  }
-
-  async function editCustomer(c:any) {
-    const company_name = prompt(t.name + '?', c.company_name) || c.company_name;
-    const phone = prompt(t.phone + '?', c.phone) || c.phone;
-    const email = prompt(t.email + '?', c.email) || c.email;
-    const address = prompt(t.address + '?', c.address) || c.address;
-    const city = prompt(t.city + '?', c.city) || c.city;
-
-    const { error } = await supabase
-      .from('customers')
-      .update({ company_name, phone, email, address, city })
-      .eq('id', c.id);
-
-    if (error) return alert(error.message);
-
-    loadCustomers();
-  }
-  async function changeCustomerStatus(c:any){
-
-  let next = "working";
-
-  if(c.status === "working"){
-    next = "approved";
-  }else if(c.status === "approved"){
-    next = "rejected";
-  }else{
-    next = "working";
-  }
-
-  const { error } = await supabase
-    .from("customers")
-    .update({ status: next })
-    .eq("id", c.id);
-
-  if(error) return alert(error.message);
-
-  loadCustomers();
-}
-  async function addProject() {
-    const project_number = prompt(t.number + '?');
-    if (!project_number) return;
-    const project_name = prompt(t.project + '?');
-    if (!project_name) return;
-    const customer = prompt(t.customer + '?') || '';
-    const price = prompt(t.price + '?') || '';
-
-    const { error } = await supabase.from('projects').insert([{
-  project_number,
-  project_name,
-  customer,
-  status: 'open',
-  price,
-  notes: ''
-}]);
-
-    if (error) return alert(error.message);
-    loadProjects();
-  }
-
-  async function loadProduction() {
-  const { data } = await supabase
-    .from('production')
-    .select('*')
-    .order('created_at',{ascending:false});
-
-  setProduction(data || []);
-}
- async function changeProjectStatus(p:any){
-  const nextStatus =
-    p.status === 'open'
-      ? 'working'
-      : p.status === 'working'
-      ? 'done'
-      : 'open';
-
-  const { error } = await supabase
-    .from('projects')
-    .update({ status: nextStatus })
-    .eq('id', p.id);
-
-  if(error) return alert(error.message);
-
-  loadProjects();
-} 
-async function loadProductionDrawings() {
-  const { data } = await supabase
-    .from('production_drawings')
-    .select('*')
-    .order('created_at',{ascending:false});
-
-  setProductionDrawings(data || []);
-}
-
-function drawingsFor(productionId:any) {
-  return productionDrawings.filter((d:any)=>String(d.production_id) === String(productionId));
-}
-
-async function uploadProductionDrawing(p:any,e:any){
-  const file = e.target.files?.[0];
-  if(!file) return;
-
-  const path = `${p.id}/${Date.now()}-${file.name}`;
-
-  const { error } = await supabase.storage
-    .from('production-files')
-    .upload(path,file);
-
-  if(error){
-    alert(error.message);
-    return;
-  }
-
-  const { data } = supabase.storage
-    .from('production-files')
-    .getPublicUrl(path);
-
-  const { error:insertError } = await supabase
-    .from('production_drawings')
-    .insert({
-      production_id:p.id,
-      name:file.name,
-      url:data.publicUrl
-    });
-
-  if(insertError){
-    alert(insertError.message);
-    return;
-  }
-
-  e.target.value = '';
-  loadProductionDrawings();
-}
-
-async function deleteProductionDrawing(d:any){
-  if(!confirm(lang==='de' ? 'Zeichnung löschen?' : 'Tekening verwijderen?')) return;
-
-  const { error } = await supabase
-    .from('production_drawings')
-    .delete()
-    .eq('id', d.id);
-
-  if(error) return alert(error.message);
-
-  loadProductionDrawings();
-}
-  async function deleteProject(id:any) {
-    if (!confirm(t.deleteAsk)) return;
-    const { error } = await supabase.from('projects').delete().eq('id', id);
-    if (error) return alert(error.message);
-    loadProjects();
-  }
-  async function changeCustomerPaymentStatus(c:any){
-
-  let next = "open";
-
-  if(c.payment_status === "open"){
-    next = "paid";
-  }else if(c.payment_status === "paid"){
-    next = "unpaid";
-  }else{
-    next = "open";
-  }
-
-  const { error } = await supabase
-    .from("customers")
-    .update({ payment_status: next })
-    .eq("id", c.id);
-
-  if(error) return alert(error.message);
-
-  loadCustomers();
-}
-async function editProject(p:any) {
-
-  const project_name =
-    prompt(lang==='de' ? 'Projektname?' : 'Projectnaam?', p.project_name)
-    || p.project_name;
-
-  const customer =
-    prompt(lang==='de' ? 'Kunde?' : 'Klant?', p.customer)
-    || p.customer;
-
-  const price =
-    prompt(lang==='de' ? 'Preis?' : 'Prijs?', p.price)
-    || p.price;
-
-  const { error } = await supabase
-    .from('projects')
-    .update({
-      project_name,
-      customer,
-      price
-    })
-    .eq('id', p.id);
-
-  if (error) return alert(error.message);
-
-  loadProjects();
-}
-  async function loadNotes(){
-  const { data } = await supabase
-    .from('notes')
-    .select('*')
-    .order('created_at',{ascending:false});
-
-  setNotes(data || []);
-}
-async function loadMessages(){
-  const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .order('created_at', { ascending:false })
-    .limit(20);
-
-  if(error) return alert(error.message);
-
-  setMessages(data || []);
-}
-
-async function sendMessage(){
-  if(!chatText.trim()) return;
-
-  const { error } = await supabase
-    .from('messages')
-    .insert({
-    sender: chatSender,
-    receiver: chatReceiver,
-    message: chatText,
-    fileName: chatFile?.name || null,
-    fileUrl: null,
-    is_read: false
-})
-
-  if(error) return alert(error.message);
-
-  setChatText('');
-  setChatFile(null);
-  loadMessages();
-}  
-
-async function addNote(){
-  const text = prompt(lang==='de' ? 'Neue Notiz?' : 'Nieuwe notitie?');
-  if(!text) return;
-
-  const { error } = await supabase
-    .from('notes')
-    .insert({ text, done:false });
-
-  if(error) return alert(error.message);
-
-  loadNotes();
-}
-
-async function editNote(n:any){
-  const text = prompt(lang==='de' ? 'Notiz bearbeiten?' : 'Notitie bewerken?', n.text);
-  if(!text) return;
-
-  const { error } = await supabase
-    .from('notes')
-    .update({ text })
-    .eq('id', n.id);
-
-  if(error) return alert(error.message);
-
-  loadNotes();
-}
-
-async function toggleNote(n:any){
-  const { error } = await supabase
-    .from('notes')
-    .update({ done: !n.done })
-    .eq('id', n.id);
-
-  if(error) return alert(error.message);
-
-  loadNotes();
-}
-
-async function deleteNote(id:number){
-  if(!confirm(lang==='de' ? 'Notiz löschen?' : 'Notitie verwijderen?')) return;
-
-  const { error } = await supabase
-    .from('notes')
-    .delete()
-    .eq('id', id);
-
-  if(error) return alert(error.message);
-
-  loadNotes();
-}
- async function loadEvents(){
-  const { data } = await supabase
-    .from('events')
-    .select('*')
-    .order('date',{ascending:true});
-
-  setEvents(data || []);
-} 
- async function changeProductionStatus(p:any){
-  const nextStatus =
-    p.status === 'open'
-      ? 'working'
-      : p.status === 'working'
-      ? 'done'
-      : 'open';
-
-  const { error } = await supabase
-    .from('production')
-    .update({ status: nextStatus })
-    .eq('id', p.id);
-
-  if(error) return alert(error.message);
-
-  loadProduction(); 
- 
   return (
     <div style={app}>
-      <aside style={side}>
-        <div style={logo}>D&amp;I</div>
-        <button onClick={()=>setModule('dashboard')} style={iconBtn}>🏠</button>
-        <button onClick={()=>setModule('customers')} style={iconBtn}>👥</button>
-        <button onClick={()=>setModule('projects')} style={iconBtn}>📁</button>
-        <button onClick={() => setModule('production')} style={iconBtn}>🏭</button>
-        <button onClick={() => setModule('stock')} style={iconBtn}>📦</button>
-        <button onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
-        <button onClick={() => setModule('montage')} style={iconBtn}>🔧</button>
-        <button onClick={() => setModule('employees')} style={iconBtn}>👷</button>
-        
+      <aside style={side} className="no-print">
+        <div style={logo}>D&I</div>
+
+        <button title="Dashboard" onClick={() => setModule('dashboard')} style={iconBtn}>🏠</button>
+        <button title="Kunden" onClick={() => setModule('customers')} style={iconBtn}>👥</button>
+        <button title="Projekte" onClick={() => setModule('projects')} style={iconBtn}>📁</button>
+        <button title="Produktion" onClick={() => setModule('production')} style={iconBtn}>🏭</button>
+        <button title="Lager" onClick={() => setModule('stock')} style={iconBtn}>📦</button>
+        <button title="Lieferung" onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
+        <button title="Montage" onClick={() => setModule('montage')} style={iconBtn}>🔧</button>
+        <button title="Kalender" onClick={() => setModule('calendar')} style={iconBtn}>📅</button>
+        <button title="Mitarbeiter" onClick={() => setModule('employees')} style={iconBtn}>👷</button>
+        <button title="Nachrichten" onClick={() => setModule('messages')} style={iconBtn}>💬</button>
       </aside>
 
       <main style={main}>
-       <header
-  style={{
-    display:'flex',
-    justifyContent:'space-between',
-    alignItems:'center',
-    background:'#fff',
-    padding:20,
-    borderRadius:18,
-    marginBottom:20,
-    boxShadow:'0 4px 12px rgba(0,0,0,.08)'
-  }}
->
-  <div style={{display:'flex',alignItems:'center',gap:18}}>
+        <header style={header} className="no-print">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            <div style={{ fontSize: 42, fontWeight: 900 }}>D&I</div>
+            <div>
+              <div style={{ fontSize: 25, fontWeight: 900 }}>
+                Kunststoff Kozijnen
+              </div>
+              <div style={{ color: '#64748b', fontWeight: 700 }}>
+                {lang === 'de' ? 'und Rollläden' : 'en rolluiken'}
+              </div>
+            </div>
+          </div>
 
-  <div
-    style={{
-      display:'flex',
-      alignItems:'center',
-      gap:18
-    }}
-  >
+          <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 30, fontWeight: 900 }}>{timeText}</div>
+              <div style={{ fontSize: 12, color: '#64748b' }}>{dateText}</div>
+            </div>
 
-    <div
-      style={{
-        fontFamily:'Georgia',
-        fontSize:48,
-        fontWeight:700
-      }}
-    >
-      D&I
-    </div>
+            <div>
+              <div style={{ fontWeight: 900 }}>Büro</div>
+              <div style={{ color: '#16a34a', fontSize: 13 }}>● Online</div>
+            </div>
 
-    <div
-      style={{
-        width:42,
-        height:42,
-        background:'#7b7b7b',
-        transform:'rotate(45deg)',
-        borderRadius:3
-      }}
-    />
+            <input style={search} placeholder={lang === 'de' ? 'Suchen...' : 'Zoeken...'} />
 
-    <div>
-      <div style={{fontSize:28,fontWeight:700}}>
-        {lang==='de'
-          ? 'Kunststoff Kozijnen'
-          : 'Kunststof Kozijnen'}
-      </div>
+            <button style={smallBtn} onClick={() => setLang(lang === 'de' ? 'nl' : 'de')}>
+              {lang === 'de' ? 'NL' : 'DE'}
+            </button>
+          </div>
+        </header>
 
-      <div style={{fontSize:22,color:'#666'}}>
-        {lang==='de'
-          ? 'und Rollläden'
-          : 'en Rolluiken'}
-      </div>
-    </div>
-
-  </div>
-
-    <div>
-      <div style={{fontSize:34,fontWeight:800}}>
-        {new Date().toLocaleTimeString(lang==='de'?'de-DE':'nl-NL',{hour:'2-digit',minute:'2-digit'})}
-      </div>
-      <div style={{color:'#666'}}>
-        {new Date().toLocaleDateString(lang==='de'?'de-DE':'nl-NL',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}
-      </div>
-    </div>
-
-    <div>
-      <div style={{fontSize:24,fontWeight:800}}>
-        {lang==='de'?'Büro':'Kantoor'}
-      </div>
-      <div style={{color:'#16a34a',fontWeight:700}}>
-        ● Online
-      </div>
-    </div>
-  </div>
-
-  <div style={{display:'flex',gap:12}}>
-    <input placeholder={t.search} style={search}/>
-
-    <select value={lang} onChange={(e)=>setLang(e.target.value as Lang)} style={select}>
-      <option value="de">DE</option>
-      <option value="nl">NL</option>
-    </select>
-  </div>
-</header>
+        <div style={{ marginBottom: 18 }}>
+          <h1 style={{ margin: 0 }}>
+            {module === 'dashboard' ? 'D&I Kozijnen ERP' : moduleTitle(module, lang)}
+          </h1>
+          <div style={{ color: '#64748b', marginTop: 4 }}>
+            {lang === 'de'
+              ? 'Professionelle Verwaltung für Kunden, Produktion, Montage und Planung.'
+              : 'Professioneel beheer voor klanten, productie, montage en planning.'}
+          </div>
+        </div>
 
         {module === 'dashboard' && (
-          <div style={grid}>
-            <section style={card}>
-              <h2>{lang==='de'?'Heute':'Vandaag'}</h2>
+          <section>
+            <div style={statGrid}>
+              <div style={statCard}>
+                <div style={{ fontSize: 28 }}>👥</div>
+                <h3>{lang === 'de' ? 'Kunden' : 'Klanten'}</h3>
+                <p style={{ color: '#64748b' }}>
+                  {lang === 'de' ? 'Kundenverwaltung öffnen' : 'Klantenbeheer openen'}
+                </p>
+                <button style={smallBtn} onClick={() => setModule('customers')}>
+                  {lang === 'de' ? 'Öffnen' : 'Openen'}
+                </button>
+              </div>
 
-{events
-  .filter((e:any)=>e.date === new Date().toISOString().slice(0,10))
-  .map((e:any)=>(
-    <Event
-      key={e.id}
-      color={
-        e.type === 'montage' ? '#22c55e' :
-        e.type === 'delivery' ? '#eab308' :
-        e.type === 'production' ? '#6366f1' :
-        '#2563eb'
-      }
-      title={e.title}
-      time={e.time}
-    />
-  ))}
-            </section>
+              <div style={statCard}>
+                <div style={{ fontSize: 28 }}>🔧</div>
+                <h3>Montage</h3>
+                <p style={{ color: '#64748b' }}>
+                  {lang === 'de' ? 'Montagelisten pro Kunde' : 'Montagelijsten per klant'}
+                </p>
+                <button style={smallBtn} onClick={() => setModule('montage')}>
+                  {lang === 'de' ? 'Öffnen' : 'Openen'}
+                </button>
+              </div>
 
-            <section style={card}>
-  <Calendar
-  events={events}
-  setEvents={setEvents}
-  lang={lang}
-  loadEvents={loadEvents}
-/>
-</section>
+              <div style={statCard}>
+                <div style={{ fontSize: 28 }}>🏭</div>
+                <h3>{lang === 'de' ? 'Produktion' : 'Productie'}</h3>
+                <p style={{ color: '#64748b' }}>
+                  {lang === 'de' ? 'Status und Zeichnungen' : 'Status en tekeningen'}
+                </p>
+                <button style={smallBtn} onClick={() => setModule('production')}>
+                  {lang === 'de' ? 'Öffnen' : 'Openen'}
+                </button>
+              </div>
 
-            <section style={cardSmall}>
+              <div style={statCard}>
+                <div style={{ fontSize: 28 }}>📅</div>
+                <h3>{lang === 'de' ? 'Kalender' : 'Kalender'}</h3>
+                <p style={{ color: '#64748b' }}>
+                  {lang === 'de' ? 'Termine und Planung' : 'Afspraken en planning'}
+                </p>
+                <button style={smallBtn} onClick={() => setModule('calendar')}>
+                  {lang === 'de' ? 'Öffnen' : 'Openen'}
+                </button>
+              </div>
+            </div>
 
-<h2>{lang === 'de' ? '💬 Team-Chat' : '💬 Teamchat'}</h2>
-              <div style={{ marginBottom:12 }}>
-  <label style={{ fontWeight:"bold" }}>
-    {lang==="de" ? "Absender" : "Afzender"}
-  </label>
-
-  <select
-    value={chatSender}
-    onChange={(e)=>setChatSender(e.target.value)}
-    style={{
-      width:"100%",
-      padding:10,
-      borderRadius:10,
-      marginTop:6
-    }}
-  >
-    <option value="office">{lang==="de"?"🏢 Büro":"🏢 Kantoor"}</option>
-    <option value="orders">{lang==="de"?"📦 Bestellungen":"📦 Bestellingen"}</option>
-    <option value="production">{lang==="de"?"🏭 Produktion":"🏭 Productie"}</option>
-    <option value="montage">🔧 Montage</option>
-    <option value="bus1">🚌 Bus 1</option>
-    <option value="bus2">🚌 Bus 2</option>
-  </select>
-</div>
-<div style={{ marginBottom: 12 }}>
-  <label style={{ fontWeight: 700 }}>
-    {lang === "de" ? "Empfänger" : "Ontvanger"}
-  </label>
-
-  <select
-    value={chatReceiver}
-    onChange={(e)=>setChatReceiver(e.target.value)}
-    style={{
-      width:"100%",
-      padding:12,
-      marginTop:6,
-      borderRadius:10,
-      border:"1px solid #ddd"
-    }}
-  >
-    <option value="office">{lang==="de"?"🏢 Büro":"🏢 Kantoor"}</option>
-    <option value="orders">{lang==="de"?"📦 Bestellungen":"📦 Bestellingen"}</option>
-    <option value="production">{lang==="de"?"🏭 Produktion":"🏭 Productie"}</option>
-    <option value="montage">🔧 Montage</option>
-    <option value="bus1">🚌 Bus 1</option>
-    <option value="bus2">🚌 Bus 2</option>
-  </select>
-</div>
-<textarea
-value={chatText}
-onChange={(e)=>setChatText(e.target.value)}
-placeholder={
-lang === 'de'
-? 'Nachricht schreiben...'
-: 'Bericht schrijven...'
-}
-style={{
-width:'100%',
-height:120,
-padding:12,
-borderRadius:10,
-border:'1px solid #ddd',
-resize:'none'
-}}
-/>
-              <input
-  type="file"
-  accept="image/*,.pdf,.xlsx,.xls"
-  onChange={(e)=>setChatFile(e.target.files?.[0] || null)}
-  style={{
-    marginTop:10,
-    marginBottom:10,
-    width:"100%"
-  }}
-/>
-
-{chatFile && (
-  <div style={{
-    fontSize:13,
-    color:"#666",
-    marginBottom:10
-  }}>
-    {lang==="de"
-      ? "📎 Datei ausgewählt: "
-      : "📎 Bestand gekozen: "}
-    {chatFile.name}
-  </div>
-)}
-
-<div
-style={{
-height:250,
-overflowY:'auto',
-border:'1px solid #ddd',
-borderRadius:10,
-padding:10,
-marginTop:12,
-marginBottom:12,
-background:'#fafafa'
-}}
->
-
-{messages.length===0 && (
-<p style={{color:'#888'}}>
-{lang==='de'
-?'Noch keine Nachrichten'
-:'Nog geen berichten'}
-</p>
-)}
-
-{messages
-  .filter((m:any)=>m.receiver === chatReceiver || m.receiver === 'all')
-  .map((m:any)=>(
-<div
-key={m.id}
-style={{
-background:'#fff',
-padding:12,
-borderRadius:10,
-marginBottom:10,
-boxShadow:'0 1px 4px rgba(0,0,0,.08)'
-}}
->
-
-<div
-style={{
-fontWeight:'bold',
-marginBottom:4
-}}
->
-{m.sender}
-</div>
-
-<div style={{whiteSpace:'pre-wrap'}}>
-{m.message}
-</div>
-
-<div
-style={{
-fontSize:12,
-color:'#777',
-marginTop:6
-}}
->
-{new Date(m.created_at).toLocaleString()}
-</div>
-
-</div>
-))}
-
-</div>
-
-<button
-onClick={sendMessage}
-style={{
-marginTop:5,
-width:'100%',
-padding:12,
-border:'none',
-borderRadius:10,
-background:'#2563eb',
-color:'#fff',
-cursor:'pointer'
-}}
->
-{lang==='de'?'Senden':'Verzenden'}
-</button>
-
-</section>
-
-            <section style={card}>
-              <h2>{lang==='de' ? 'Notizen' : 'Notities'}</h2>
-
-<button
-  onClick={addNote}
-  style={primary}
->
-  ➕ {lang==='de' ? 'Neue Notiz' : 'Nieuwe notitie'}
-</button>
-
-{notes.map((n:any)=>(
-  <div
-    key={n.id}
-    style={{
-      display:'flex',
-      alignItems:'center',
-      gap:10,
-      marginTop:10
-    }}
-  >
-    <input
-      type="checkbox"
-      checked={n.done}
-      onChange={()=>toggleNote(n)}
-    />
-
-    <span
-      style={{
-        flex:1,
-        textDecoration:n.done ? 'line-through' : 'none'
-      }}
-    >
-      {n.text}
-    </span>
-
-    <button onClick={()=>editNote(n)}>✏️</button>
-    <button onClick={()=>deleteNote(n.id)}>🗑️</button>
-  </div>
-))}
-            </section>
-
-            <section style={card}>
-  <MiniCalendar
-    events={events}
-    lang={lang}
-  />
-</section>
-
-            <section style={cardSmall}>
-              <h2>{lang==='de'?'Kommende Termine':'Komende afspraken'}</h2>
-
-{events
-  .filter((e:any)=>e.date >= new Date().toISOString().slice(0,10))
-  .sort((a:any,b:any)=>
-    `${a.date} ${a.time}`.localeCompare(`${b.date} ${b.time}`)
-  )
-  .slice(0,5)
-  .map((e:any)=>(
-    <Event
-      key={e.id}
-      color={
-        e.type === 'montage' ? '#22c55e' :
-        e.type === 'delivery' ? '#eab308' :
-        e.type === 'production' ? '#6366f1' :
-        '#c93670'
-      }
-      title={e.title}
-      time={`${e.date} ${e.time}`}
-    />
-  ))}
-            </section>
-          </div>
+            <div style={card}>
+              <h2>{lang === 'de' ? 'Schnellstart' : 'Snelstart'}</h2>
+              <p>
+                {lang === 'de'
+                  ? 'Wähle links ein Modul aus. Jedes Modul ist jetzt als eigene Datei aufgebaut, damit die App stabiler bleibt.'
+                  : 'Kies links een module. Elke module staat nu in een eigen bestand, zodat de app stabieler blijft.'}
+              </p>
+            </div>
+          </section>
         )}
 
-        {module === "customers" && <KundenModule lang={lang} />}
+        {module === 'customers' && <KundenModule lang={lang} />}
+        {module === 'projects' && <ProjekteModule lang={lang} />}
+        {module === 'production' && <ProduktionModule lang={lang} />}
+        {module === 'stock' && <LagerModule lang={lang} />}
+        {module === 'delivery' && <LieferungModule lang={lang} />}
 
-{module === "projects" && <ProjekteModule lang={lang} />}
+        {module === 'orders' && (
+          <section style={card}>
+            <h2>{lang === 'de' ? '📋 Aufträge' : '📋 Orders'}</h2>
+            <p>
+              {lang === 'de'
+                ? 'Das Auftragsmodul wird als eigener Bereich aufgebaut.'
+                : 'De ordermodule wordt als apart onderdeel opgebouwd.'}
+            </p>
+          </section>
+        )}
 
-{module === "production" && <ProduktionModule lang={lang} />}
-
-{module === "stock" && <LagerModule lang={lang} />}
-
-{module === "delivery" && <LieferungModule lang={lang} />}
-
-{module === "orders" && (
-  <section>
-    <h2>{lang === "de" ? "📋 Aufträge" : "📋 Orders"}</h2>
-  </section>
-)}
-
-{module === "montage" && <MontageModule lang={lang} />}
-
-{module === "calendar" && <KalenderModule lang={lang} />}
-
-{module === "employees" && <MitarbeiterModule lang={lang} />}
-
-{module === "messages" && <NachrichtenModule lang={lang} />}
-        
-
-
-function Stat({title,value}:any) {
-  return (
-    <div style={{marginBottom:18}}>
-      <small>{title}</small>
-      <div style={{fontSize:34,fontWeight:800,color:'#1277bd'}}>{value}</div>
+        {module === 'montage' && <MontageModule lang={lang} />}
+        {module === 'calendar' && <KalenderModule lang={lang} />}
+        {module === 'employees' && <MitarbeiterModule lang={lang} />}
+        {module === 'messages' && <NachrichtenModule lang={lang} />}
+      </main>
     </div>
   );
 }
 
-function Calendar({events,setEvents,lang,loadEvents}:any) {
-  const addEvent = async () => {
-  const title = prompt(lang==='nl' ? 'Afspraak?' : 'Termin?');
-  if (!title) return;
-
-  const date = prompt(lang==='nl' ? 'Datum? bijv. 2026-06-24' : 'Datum? z.B. 2026-06-24');
-  if (!date) return;
-
-  const time = prompt(lang==='nl' ? 'Tijd?' : 'Uhrzeit?') || '';
-
-  const typeChoice = prompt(
-  lang==='nl'
-    ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
-    : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
-) || '1';
-
-const typeMap:any = {
-  '1': lang==='nl' ? 'Klant' : 'Kunde',
-  '2': 'Montage',
-  '3': lang==='nl' ? 'Levering' : 'Lieferung',
-  '4': lang==='nl' ? 'Productie' : 'Produktion',
-  '5': lang==='nl' ? 'Belangrijk' : 'Wichtig'
-};
-
-const type = typeMap[typeChoice] || typeMap['1'];
-
-  const { error } = await supabase
-    .from('events')
-    .insert({ title, date, time, type });
-
-  if (error) return alert(error.message);
-
-  loadEvents();
-};
-  const editEvent = async (ev:any) => {
-    const title = prompt(lang==='nl'?'Afspraak?':'Termin?',ev.title) || ev.title;
-    const date = prompt(lang==='nl'?'Datum?':'Datum?',ev.date) || ev.date;
-    const time = prompt(lang==='nl'?'Tijd?':'Uhrzeit?',ev.time) || ev.time;
-
-    const typeChoice = prompt(
-      lang==='nl'
-        ? 'Soort afspraak?\n1 = Klant\n2 = Montage\n3 = Levering\n4 = Productie\n5 = Belangrijk'
-        : 'Terminart?\n1 = Kunde\n2 = Montage\n3 = Lieferung\n4 = Produktion\n5 = Wichtig'
-    ) || '1';
-
-    const typeMap:any = {
-      '1': lang==='nl'?'Klant':'Kunde',
-      '2': 'Montage',
-      '3': lang==='nl'?'Levering':'Lieferung',
-      '4': lang==='nl'?'Productie':'Produktion',
-      '5': lang==='nl'?'Belangrijk':'Wichtig'
-    };
-
-    const type = typeMap[typeChoice] || ev.type || typeMap['1'];
-
-    const { error } = await supabase
-  .from('events')
-  .update({ title, date, time, type })
-  .eq('id', ev.id);
-
-if (error) return alert(error.message);
-
-loadEvents();
-  };
-
-  const deleteEvent = async (id:number) => {
-    if(!confirm(lang==='nl'?'Afspraak verwijderen?':'Termin löschen?')) return;
-
-    const { error } = await supabase
-      .from('events')
-      .delete()
-      .eq('id', id);
-
-    if(error) return alert(error.message);
-
-    loadEvents();
-  };
-
-  const eventColor=(type:string)=>{
-  if(type==='Montage')return '#22c55e';
-  if(type==='Lieferung' || type==='Levering')return '#eab308';
-  if(type==='Kunde' || type==='Klant')return '#2563eb';
-  if(type==='Produktion' || type==='Productie')return '#9333ea';
-  if(type==='Wichtig' || type==='Belangrijk')return '#dc2626';
-
-  return '#2563eb';
-};
-  return (
-    <section style={card}>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <h2>📅 {lang==='nl'?'Kalender':'Kalender'}</h2>
-        <button onClick={addEvent} style={primary}>
-          {lang==='nl'?'+ Afspraak toevoegen':'+ Termin hinzufügen'}
-        </button>
-      </div>
-
-      <table style={table}>
-        <thead>
-          <tr>
-            <th style={th}>{lang==='nl'?'Datum':'Datum'}</th>
-            <th style={th}>{lang==='nl'?'Tijd':'Uhrzeit'}</th>
-            <th style={th}>{lang==='nl'?'Soort':'Art'}</th>
-            <th style={th}>{lang==='nl'?'Afspraak':'Termin'}</th>
-            <th style={th}>{lang==='nl'?'Actie':'Aktion'}</th>
-          </tr>
-        </thead>
-
-        <tbody>
-          {(events || []).map((ev:any)=>(
-            <tr key={ev.id}>
-              <td style={td}>{ev.date}</td>
-              <td style={td}>{ev.time}</td>
-              <td style={td}>
-                <span style={{
-                  background:eventColor(ev.type || ev.title),
-                  color:'#fff',
-                  padding:'4px 8px',
-                  borderRadius:8
-                }}>
-                  {ev.type}
-                </span>
-              </td>
-              <td style={td}>{ev.title}</td>
-              <td style={td}>
-                <button onClick={()=>editEvent(ev)}>
-                  {lang==='nl'?'Bewerken':'Bearbeiten'}
-                </button>
-                <button onClick={()=>deleteEvent(ev.id)}>
-                  {lang==='nl'?'Verwijderen':'Löschen'}
-                </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </section>
-  );
-}
-function MiniCalendar({events,lang}:any){
-  const [date,setDate]=useState(new Date(2026,0,1));
-  const year=date.getFullYear();
-  const month=date.getMonth();
-
-  const names=lang==='nl'
-    ? ['Januari','Februari','Maart','April','Mei','Juni','Juli','Augustus','September','Oktober','November','December']
-    : ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
-
-  const days=new Date(year,month+1,0).getDate();
-  const today=new Date();
-
-  const move=(n:number)=>{
-    const next=new Date(year,month+n,1);
-    if(next.getFullYear()>=2026 && next.getFullYear()<=2030)setDate(next);
-  };
-
-  const eventColor=(title:string)=>{
-    const x=(title||'').toLowerCase();
-
-    if(x.includes('montage'))return '#22c55e';
-    if(x.includes('liefer') || x.includes('lever'))return '#eab308';
-    if(x.includes('kunde') || x.includes('klant'))return '#2563eb';
-    if(x.includes('produktion') || x.includes('productie'))return '#9333ea';
-    if(x.includes('wichtig') || x.includes('belangrijk'))return '#dc2626';
-
-    return '#2563eb';
-  };
-
-  return (
-    <div>
-      <div style={topRow}>
-        <button onClick={()=>move(-1)}>←</button>
-        <h2>📅 {names[month]} {year}</h2>
-        <button onClick={()=>move(1)}>→</button>
-      </div>
-
-      <div style={{
-        display:'grid',
-        gridTemplateColumns:'repeat(7,1fr)',
-        gap:8,
-        marginBottom:8,
-        fontWeight:700
-      }}>
-        {(lang==='nl'
-          ? ['Ma','Di','Wo','Do','Vr','Za','Zo']
-          : ['Mo','Di','Mi','Do','Fr','Sa','So']
-        ).map((d:string)=>(
-          <div key={d} style={{textAlign:'center'}}>{d}</div>
-        ))}
-      </div>
-
-      <div style={{
-        display:'grid',
-        gridTemplateColumns:'repeat(7,1fr)',
-        gap:8
-      }}>
-        {Array.from({length:days}).map((_,i)=>{
-          const day=i+1;
-          const current=new Date(year,month,day);
-          const weekDay=current.getDay();
-          const isWeekend=weekDay===0 || weekDay===6;
-          const isToday=
-            today.getFullYear()===year &&
-            today.getMonth()===month &&
-            today.getDate()===day;
-
-          const d=`${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
-          const list=(events||[]).filter((e:any)=>e.date===d);
-
-          return (
-            <div
-              key={day}
-              style={{
-                background:isToday
-                  ? '#dcfce7'
-                  : list.length
-                    ? '#dbeafe'
-                    : isWeekend
-                      ? '#f1f5f9'
-                      : '#fff',
-                border:isToday
-                  ? '3px solid #22c55e'
-                  : list.length
-                    ? '2px solid #2563eb'
-                    : '1px solid #ddd',
-                borderRadius:10,
-                padding:8,
-                minHeight:85
-              }}
-            >
-              <b>
-                {isToday ? '🟢 ' : ''}
-                {day}
-              </b>
-
-              {list.map((ev:any)=>(
-                <div
-                  key={ev.id}
-                  style={{
-                    fontSize:11,
-                    marginTop:4,
-                    background:eventColor(ev.type || ev.title),
-                    color:'#fff',
-                    padding:'3px 6px',
-                    borderRadius:6
-                  }}
-                >
-                  🕗 {ev.time}<br/>
-                  <b>📌 {ev.title}</b>
-                </div>
-              ))}
-            </div>
-          );
-        })}
-      </div>
-
-      <div style={{marginTop:14,fontSize:12,color:'#555'}}>
-        🟢 {lang==='nl'?'Vandaag':'Heute'} · 
-        🟢 Montage · 
-        🟡 {lang==='nl'?'Levering':'Lieferung'} · 
-        🔵 {lang==='nl'?'Klant':'Kunde'} · 
-        🟣 {lang==='nl'?'Productie':'Produktion'} · 
-        🔴 {lang==='nl'?'Belangrijk':'Wichtig'}
-      </div>
-    </div>
-  );
-}
-
-const app:any = {minHeight:'100vh',background:'#f4f7fb',fontFamily:'Arial',display:'flex'};
-const side:any = {
-  width:92,
-  background:'#050505',
-  padding:18,
-  boxShadow:'6px 0 20px rgba(0,0,0,.15)'
-}
-const logo:any = {
-  width:54,
-  height:54,
-  borderRadius:14,
-  background:'#050505',
-  color:'#fff',
-  display:'flex',
-  alignItems:'center',
-  justifyContent:'center',
-  fontWeight:'900',
-  fontSize:20,
-  border:'2px solid #fff',
-  boxShadow:'0 6px 18px rgba(0,0,0,.25)'
-}
-const iconBtn:any = {
-  display:'block',
-  width:'100%',
-  height:54,
-  marginBottom:14,
-  border:0,
-  borderRadius:14,
-  background:'transparent',
-  color:'#fff',
-  fontSize:24,
-  cursor:'pointer'
-}
-const main:any = {flex:1,padding:32};
-const header:any = {display:'flex',justifyContent:'space-between',alignItems:'center',marginBottom:28};
-const search:any = {padding:14,borderRadius:18,border:'1px solid #ddd',width:260};
-const select:any = {padding:12,borderRadius:14};
-const grid:any = {display:'grid',gridTemplateColumns:'1.2fr 1.4fr .8fr',gap:24};
-const card:any = {background:'#fff',borderRadius:24,padding:24,boxShadow:'0 20px 50px #0001',minHeight:220};
-const cardSmall:any = {...card};
-const cardWide:any = {...card};
-const topRow:any = {display:'flex',justifyContent:'space-between',alignItems:'center'};
-const event:any = {display:'flex',justifyContent:'space-between',padding:'12px 0',borderBottom:'1px solid #eee'};
-const primary:any = {padding:'12px 18px',border:0,borderRadius:14,background:'#2563eb',color:'#fff',fontWeight:700};
-const table:any = {width:'100%',borderCollapse:'collapse',marginTop:20};
-const th:any = {textAlign:'left',padding:12,borderBottom:'1px solid #ddd'};
-const td:any = {padding:12,borderBottom:'1px solid #eee'};
-const monthsGrid:any = {display:'grid',gridTemplateColumns:'repeat(3,1fr)',gap:12};
-const monthBox:any = {background:'#f8fafc',borderRadius:14,padding:12};
-const daysGrid:any = {display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:6,fontSize:12,marginTop:8};
