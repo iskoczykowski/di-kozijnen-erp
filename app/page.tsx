@@ -446,7 +446,14 @@ async function deleteNote(id:number){
 
   loadProduction();
 } 
- 
+ function Event({color,title,time}:any) {
+  return (
+    <div style={event}>
+      <span><b style={{color}}>●</b> {title}</span>
+      <small>{time}</small>
+    </div>
+  );
+}
   return (
     <div style={app}>
       <aside style={side}>
@@ -851,14 +858,7 @@ cursor:'pointer'
 
 {module === "messages" && <NachrichtenModule lang={lang} />}
         
-function Event({color,title,time}:any) {
-  return (
-    <div style={event}>
-      <span><b style={{color}}>●</b> {title}</span>
-      <small>{time}</small>
-    </div>
-  );
-}
+
 
 function Stat({title,value}:any) {
   return (
