@@ -21,7 +21,6 @@ type Module =
   | 'production'
   | 'stock'
   | 'delivery'
-  | 'orders'
   | 'montage'
   | 'calendar'
   | 'employees'
@@ -133,11 +132,10 @@ function moduleTitle(module: Module, lang: Lang) {
   const de: Record<Module, string> = {
     dashboard: 'Dashboard',
     customers: 'Kunden',
-    projects: 'Projekte',
+    orders: 'Aufträge',
     production: 'Produktion',
     stock: 'Lager',
     delivery: 'Lieferung',
-    orders: 'Aufträge',
     montage: 'Montage',
     calendar: 'Kalender',
     employees: 'Mitarbeiter',
@@ -147,11 +145,10 @@ function moduleTitle(module: Module, lang: Lang) {
   const nl: Record<Module, string> = {
     dashboard: 'Dashboard',
     customers: 'Klanten',
-    projects: 'Projecten',
+    orders: 'Orders',
     production: 'Productie',
     stock: 'Magazijn',
     delivery: 'Levering',
-    orders: 'Orders',
     montage: 'Montage',
     calendar: 'Kalender',
     employees: 'Medewerkers',
@@ -189,15 +186,15 @@ export default function Page() {
         <div style={logo}>D&I</div>
 
         <button title="Dashboard" onClick={() => setModule('dashboard')} style={iconBtn}>🏠</button>
-        <button title="Kunden" onClick={() => setModule('customers')} style={iconBtn}>👥</button>
-        <button title='Orders' onClick={() => setModule('orders')}tyle={iconBtn}>📋</button>
-        <button title="Produktion" onClick={() => setModule('production')} style={iconBtn}>🏭</button>
-        <button title="Lager" onClick={() => setModule('stock')} style={iconBtn}>📦</button>
-        <button title="Lieferung" onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
+        <button title={lang === 'de' ? 'Kunden' : 'Klanten'} onClick={() => setModule('customers')} style={iconBtn}>👥</button>
+        <button title={lang === 'de' ? 'Aufträge' : 'Orders'} onClick={() => setModule('orders')} style={iconBtn}>📋</button>
+        <button title={lang === 'de' ? 'Produktion' : 'Productie'} onClick={() => setModule('production')} style={iconBtn}>🏭</button>
+        <button title={lang === 'de' ? 'Lager' : 'Magazijn'} onClick={() => setModule('stock')} style={iconBtn}>📦</button>
+        <button title={lang === 'de' ? 'Lieferung' : 'Levering'} onClick={() => setModule('delivery')} style={iconBtn}>🚚</button>
         <button title="Montage" onClick={() => setModule('montage')} style={iconBtn}>🔧</button>
-        <button title="Kalender" onClick={() => setModule('calendar')} style={iconBtn}>📅</button>
-        <button title="Mitarbeiter" onClick={() => setModule('employees')} style={iconBtn}>👷</button>
-        <button title="Nachrichten" onClick={() => setModule('messages')} style={iconBtn}>💬</button>
+        <button title={lang === 'de' ? 'Kalender' : 'Kalender'} onClick={() => setModule('calendar')} style={iconBtn}>📅</button>
+        <button title={lang === 'de' ? 'Mitarbeiter' : 'Medewerkers'} onClick={() => setModule('employees')} style={iconBtn}>👷</button>
+        <button title={lang === 'de' ? 'Nachrichten' : 'Berichten'} onClick={() => setModule('messages')} style={iconBtn}>💬</button>
       </aside>
 
       <main style={main}>
@@ -205,9 +202,7 @@ export default function Page() {
           <div style={{ display: 'flex', alignItems: 'center', gap: 18 }}>
             <div style={{ fontSize: 42, fontWeight: 900 }}>D&I</div>
             <div>
-              <div style={{ fontSize: 25, fontWeight: 900 }}>
-                Kunststoff Kozijnen
-              </div>
+              <div style={{ fontSize: 25, fontWeight: 900 }}>Kunststoff Kozijnen</div>
               <div style={{ color: '#64748b', fontWeight: 700 }}>
                 {lang === 'de' ? 'und Rollläden' : 'en rolluiken'}
               </div>
@@ -221,7 +216,7 @@ export default function Page() {
             </div>
 
             <div>
-              <div style={{ fontWeight: 900 }}>Büro</div>
+              <div style={{ fontWeight: 900 }}>{lang === 'de' ? 'Büro' : 'Kantoor'}</div>
               <div style={{ color: '#16a34a', fontSize: 13 }}>● Online</div>
             </div>
 
@@ -239,8 +234,8 @@ export default function Page() {
           </h1>
           <div style={{ color: '#64748b', marginTop: 4 }}>
             {lang === 'de'
-              ? 'Professionelle Verwaltung für Kunden, Produktion, Montage und Planung.'
-              : 'Professioneel beheer voor klanten, productie, montage en planning.'}
+              ? 'Professionelle Verwaltung für Kunden, Aufträge, Produktion, Montage und Planung.'
+              : 'Professioneel beheer voor klanten, orders, productie, montage en planning.'}
           </div>
         </div>
 
@@ -254,6 +249,17 @@ export default function Page() {
                   {lang === 'de' ? 'Kundenverwaltung öffnen' : 'Klantenbeheer openen'}
                 </p>
                 <button style={smallBtn} onClick={() => setModule('customers')}>
+                  {lang === 'de' ? 'Öffnen' : 'Openen'}
+                </button>
+              </div>
+
+              <div style={statCard}>
+                <div style={{ fontSize: 28 }}>📋</div>
+                <h3>{lang === 'de' ? 'Aufträge' : 'Orders'}</h3>
+                <p style={{ color: '#64748b' }}>
+                  {lang === 'de' ? 'Aufträge verwalten' : 'Orders beheren'}
+                </p>
+                <button style={smallBtn} onClick={() => setModule('orders')}>
                   {lang === 'de' ? 'Öffnen' : 'Openen'}
                 </button>
               </div>
@@ -279,25 +285,14 @@ export default function Page() {
                   {lang === 'de' ? 'Öffnen' : 'Openen'}
                 </button>
               </div>
-
-              <div style={statCard}>
-                <div style={{ fontSize: 28 }}>📅</div>
-                <h3>{lang === 'de' ? 'Kalender' : 'Kalender'}</h3>
-                <p style={{ color: '#64748b' }}>
-                  {lang === 'de' ? 'Termine und Planung' : 'Afspraken en planning'}
-                </p>
-                <button style={smallBtn} onClick={() => setModule('calendar')}>
-                  {lang === 'de' ? 'Öffnen' : 'Openen'}
-                </button>
-              </div>
             </div>
 
             <div style={card}>
               <h2>{lang === 'de' ? 'Schnellstart' : 'Snelstart'}</h2>
               <p>
                 {lang === 'de'
-                  ? 'Wähle links ein Modul aus. Jedes Modul ist jetzt als eigene Datei aufgebaut, damit die App stabiler bleibt.'
-                  : 'Kies links een module. Elke module staat nu in een eigen bestand, zodat de app stabieler blijft.'}
+                  ? 'Wähle links ein Modul aus. Projekte wurden durch Aufträge ersetzt.'
+                  : 'Kies links een module. Projecten zijn vervangen door orders.'}
               </p>
             </div>
           </section>
@@ -308,18 +303,6 @@ export default function Page() {
         {module === 'production' && <ProduktionModule lang={lang} />}
         {module === 'stock' && <LagerModule lang={lang} />}
         {module === 'delivery' && <LieferungModule lang={lang} />}
-
-        {module === 'orders' && (
-          <section style={card}>
-            <h2>{lang === 'de' ? '📋 Aufträge' : '📋 Orders'}</h2>
-            <p>
-              {lang === 'de'
-                ? 'Das Auftragsmodul wird als eigener Bereich aufgebaut.'
-                : 'De ordermodule wordt als apart onderdeel opgebouwd.'}
-            </p>
-          </section>
-        )}
-
         {module === 'montage' && <MontageModule lang={lang} />}
         {module === 'calendar' && <KalenderModule lang={lang} />}
         {module === 'employees' && <MitarbeiterModule lang={lang} />}
