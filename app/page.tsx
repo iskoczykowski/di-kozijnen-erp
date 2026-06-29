@@ -1208,7 +1208,7 @@ cursor:'pointer'
 
 </div>
 ))}
-            <div key={i} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
+            <div key={x} style={{display:'grid',gridTemplateColumns:'1fr 1fr 100px',gap:6,marginBottom:4}}>
               <select style={search}><option>{x}</option></select>
               <select style={search}>
                 <option>Aluminium inzet hor</option>
