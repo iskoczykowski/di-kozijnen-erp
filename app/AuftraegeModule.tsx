@@ -1,6 +1,15 @@
 'use client';
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import BoschLaserModule from "./BoschLaserModule";
+
+<BoschLaserModule
+  lang={lang}
+  activeFieldLabel={measureRows(t).find(([key]) => key === measureTarget)?.[2]}
+  onMeasure={(mm) => updateMeasure(measureTarget, mm)}
+/>
+
+
 
 type Lang = 'de' | 'nl';
 type Tab = 'overview' | 'aufmass' | 'photos' | 'documents' | 'notes';
