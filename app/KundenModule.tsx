@@ -18,24 +18,55 @@ type Customer = {
   dokumente: string[];
 };
 
-type OrderLite = {
+type OrderStatus = 'draft' | 'measurement' | 'offer' | 'production' | 'montage' | 'done';
+
+type MeasureKey =
+  | 'breite'
+  | 'hoehe'
+  | 'tiefe'
+  | 'rahmenLinks'
+  | 'rahmenRechts'
+  | 'rahmenOben'
+  | 'rahmenUnten'
+  | 'fensterbankTiefe';
+
+type Order = {
   id: string;
   nummer: string;
   kunde: string;
   referenz: string;
   adresse: string;
+  plz: string;
   ort: string;
   telefon: string;
-  email?: string;
-  status?: string;
-  bestelldatum?: string;
-  lieferdatum?: string;
-  montageDatum?: string;
+  email: string;
+  monteur: string;
+  status: OrderStatus;
+  erstelltAm: string;
+  lieferdatum: string;
+  montageDatum: string;
+  produkt: string;
+  foto: string;
+  fotos: string[];
+  dokumente: string[];
+  notizen: string;
+  deviceConnected: boolean;
+  measures: Record<MeasureKey, number>;
+  elements: {
+    id: string;
+    name: string;
+    typ: string;
+    fluegel: string;
+    breite: number;
+    hoehe: number;
+    tiefe: number;
+  }[];
 };
 
 const CUSTOMER_KEY = 'di_customers_v1';
-const ORDER_KEY = 'di_orders_v1';
-const MONTAGE_KEY = 'di_montage_lists_v1';
+
+// WICHTIG: Das ist der gleiche Speicher-Key wie im neuen AuftraegeModule.tsx
+const ORDER_KEY = 'di_orders_professional_v2';
 
 const input: React.CSSProperties = {
   width: '100%',
@@ -87,25 +118,23 @@ const danger: React.CSSProperties = {
   background: '#dc2626',
 };
 
-function makeId() {
-  return 'cus_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
-}
-
-function makeOrderNumber() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const n = String(Date.now()).slice(-5);
-  return `AU-${y}${m}-${n}`;
+function makeId(prefix = 'id') {
+  return prefix + '_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 }
 
 function today() {
   return new Date().toISOString().slice(0, 10);
 }
 
+function makeOrderNumber() {
+  const y = new Date().getFullYear();
+  const n = String(Date.now()).slice(-4);
+  return `A-${y}-${n}`;
+}
+
 function emptyCustomer(lang: Lang): Customer {
   return {
-    id: makeId(),
+    id: makeId('cus'),
     name: lang === 'de' ? 'Neuer Kunde' : 'Nieuwe klant',
     referenz: '',
     email: '',
@@ -133,6 +162,60 @@ function writeArray<T>(key: string, value: T[]) {
   localStorage.setItem(key, JSON.stringify(value));
 }
 
+function createOrderFromCustomer(customer: Customer): Order {
+  return {
+    id: makeId('ord'),
+    nummer: makeOrderNumber(),
+
+    // Kundendaten werden hier sauber übernommen
+    kunde: customer.name || '',
+    referenz: customer.referenz || '',
+    adresse: customer.adresse || '',
+    plz: customer.plz || '',
+    ort: customer.plaats || '',
+    telefon: customer.telefon || '',
+    email: customer.email || '',
+
+    monteur: 'Ireneusz Skoczykowski',
+    status: 'measurement',
+    erstelltAm: today(),
+    lieferdatum: '',
+    montageDatum: '',
+    produkt: '',
+
+    // Fotos/Dokumente vom Kunden werden direkt in den Auftrag übernommen
+    foto: customer.fotos?.[0] || '',
+    fotos: customer.fotos || [],
+    dokumente: customer.dokumente || [],
+
+    notizen: customer.notizen || '',
+    deviceConnected: false,
+
+    measures: {
+      breite: 0,
+      hoehe: 0,
+      tiefe: 0,
+      rahmenLinks: 0,
+      rahmenRechts: 0,
+      rahmenOben: 0,
+      rahmenUnten: 0,
+      fensterbankTiefe: 0,
+    },
+
+    elements: [
+      {
+        id: makeId('el'),
+        name: 'Fenster 1',
+        typ: 'Hauptfenster',
+        fluegel: '1-flügelig',
+        breite: 0,
+        hoehe: 0,
+        tiefe: 0,
+      },
+    ],
+  };
+}
+
 export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
   const first = useMemo(() => emptyCustomer(lang), [lang]);
 
@@ -158,14 +241,6 @@ export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
   }, [customers]);
 
   const active = customers.find((c) => c.id === activeId) || customers[0];
-
-  const orders = readArray<OrderLite>(ORDER_KEY).filter(
-    (o) => o.kunde === active?.name || o.telefon === active?.telefon || o.referenz === active?.referenz
-  );
-
-  const montageLists = readArray<any>(MONTAGE_KEY).filter(
-    (m) => m.kunde === active?.name || m.telefon === active?.telefon || m.referenz === active?.referenz
-  );
 
   const filtered = customers.filter((c) => {
     const text = `${c.name} ${c.referenz} ${c.email} ${c.telefon} ${c.adresse} ${c.plz} ${c.plaats}`.toLowerCase();
@@ -225,42 +300,19 @@ export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
   }
 
   function createOrder() {
-    const order: OrderLite = {
-      id: 'ord_' + Date.now(),
-      nummer: makeOrderNumber(),
-      kunde: active.name,
-      referenz: active.referenz,
-      adresse: active.adresse,
-      ort: `${active.plz} ${active.plaats}`.trim(),
-      telefon: active.telefon,
-      email: active.email,
-      status: 'open',
-      bestelldatum: today(),
-      lieferdatum: '',
-      montageDatum: '',
-    };
+    if (!active) return;
 
-    const old = readArray<OrderLite>(ORDER_KEY);
-    writeArray(ORDER_KEY, [order, ...old]);
+    const newOrder = createOrderFromCustomer(active);
+    const oldOrders = readArray<Order>(ORDER_KEY);
 
-    alert(lang === 'de' ? 'Auftrag wurde erstellt.' : 'Order is aangemaakt.');
-  }
+    // Auftrag oben in die Liste setzen
+    writeArray<Order>(ORDER_KEY, [newOrder, ...oldOrders]);
 
-  function createMontage() {
-    const montage = {
-      id: 'mon_' + Date.now(),
-      kunde: active.name,
-      referenz: active.referenz,
-      adresse: active.adresse,
-      ort: `${active.plz} ${active.plaats}`.trim(),
-      telefon: active.telefon,
-      createdAt: new Date().toISOString(),
-    };
-
-    const old = readArray<any>(MONTAGE_KEY);
-    writeArray(MONTAGE_KEY, [montage, ...old]);
-
-    alert(lang === 'de' ? 'Montageliste wurde erstellt.' : 'Montagelijst is aangemaakt.');
+    alert(
+      lang === 'de'
+        ? `Auftrag ${newOrder.nummer} wurde für ${active.name} erstellt. Bitte jetzt links auf Aufträge klicken.`
+        : `Order ${newOrder.nummer} is aangemaakt voor ${active.name}. Klik nu links op Orders.`
+    );
   }
 
   if (!active) return null;
@@ -274,10 +326,6 @@ export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
 
         <button style={ghost} onClick={createOrder}>
           📋 {lang === 'de' ? 'Auftrag erstellen' : 'Order maken'}
-        </button>
-
-        <button style={ghost} onClick={createMontage}>
-          🔧 {lang === 'de' ? 'Montageliste erstellen' : 'Montagelijst maken'}
         </button>
 
         <button style={danger} onClick={deleteCustomer}>
@@ -372,72 +420,6 @@ export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
               <input type="file" multiple accept="image/*,.pdf,.xlsx,.xls" style={input} onChange={addDocuments} />
             </label>
           </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginTop: 22 }}>
-            <div style={card}>
-              <h3>📋 {lang === 'de' ? 'Auftrag' : 'Order'}</h3>
-              <p style={{ color: '#64748b' }}>
-                {orders.length
-                  ? `${orders.length} ${lang === 'de' ? 'verknüpft' : 'gekoppeld'}`
-                  : lang === 'de'
-                  ? 'Noch nicht verknüpft'
-                  : 'Nog niet gekoppeld'}
-              </p>
-              <button style={ghost} onClick={createOrder}>
-                {lang === 'de' ? 'Erstellen' : 'Maken'}
-              </button>
-            </div>
-
-            <div style={card}>
-              <h3>🏭 {lang === 'de' ? 'Produktion' : 'Productie'}</h3>
-              <p style={{ color: '#64748b' }}>
-                {orders.some((o) => o.status === 'production')
-                  ? lang === 'de'
-                    ? 'In Produktion'
-                    : 'In productie'
-                  : lang === 'de'
-                  ? 'Noch nicht gestartet'
-                  : 'Nog niet gestart'}
-              </p>
-            </div>
-
-            <div style={card}>
-              <h3>🔧 Montage</h3>
-              <p style={{ color: '#64748b' }}>
-                {montageLists.length
-                  ? `${montageLists.length} ${lang === 'de' ? 'Liste(n)' : 'lijst(en)'}`
-                  : lang === 'de'
-                  ? 'Noch nicht verknüpft'
-                  : 'Nog niet gekoppeld'}
-              </p>
-              <button style={ghost} onClick={createMontage}>
-                {lang === 'de' ? 'Erstellen' : 'Maken'}
-              </button>
-            </div>
-
-            <div style={card}>
-              <h3>🧾 {lang === 'de' ? 'Rechnung' : 'Factuur'}</h3>
-              <p style={{ color: '#64748b' }}>
-                {lang === 'de' ? 'Später' : 'Later'}
-              </p>
-            </div>
-          </div>
-
-          {active.fotos.length > 0 && (
-            <div style={{ marginTop: 20 }}>
-              <h3>📷 {lang === 'de' ? 'Fotos' : 'Foto’s'}</h3>
-              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
-                {active.fotos.map((src, i) => (
-                  <img
-                    key={i}
-                    src={src}
-                    alt={`Foto ${i + 1}`}
-                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 10, border: '1px solid #d7dde8' }}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
         </main>
       </div>
     </section>
