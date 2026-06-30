@@ -225,6 +225,178 @@ async function filesToBase64(files: File[]) {
   })));
 }
 
+
+function BoschLaserPanel({ lang, onMeasure, selectedLabel }: { lang: Lang; onMeasure: (mm: number) => void; selectedLabel: string }) {
+  const [supported, setSupported] = useState(true);
+  const [connected, setConnected] = useState(false);
+  const [deviceName, setDeviceName] = useState('Bosch UniversalDistance 40 C');
+  const [battery, setBattery] = useState<string>('?');
+  const [lastValue, setLastValue] = useState<number | null>(null);
+  const [log, setLog] = useState<string[]>([]);
+  const [server, setServer] = useState<any>(null);
+
+  const boschService = '02a6c0d0-0451-4000-b000-fb3210111989';
+
+  function addLog(text: string) {
+    setLog((prev) => [text, ...prev].slice(0, 6));
+  }
+
+  function decodeMeasure(view: DataView): number | null {
+    const bytes = Array.from(new Uint8Array(view.buffer)).map((b) => b.toString(16).padStart(2, '0')).join(' ');
+
+    try {
+      const text = new TextDecoder().decode(view.buffer);
+      const match = text.match(/([0-9]+[\.,]?[0-9]*)\s*(mm|cm|m)?/i);
+      if (match) {
+        let value = Number(match[1].replace(',', '.'));
+        const unit = (match[2] || 'm').toLowerCase();
+        if (unit === 'm') value = value * 1000;
+        if (unit === 'cm') value = value * 10;
+        if (unit === 'mm') value = value;
+        if (value > 0 && value < 100000) return Math.round(value);
+      }
+    } catch {}
+
+    try {
+      if (view.byteLength >= 4) {
+        const f = view.getFloat32(0, true);
+        if (f > 0 && f < 100) return Math.round(f * 1000);
+        const u32 = view.getUint32(0, true);
+        if (u32 > 0 && u32 < 100000) return u32;
+        const i32 = view.getInt32(0, true);
+        if (i32 > 0 && i32 < 100000) return i32;
+      }
+      if (view.byteLength >= 2) {
+        const u16 = view.getUint16(0, true);
+        if (u16 > 0 && u16 < 100000) return u16;
+      }
+    } catch {}
+
+    addLog('Rohdaten: ' + bytes);
+    return null;
+  }
+
+  async function connect() {
+    try {
+      if (!(navigator as any).bluetooth) {
+        setSupported(false);
+        alert(lang === 'de' ? 'Web Bluetooth wird in diesem Browser nicht unterstützt. Bitte Chrome oder Edge verwenden.' : 'Web Bluetooth wordt niet ondersteund. Gebruik Chrome of Edge.');
+        return;
+      }
+
+      addLog(lang === 'de' ? 'Bluetooth Suche gestartet...' : 'Bluetooth zoeken gestart...');
+
+      const device = await (navigator as any).bluetooth.requestDevice({
+        acceptAllDevices: true,
+        optionalServices: [
+          'battery_service',
+          'device_information',
+          boschService,
+          '0000180f-0000-1000-8000-00805f9b34fb',
+          '0000180a-0000-1000-8000-00805f9b34fb'
+        ],
+      });
+
+      setDeviceName(device.name || 'Bosch Laser');
+      device.addEventListener('gattserverdisconnected', () => {
+        setConnected(false);
+        addLog(lang === 'de' ? 'Gerät getrennt' : 'Apparaat verbroken');
+      });
+
+      const gattServer = await device.gatt.connect();
+      setServer(gattServer);
+      setConnected(true);
+      addLog(lang === 'de' ? 'Verbunden' : 'Verbonden');
+
+      try {
+        const batService = await gattServer.getPrimaryService('battery_service');
+        const batChar = await batService.getCharacteristic('battery_level');
+        const batVal = await batChar.readValue();
+        setBattery(String(batVal.getUint8(0)) + '%');
+      } catch {
+        setBattery('?');
+      }
+
+      const services = await gattServer.getPrimaryServices();
+      addLog((lang === 'de' ? 'Dienste gefunden: ' : 'Services gevonden: ') + services.length);
+
+      for (const service of services) {
+        let chars: any[] = [];
+        try { chars = await service.getCharacteristics(); } catch { continue; }
+        for (const char of chars) {
+          try {
+            if (char.properties.notify || char.properties.indicate) {
+              await char.startNotifications();
+              char.addEventListener('characteristicvaluechanged', (event: any) => {
+                const value = event.target.value as DataView;
+                const mm = decodeMeasure(value);
+                if (mm) {
+                  setLastValue(mm);
+                  onMeasure(mm);
+                  addLog((lang === 'de' ? 'Messwert übernommen: ' : 'Meetwaarde overgenomen: ') + mm + ' mm');
+                }
+              });
+              addLog(lang === 'de' ? 'Messwert-Kanal aktiv' : 'Meetkanaal actief');
+            }
+          } catch {}
+
+          try {
+            if (char.properties.read) {
+              const value = await char.readValue();
+              const mm = decodeMeasure(value);
+              if (mm) {
+                setLastValue(mm);
+                onMeasure(mm);
+              }
+            }
+          } catch {}
+        }
+      }
+    } catch (e: any) {
+      addLog(e?.message || String(e));
+      alert((lang === 'de' ? 'Bluetooth Fehler: ' : 'Bluetooth fout: ') + (e?.message || e));
+    }
+  }
+
+  function disconnect() {
+    try { server?.device?.gatt?.disconnect(); } catch {}
+    setConnected(false);
+  }
+
+  function manualTest() {
+    const mm = Number(prompt(lang === 'de' ? 'Test-Messwert in mm:' : 'Test meetwaarde in mm:', '1234'));
+    if (mm > 0) {
+      setLastValue(mm);
+      onMeasure(mm);
+      addLog((lang === 'de' ? 'Testwert übernommen: ' : 'Testwaarde overgenomen: ') + mm + ' mm');
+    }
+  }
+
+  return (
+    <div style={{border:'1px solid #dfe6f0',borderRadius:12,padding:18,display:'flex',justifyContent:'space-between',gap:18,background:'#fff'}}>
+      <div style={{display:'flex',gap:18,alignItems:'center'}}>
+        <div style={{width:72,height:110,borderRadius:10,background:'#111827',color:'#fff',display:'grid',placeItems:'center',fontSize:30}}>📏</div>
+        <div>
+          <h2 style={{margin:'0 0 6px'}}>{deviceName}</h2>
+          <p><b>Status:</b> <span style={{color:connected?'#16a34a':'#ef4444',fontWeight:900}}>● {connected ? (lang==='de'?'Verbunden':'Verbonden') : (lang==='de'?'Nicht verbunden':'Niet verbonden')}</span></p>
+          <p><b>{lang==='de'?'Batterie':'Batterij'}:</b> <span style={{color:'#16a34a',fontWeight:900}}>● {battery} 🔋</span></p>
+          <p><b>{lang==='de'?'Aktives Feld':'Actief veld'}:</b> {selectedLabel}</p>
+          <p><b>{lang==='de'?'Letzter Wert':'Laatste waarde'}:</b> {lastValue ? `${lastValue} mm` : '-'}</p>
+          {!supported && <p style={{color:'#ef4444'}}>{lang==='de'?'Bitte Chrome oder Edge benutzen.':'Gebruik Chrome of Edge.'}</p>}
+        </div>
+      </div>
+      <div style={{display:'grid',gap:10,minWidth:260}}>
+        <button style={{...btn,color:'#16a34a'}} onClick={connect}>✓ {lang==='de'?'Laser verbinden':'Laser verbinden'}</button>
+        <button style={btn} onClick={manualTest}>⌁ {lang==='de'?'Testwert übernehmen':'Testwaarde overnemen'}</button>
+        <button style={redBtn} onClick={disconnect}>⏻ {lang==='de'?'Trennen':'Verbreken'}</button>
+        <div style={{fontSize:12,color:'#64748b',lineHeight:1.4}}>
+          {log.map((l,i)=><div key={i}>• {l}</div>)}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function AuftraegeModule({ lang='de' }: { lang?: Lang }) {
   const t = T[lang];
   const first = useMemo(()=>emptyOrder(lang), [lang]);
@@ -333,15 +505,11 @@ export default function AuftraegeModule({ lang='de' }: { lang?: Lang }) {
 
           {tab==='aufmass' && <div>
             <div style={{padding:22}}>
-              <div style={{border:'1px solid #dfe6f0',borderRadius:12,padding:18,display:'flex',justifyContent:'space-between',gap:18}}>
-                <div style={{display:'flex',gap:18,alignItems:'center'}}>
-                  <div style={{width:72,height:110,borderRadius:10,background:'#111827',color:'#fff',display:'grid',placeItems:'center',fontSize:30}}>📏</div>
-                  <div><h2 style={{margin:0}}>{t.device}</h2><p><b>Status:</b> <span style={{color:active.deviceConnected?'#16a34a':'#ef4444',fontWeight:900}}>● {active.deviceConnected?t.connected:t.disconnected}</span></p><p><b>{t.battery}:</b> <span style={{color:'#16a34a',fontWeight:900}}>● 80% 🔋</span></p><p><b>{t.serial}:</b> 123456789</p></div>
-                </div>
-                <div style={{display:'grid',gap:10,minWidth:230}}>
-                  <button style={{...btn,color:'#16a34a'}} onClick={()=>updateOrder({deviceConnected:true})}>✓ {t.connect}</button><button style={btn}>⇄ {t.changeDevice}</button><button style={redBtn} onClick={()=>updateOrder({deviceConnected:false})}>⏻ {t.disconnect}</button>
-                </div>
-              </div>
+              <BoschLaserPanel
+                lang={lang}
+                selectedLabel={measureRows(t).find(([key]) => key === measureTarget)?.[2] || ''}
+                onMeasure={(mm) => updateMeasure(measureTarget, mm)}
+              />
             </div>
             <div style={{display:'grid',gridTemplateColumns:'420px 1fr 420px',borderTop:'1px solid #e5eaf2',borderBottom:'1px solid #e5eaf2'}}>
               <div style={{padding:20,borderRight:'1px solid #e5eaf2'}}>
