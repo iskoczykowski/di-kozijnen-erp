@@ -569,7 +569,7 @@ function AppointmentModal({
   );
 }
 
-export default function DashboardModule({ lang = 'de', setModule }: { lang?: Lang; setModule: (m: Module) => void }) {
+export default function DashboardModule({ lang = 'de', setModule, setLang }: { lang?: Lang; setModule: (m: Module) => void; setLang: (l: Lang) => void }) {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
@@ -648,7 +648,7 @@ export default function DashboardModule({ lang = 'de', setModule }: { lang?: Lan
             <div style={{ textAlign: 'center' }}><div style={{ fontSize: 36, fontWeight: 900 }}>10:24</div><div style={{ color: '#475569' }}>{lang === 'de' ? 'Dienstag, 30. Juni 2026' : 'Dinsdag, 30 juni 2026'}</div></div>
             <div><b>{T[lang].office}</b><div style={{ color: '#16a34a' }}>● {T[lang].online}</div></div>
             <input style={{ ...input, width: 250 }} placeholder={T[lang].search} />
-            <button style={blueBtn}>NL</button>
+            <button style={blueBtn} onClick={() => setLang(lang === "de" ? "nl" : "de")}>{lang === "de" ? "DE" : "NL"}</button>
           </div>
         </header>
 
