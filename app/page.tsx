@@ -153,7 +153,7 @@ export default function Page() {
   const [module, setModule] = useState<Module>('dashboard');
 
   if (module === 'dashboard') {
-    return <DashboardModule lang={lang} setModule={setModule} />;
+    return <DashboardModule lang={lang} setLang={setLang} setModule={setModule} />;
   }
 
   return (
