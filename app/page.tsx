@@ -12,6 +12,7 @@ import LieferungModule from './LieferungModule';
 import KalenderModule from './KalenderModule';
 import MitarbeiterModule from './MitarbeiterModule';
 import NachrichtenModule from './NachrichtenModule';
+import DashboardModule from './DashboardModule';
 
 type Lang = 'de' | 'nl';
 
@@ -200,6 +201,7 @@ export default function Page() {
           {module === 'calendar' && <KalenderModule lang={lang} />}
           {module === 'employees' && <MitarbeiterModule lang={lang} />}
           {module === 'messages' && <NachrichtenModule lang={lang} />}
+          {module === 'Dashboard' && <DashboardModule lang={lang} />}
         </main>
       </div>
     </div>
