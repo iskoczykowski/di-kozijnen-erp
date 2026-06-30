@@ -1,387 +1,445 @@
 'use client';
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type Lang = 'de' | 'nl';
-type Tab = 'overview' | 'aufmass' | 'photos' | 'documents' | 'notes';
-type OrderStatus = 'draft' | 'measurement' | 'offer' | 'production' | 'montage' | 'done';
-type MeasureKey = 'breite' | 'hoehe' | 'tiefe' | 'rahmenLinks' | 'rahmenRechts' | 'rahmenOben' | 'rahmenUnten' | 'fensterbankTiefe';
 
-type ElementItem = {
+type Customer = {
   id: string;
   name: string;
-  typ: string;
-  fluegel: string;
-  breite: number;
-  hoehe: number;
-  tiefe: number;
+  referenz: string;
+  email: string;
+  telefon: string;
+  adresse: string;
+  plz: string;
+  plaats: string;
+  notizen: string;
+  fotos: string[];
+  dokumente: string[];
 };
 
-type Order = {
+type OrderLite = {
   id: string;
   nummer: string;
   kunde: string;
   referenz: string;
   adresse: string;
-  plz: string;
   ort: string;
   telefon: string;
-  email: string;
-  monteur: string;
-  status: OrderStatus;
-  erstelltAm: string;
-  lieferdatum: string;
-  montageDatum: string;
-  produkt: string;
-  foto: string;
-  fotos: string[];
-  dokumente: string[];
-  notizen: string;
-  deviceConnected: boolean;
-  measures: Record<MeasureKey, number>;
-  elements: ElementItem[];
+  email?: string;
+  status?: string;
+  bestelldatum?: string;
+  lieferdatum?: string;
+  montageDatum?: string;
 };
 
-const STORAGE_KEY = 'di_orders_professional_v2';
+const CUSTOMER_KEY = 'di_customers_v1';
+const ORDER_KEY = 'di_orders_v1';
+const MONTAGE_KEY = 'di_montage_lists_v1';
 
-const T = {
-  de: {
-    title: 'Aufträge',
-    newOrder: 'Neuer Auftrag',
-    search: 'Auftrag suchen...',
-    order: 'Auftrag',
-    customer: 'Kunde',
-    reference: 'Referenz',
-    address: 'Adresse',
-    zip: 'PLZ',
-    city: 'Ort',
-    phone: 'Telefon',
-    email: 'E-Mail',
-    fitter: 'Monteur',
-    created: 'Erstellt am',
-    deliveryDate: 'Lieferdatum',
-    montageDate: 'Montagedatum',
-    product: 'Produkt / Artikel',
-    status: 'Status',
-    overview: 'Übersicht',
-    measurement: 'Aufmaß',
-    photos: 'Fotos',
-    documents: 'Dokumente',
-    notes: 'Notizen',
-    save: 'Speichern',
-    delete: 'Löschen',
-    duplicate: 'Kopieren',
-    print: 'PDF drucken',
-    export: 'Export',
-    device: 'Bosch UniversalDistance 40 C',
-    connected: 'Verbunden',
-    disconnected: 'Nicht verbunden',
-    battery: 'Batterie',
-    serial: 'Seriennummer',
-    connect: 'Gerät verbinden',
-    disconnect: 'Trennen',
-    changeDevice: 'Gerät wechseln',
-    measures: 'Maße erfassen',
-    width: 'Breite',
-    height: 'Höhe',
-    depth: 'Tiefe',
-    frameLeft: 'Rahmenbreite links',
-    frameRight: 'Rahmenbreite rechts',
-    frameTop: 'Rahmenbreite oben',
-    frameBottom: 'Rahmenbreite unten',
-    sillDepth: 'Fensterbank Tiefe',
-    measure: 'Messen',
-    measureInfo: 'Jetzt ist es vorbereitet. Später verbinden wir hier den Bosch-Laser direkt per Bluetooth.',
-    photo: 'Foto',
-    takePhoto: 'Foto aufnehmen',
-    gallery: 'Aus Galerie wählen',
-    sketch: 'Skizze',
-    elements: 'Elemente im Aufmaß',
-    addElement: 'Element hinzufügen',
-    nr: 'Nr.',
-    element: 'Element',
-    type: 'Typ',
-    widthMm: 'Breite (mm)',
-    heightMm: 'Höhe (mm)',
-    depthMm: 'Tiefe (mm)',
-    actions: 'Aktionen',
-    allInOrder: 'Fotos, Maße, Skizze und Dokumente bleiben direkt im Auftrag gespeichert.',
-    noDocs: 'Noch keine Dokumente hochgeladen.',
-    noPhotos: 'Noch keine Fotos hochgeladen.',
-    uploadPhotos: 'Fotos hochladen',
-    uploadDocs: 'Dokumente / Zeichnungen hochladen',
-  },
-  nl: {
-    title: 'Orders',
-    newOrder: 'Nieuwe order',
-    search: 'Order zoeken...',
-    order: 'Order',
-    customer: 'Klant',
-    reference: 'Referentie',
-    address: 'Adres',
-    zip: 'Postcode',
-    city: 'Plaats',
-    phone: 'Telefoon',
-    email: 'E-mail',
-    fitter: 'Monteur',
-    created: 'Aangemaakt op',
-    deliveryDate: 'Leverdatum',
-    montageDate: 'Montagedatum',
-    product: 'Product / Artikel',
-    status: 'Status',
-    overview: 'Overzicht',
-    measurement: 'Inmeting',
-    photos: 'Foto’s',
-    documents: 'Documenten',
-    notes: 'Notities',
-    save: 'Opslaan',
-    delete: 'Verwijderen',
-    duplicate: 'Kopiëren',
-    print: 'PDF afdrukken',
-    export: 'Export',
-    device: 'Bosch UniversalDistance 40 C',
-    connected: 'Verbonden',
-    disconnected: 'Niet verbonden',
-    battery: 'Batterij',
-    serial: 'Serienummer',
-    connect: 'Apparaat verbinden',
-    disconnect: 'Verbreken',
-    changeDevice: 'Apparaat wisselen',
-    measures: 'Maten invoeren',
-    width: 'Breedte',
-    height: 'Hoogte',
-    depth: 'Diepte',
-    frameLeft: 'Kozijnbreedte links',
-    frameRight: 'Kozijnbreedte rechts',
-    frameTop: 'Kozijnbreedte boven',
-    frameBottom: 'Kozijnbreedte onder',
-    sillDepth: 'Vensterbank diepte',
-    measure: 'Meten',
-    measureInfo: 'Dit is voorbereid. Later koppelen wij de Bosch laser direct via Bluetooth.',
-    photo: 'Foto',
-    takePhoto: 'Foto maken',
-    gallery: 'Uit galerij kiezen',
-    sketch: 'Schets',
-    elements: 'Elementen in inmeting',
-    addElement: 'Element toevoegen',
-    nr: 'Nr.',
-    element: 'Element',
-    type: 'Type',
-    widthMm: 'Breedte (mm)',
-    heightMm: 'Hoogte (mm)',
-    depthMm: 'Diepte (mm)',
-    actions: 'Acties',
-    allInOrder: 'Foto’s, maten, schets en documenten blijven direct in deze order opgeslagen.',
-    noDocs: 'Nog geen documenten geüpload.',
-    noPhotos: 'Nog geen foto’s geüpload.',
-    uploadPhotos: 'Foto’s uploaden',
-    uploadDocs: 'Documenten / tekeningen uploaden',
-  },
+const input: React.CSSProperties = {
+  width: '100%',
+  minHeight: 40,
+  border: '1px solid #d7dde8',
+  borderRadius: 12,
+  padding: '0 12px',
+  background: '#fff',
+  boxSizing: 'border-box',
 };
 
-const input: React.CSSProperties = { width:'100%', minHeight:38, border:'1px solid #d7dde8', borderRadius:10, padding:'0 10px', background:'#fff', boxSizing:'border-box' };
-const textarea: React.CSSProperties = { ...input, minHeight:120, padding:12, resize:'vertical' };
-const card: React.CSSProperties = { background:'#fff', border:'1px solid #dfe6f0', borderRadius:16, boxShadow:'0 5px 16px rgba(15,23,42,0.05)' };
-const btn: React.CSSProperties = { border:'1px solid #cbd7e8', background:'#fff', borderRadius:10, padding:'10px 14px', fontWeight:800, cursor:'pointer' };
-const blueBtn: React.CSSProperties = { ...btn, background:'#0b73ff', color:'#fff', border:'1px solid #0b73ff' };
-const greenBtn: React.CSSProperties = { ...btn, background:'#16a34a', color:'#fff', border:'1px solid #16a34a' };
-const redBtn: React.CSSProperties = { ...btn, color:'#ef4444', border:'1px solid #ffb4b4' };
+const textarea: React.CSSProperties = {
+  ...input,
+  minHeight: 100,
+  padding: 12,
+  resize: 'vertical',
+};
 
-function makeId(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,8); }
-function today(){ return new Date().toISOString().slice(0,10); }
-function orderNo(){ return `A-${new Date().getFullYear()}-${String(Date.now()).slice(-4)}`; }
+const card: React.CSSProperties = {
+  background: '#fff',
+  border: '1px solid #dfe3eb',
+  borderRadius: 18,
+  padding: 18,
+  boxShadow: '0 6px 18px rgba(15,23,42,0.05)',
+};
 
-function emptyElement(i=1): ElementItem {
-  return { id:makeId(), name:i===1?'Wohnzimmer Fenster':`Fenster ${i}`, typ:i===1?'Hauptfenster':'Nebenfenster', fluegel:i===1?'2-flügelig':'1-flügelig', breite:i===1?1234:890, hoehe:i===1?1487:1200, tiefe:72 };
+const primary: React.CSSProperties = {
+  border: 0,
+  borderRadius: 10,
+  padding: '10px 14px',
+  background: '#2563eb',
+  color: '#fff',
+  fontWeight: 800,
+  cursor: 'pointer',
+};
+
+const ghost: React.CSSProperties = {
+  border: '1px solid #d7dde8',
+  borderRadius: 10,
+  padding: '10px 14px',
+  background: '#fff',
+  color: '#0f172a',
+  fontWeight: 800,
+  cursor: 'pointer',
+};
+
+const danger: React.CSSProperties = {
+  ...primary,
+  background: '#dc2626',
+};
+
+function makeId() {
+  return 'cus_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
 }
 
-function emptyOrder(lang: Lang): Order {
+function makeOrderNumber() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const n = String(Date.now()).slice(-5);
+  return `AU-${y}${m}-${n}`;
+}
+
+function today() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function emptyCustomer(lang: Lang): Customer {
   return {
-    id: makeId(), nummer: orderNo(), kunde: lang==='de'?'Neuer Kunde':'Nieuwe klant', referenz:'', adresse:'', plz:'', ort:'', telefon:'', email:'', status:'measurement',
-    monteur:'Ireneusz Skoczykowski', erstelltAm:today(), lieferdatum:'', montageDatum:'', produkt:'', foto:'', fotos:[], dokumente:[], notizen:'', deviceConnected:false,
-    measures:{ breite:1234, hoehe:1487, tiefe:72, rahmenLinks:65, rahmenRechts:65, rahmenOben:65, rahmenUnten:85, fensterbankTiefe:280 },
-    elements:[emptyElement(1)]
+    id: makeId(),
+    name: lang === 'de' ? 'Neuer Kunde' : 'Nieuwe klant',
+    referenz: '',
+    email: '',
+    telefon: '',
+    adresse: '',
+    plz: '',
+    plaats: '',
+    notizen: '',
+    fotos: [],
+    dokumente: [],
   };
 }
 
-function statusLabel(status: OrderStatus, lang: Lang) {
-  const de:any = { draft:'Entwurf', measurement:'Aufmaß läuft', offer:'Angebot', production:'Produktion', montage:'Montage', done:'Fertig' };
-  const nl:any = { draft:'Concept', measurement:'Inmeting loopt', offer:'Offerte', production:'Productie', montage:'Montage', done:'Klaar' };
-  return (lang==='de'?de:nl)[status];
-}
-
-function measureRows(t:any) {
-  return [
-    ['breite','↔️',t.width], ['hoehe','↕️',t.height], ['tiefe','↔️',t.depth], ['rahmenLinks','↕️',t.frameLeft],
-    ['rahmenRechts','↔️',t.frameRight], ['rahmenOben','↔️',t.frameTop], ['rahmenUnten','↔️',t.frameBottom], ['fensterbankTiefe','📐',t.sillDepth],
-  ] as [MeasureKey,string,string][];
-}
-
-async function filesToBase64(files: File[]) {
-  return Promise.all(files.map(file => new Promise<string>(resolve => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.readAsDataURL(file);
-  })));
-}
-
-export default function AuftraegeModule({ lang='de' }: { lang?: Lang }) {
-  const t = T[lang];
-  const first = useMemo(()=>emptyOrder(lang), [lang]);
-  const photoRef = useRef<HTMLInputElement|null>(null);
-  const docsRef = useRef<HTMLInputElement|null>(null);
-
-  const [orders,setOrders] = useState<Order[]>([first]);
-  const [activeId,setActiveId] = useState(first.id);
-  const [query,setQuery] = useState('');
-  const [tab,setTab] = useState<Tab>('overview');
-  const [measureTarget,setMeasureTarget] = useState<MeasureKey>('breite');
-
-  useEffect(()=>{ try{ const raw=localStorage.getItem(STORAGE_KEY); if(raw){ const p=JSON.parse(raw); if(Array.isArray(p)&&p.length){ setOrders(p); setActiveId(p[0].id); } } }catch{} },[]);
-  useEffect(()=>{ localStorage.setItem(STORAGE_KEY, JSON.stringify(orders)); },[orders]);
-
-  const active = orders.find(o=>o.id===activeId) || orders[0];
-  const filtered = orders.filter(o => `${o.nummer} ${o.kunde} ${o.adresse} ${o.ort} ${o.telefon}`.toLowerCase().includes(query.toLowerCase()));
-
-  function updateOrder(patch:Partial<Order>){ setOrders(prev=>prev.map(o=>o.id===active.id?{...o,...patch}:o)); }
-  function updateMeasure(key:MeasureKey, value:number){ updateOrder({ measures:{...active.measures,[key]:value} }); }
-  function fakeMeasure(key:MeasureKey){
-    const values:Record<MeasureKey,number> = { breite:900+Math.round(Math.random()*900), hoehe:900+Math.round(Math.random()*900), tiefe:60+Math.round(Math.random()*50), rahmenLinks:55+Math.round(Math.random()*30), rahmenRechts:55+Math.round(Math.random()*30), rahmenOben:55+Math.round(Math.random()*30), rahmenUnten:70+Math.round(Math.random()*40), fensterbankTiefe:180+Math.round(Math.random()*180) };
-    updateMeasure(key, values[key]);
+function readArray<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
   }
-  function addOrder(){ const o=emptyOrder(lang); setOrders(prev=>[o,...prev]); setActiveId(o.id); }
-  function deleteOrder(){ if(!confirm(lang==='de'?'Auftrag wirklich löschen?':'Order echt verwijderen?')) return; const next=orders.filter(o=>o.id!==active.id); if(!next.length){ const o=emptyOrder(lang); setOrders([o]); setActiveId(o.id); } else { setOrders(next); setActiveId(next[0].id); } }
-  function duplicateOrder(){ const copy={...active,id:makeId(),nummer:orderNo(),kunde:active.kunde+' Kopie'}; setOrders(prev=>[copy,...prev]); setActiveId(copy.id); }
-  function addElement(){ updateOrder({ elements:[...active.elements, emptyElement(active.elements.length+1)] }); }
-  function updateElement(id:string, patch:Partial<ElementItem>){ updateOrder({ elements:active.elements.map(e=>e.id===id?{...e,...patch}:e) }); }
-  function deleteElement(id:string){ updateOrder({ elements:active.elements.filter(e=>e.id!==id) }); }
-  async function handlePhotos(e:React.ChangeEvent<HTMLInputElement>){ const urls=await filesToBase64(Array.from(e.target.files||[])); updateOrder({ fotos:[...active.fotos,...urls], foto:active.foto || urls[0] || '' }); }
-  async function handleDocs(e:React.ChangeEvent<HTMLInputElement>){ const urls=await filesToBase64(Array.from(e.target.files||[])); updateOrder({ dokumente:[...active.dokumente,...urls] }); }
+}
 
-  function exportJson(){ const blob=new Blob([JSON.stringify(active,null,2)],{type:'application/json'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=`${active.nummer}-auftrag.json`; a.click(); URL.revokeObjectURL(url); }
+function writeArray<T>(key: string, value: T[]) {
+  localStorage.setItem(key, JSON.stringify(value));
+}
 
-  if(!active) return null;
-  const half=Math.round(active.measures.breite/2);
+export default function KundenModule({ lang = 'de' }: { lang?: Lang }) {
+  const first = useMemo(() => emptyCustomer(lang), [lang]);
+
+  const [customers, setCustomers] = useState<Customer[]>([first]);
+  const [activeId, setActiveId] = useState(first.id);
+  const [query, setQuery] = useState('');
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(CUSTOMER_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.length) {
+          setCustomers(parsed);
+          setActiveId(parsed[0].id);
+        }
+      }
+    } catch {}
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(CUSTOMER_KEY, JSON.stringify(customers));
+  }, [customers]);
+
+  const active = customers.find((c) => c.id === activeId) || customers[0];
+
+  const orders = readArray<OrderLite>(ORDER_KEY).filter(
+    (o) => o.kunde === active?.name || o.telefon === active?.telefon || o.referenz === active?.referenz
+  );
+
+  const montageLists = readArray<any>(MONTAGE_KEY).filter(
+    (m) => m.kunde === active?.name || m.telefon === active?.telefon || m.referenz === active?.referenz
+  );
+
+  const filtered = customers.filter((c) => {
+    const text = `${c.name} ${c.referenz} ${c.email} ${c.telefon} ${c.adresse} ${c.plz} ${c.plaats}`.toLowerCase();
+    return text.includes(query.toLowerCase());
+  });
+
+  function updateCustomer(key: keyof Customer, value: any) {
+    setCustomers((prev) => prev.map((c) => (c.id === active.id ? { ...c, [key]: value } : c)));
+  }
+
+  function addCustomer() {
+    const customer = emptyCustomer(lang);
+    setCustomers((prev) => [customer, ...prev]);
+    setActiveId(customer.id);
+  }
+
+  function deleteCustomer() {
+    if (!active) return;
+    const ok = confirm(lang === 'de' ? 'Kunde wirklich löschen?' : 'Klant echt verwijderen?');
+    if (!ok) return;
+
+    const next = customers.filter((c) => c.id !== active.id);
+    if (!next.length) {
+      const customer = emptyCustomer(lang);
+      setCustomers([customer]);
+      setActiveId(customer.id);
+      return;
+    }
+
+    setCustomers(next);
+    setActiveId(next[0].id);
+  }
+
+  async function filesToBase64(files: File[]) {
+    return Promise.all(
+      files.map(
+        (file) =>
+          new Promise<string>((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(String(reader.result));
+            reader.readAsDataURL(file);
+          })
+      )
+    );
+  }
+
+  async function addPhotos(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    const urls = await filesToBase64(files);
+    updateCustomer('fotos', [...active.fotos, ...urls]);
+  }
+
+  async function addDocuments(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files || []);
+    const urls = await filesToBase64(files);
+    updateCustomer('dokumente', [...active.dokumente, ...urls]);
+  }
+
+  function createOrder() {
+    const order: OrderLite = {
+      id: 'ord_' + Date.now(),
+      nummer: makeOrderNumber(),
+      kunde: active.name,
+      referenz: active.referenz,
+      adresse: active.adresse,
+      ort: `${active.plz} ${active.plaats}`.trim(),
+      telefon: active.telefon,
+      email: active.email,
+      status: 'open',
+      bestelldatum: today(),
+      lieferdatum: '',
+      montageDatum: '',
+    };
+
+    const old = readArray<OrderLite>(ORDER_KEY);
+    writeArray(ORDER_KEY, [order, ...old]);
+
+    alert(lang === 'de' ? 'Auftrag wurde erstellt.' : 'Order is aangemaakt.');
+  }
+
+  function createMontage() {
+    const montage = {
+      id: 'mon_' + Date.now(),
+      kunde: active.name,
+      referenz: active.referenz,
+      adresse: active.adresse,
+      ort: `${active.plz} ${active.plaats}`.trim(),
+      telefon: active.telefon,
+      createdAt: new Date().toISOString(),
+    };
+
+    const old = readArray<any>(MONTAGE_KEY);
+    writeArray(MONTAGE_KEY, [montage, ...old]);
+
+    alert(lang === 'de' ? 'Montageliste wurde erstellt.' : 'Montagelijst is aangemaakt.');
+  }
+
+  if (!active) return null;
 
   return (
     <section>
-      <div className="no-print" style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
-        <button style={blueBtn} onClick={addOrder}>+ {t.newOrder}</button>
-        <button style={btn} onClick={duplicateOrder}>{t.duplicate}</button>
-        <button style={btn} onClick={()=>window.print()}>🖨️ {t.print}</button>
-        <button style={btn} onClick={exportJson}>⬇️ {t.export}</button>
-        <button style={redBtn} onClick={deleteOrder}>🗑️ {t.delete}</button>
-        <input style={{...input,maxWidth:280}} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search}/>
+      <div className="no-print" style={{ display: 'flex', gap: 10, marginBottom: 16, flexWrap: 'wrap' }}>
+        <button style={primary} onClick={addCustomer}>
+          + {lang === 'de' ? 'Neuer Kunde' : 'Nieuwe klant'}
+        </button>
+
+        <button style={ghost} onClick={createOrder}>
+          📋 {lang === 'de' ? 'Auftrag erstellen' : 'Order maken'}
+        </button>
+
+        <button style={ghost} onClick={createMontage}>
+          🔧 {lang === 'de' ? 'Montageliste erstellen' : 'Montagelijst maken'}
+        </button>
+
+        <button style={danger} onClick={deleteCustomer}>
+          {lang === 'de' ? 'Löschen' : 'Verwijderen'}
+        </button>
+
+        <input
+          style={{ ...input, maxWidth: 280 }}
+          placeholder={lang === 'de' ? 'Kunde suchen...' : 'Klant zoeken...'}
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+        />
       </div>
 
-      <div style={{display:'grid',gridTemplateColumns:'320px 1fr',gap:18}}>
-        <aside className="no-print" style={{display:'grid',gap:14}}>
-          <div style={{...card,padding:18}}>
-            <h2 style={{marginTop:0}}>{t.title}</h2>
-            <div style={{display:'grid',gap:8}}>
-              {filtered.map(o=>(
-                <button key={o.id} onClick={()=>setActiveId(o.id)} style={{...btn,textAlign:'left',background:o.id===active.id?'#eff6ff':'#fff',borderColor:o.id===active.id?'#0b73ff':'#cbd7e8'}}>
-                  <b>{o.nummer}</b><div>{o.kunde}</div><small style={{color:'#64748b'}}>{statusLabel(o.status,lang)}</small>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div style={{...card,padding:18}}>
-            <h3 style={{marginTop:0}}>{t.order}</h3>
-            <div style={{display:'grid',gap:12}}>
-              <div><small>{lang==='de'?'Auftragsnummer':'Ordernummer'}</small><br/><b style={{color:'#0b73ff'}}>{active.nummer}</b></div>
-              <div><small>{t.customer}</small><br/><b>{active.kunde}</b></div>
-              <div><small>{t.address}</small><br/><b>{active.adresse}<br/>{active.plz} {active.ort}</b></div>
-              <div><small>{t.status}</small><br/><b style={{background:'#fde68a',borderRadius:999,padding:'5px 9px',display:'inline-block'}}>{statusLabel(active.status,lang)}</b></div>
-              <div><small>{t.fitter}</small><br/><b>{active.monteur}</b></div>
-            </div>
-          </div>
-          <div style={{...card,padding:18}}>
-            <h3 style={{marginTop:0}}>{lang==='de'?'Bereiche im Auftrag':'Onderdelen in order'}</h3>
-            {[
-              ['overview','❖',t.overview], ['aufmass','📐',t.measurement], ['photos','📷',t.photos], ['documents','📎',t.documents], ['notes','📝',t.notes],
-            ].map(([id,icon,label])=>(
-              <button key={id} onClick={()=>setTab(id as Tab)} style={{...btn,width:'100%',textAlign:'left',marginBottom:8,background:tab===id?'#e8f2ff':'#fff',borderColor:tab===id?'#0b73ff':'#cbd7e8'}}>{icon} {label}</button>
+      <div style={{ display: 'grid', gridTemplateColumns: '310px 1fr', gap: 18 }}>
+        <aside className="no-print" style={card}>
+          <h2 style={{ marginTop: 0 }}>{lang === 'de' ? 'Kunden' : 'Klanten'}</h2>
+
+          <div style={{ display: 'grid', gap: 8 }}>
+            {filtered.map((c) => (
+              <button
+                key={c.id}
+                onClick={() => setActiveId(c.id)}
+                style={{
+                  textAlign: 'left',
+                  border: c.id === activeId ? '2px solid #2563eb' : '1px solid #d7dde8',
+                  borderRadius: 12,
+                  padding: 12,
+                  background: c.id === activeId ? '#eff6ff' : '#fff',
+                  cursor: 'pointer',
+                }}
+              >
+                <b>{c.name}</b>
+                <div style={{ color: '#64748b' }}>{c.plz} {c.plaats}</div>
+                <small>{c.telefon}</small>
+              </button>
             ))}
           </div>
         </aside>
 
-        <main style={{...card,padding:0,overflow:'hidden'}}>
-          <div style={{padding:22,borderBottom:'1px solid #e5eaf2',display:'flex',justifyContent:'space-between',gap:18}}>
-            <div><h2 style={{margin:0}}>{t.order} {active.nummer}</h2><p style={{color:'#64748b',marginBottom:0}}>{t.allInOrder}</p></div>
-            <select style={{...input,maxWidth:220}} value={active.status} onChange={e=>updateOrder({status:e.target.value as OrderStatus})}>
-              <option value="draft">{lang==='de'?'Entwurf':'Concept'}</option><option value="measurement">{lang==='de'?'Aufmaß läuft':'Inmeting loopt'}</option><option value="offer">{lang==='de'?'Angebot':'Offerte'}</option><option value="production">{lang==='de'?'Produktion':'Productie'}</option><option value="montage">Montage</option><option value="done">{lang==='de'?'Fertig':'Klaar'}</option>
-            </select>
+        <main style={card}>
+          <h2 style={{ marginTop: 0 }}>{lang === 'de' ? 'Kundendaten' : 'Klantgegevens'}</h2>
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <label>
+              <b>{lang === 'de' ? 'Name' : 'Naam'}</b>
+              <input style={input} value={active.name} onChange={(e) => updateCustomer('name', e.target.value)} />
+            </label>
+
+            <label>
+              <b>{lang === 'de' ? 'Referenz' : 'Referentie'}</b>
+              <input style={input} value={active.referenz} onChange={(e) => updateCustomer('referenz', e.target.value)} />
+            </label>
+
+            <label>
+              <b>E-Mail</b>
+              <input style={input} value={active.email} onChange={(e) => updateCustomer('email', e.target.value)} />
+            </label>
+
+            <label>
+              <b>{lang === 'de' ? 'Telefon' : 'Telefoon'}</b>
+              <input style={input} value={active.telefon} onChange={(e) => updateCustomer('telefon', e.target.value)} />
+            </label>
+
+            <label style={{ gridColumn: '1 / 3' }}>
+              <b>{lang === 'de' ? 'Adresse' : 'Adres'}</b>
+              <input style={input} value={active.adresse} onChange={(e) => updateCustomer('adresse', e.target.value)} />
+            </label>
+
+            <label>
+              <b>PLZ</b>
+              <input style={input} value={active.plz} onChange={(e) => updateCustomer('plz', e.target.value)} />
+            </label>
+
+            <label>
+              <b>{lang === 'de' ? 'Ort' : 'Plaats'}</b>
+              <input style={input} value={active.plaats} onChange={(e) => updateCustomer('plaats', e.target.value)} />
+            </label>
+
+            <label style={{ gridColumn: '1 / 3' }}>
+              <b>{lang === 'de' ? 'Notizen' : 'Notities'}</b>
+              <textarea style={textarea} value={active.notizen} onChange={(e) => updateCustomer('notizen', e.target.value)} />
+            </label>
+
+            <label>
+              <b>📷 {lang === 'de' ? 'Fotos' : 'Foto’s'}</b>
+              <input type="file" multiple accept="image/*" style={input} onChange={addPhotos} />
+            </label>
+
+            <label>
+              <b>📎 {lang === 'de' ? 'Dokumente / Zeichnungen' : 'Documenten / Tekeningen'}</b>
+              <input type="file" multiple accept="image/*,.pdf,.xlsx,.xls" style={input} onChange={addDocuments} />
+            </label>
           </div>
 
-          {tab==='overview' && <div style={{padding:22}}>
-            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:14}}>
-              <label><b>{t.customer}</b><input style={input} value={active.kunde} onChange={e=>updateOrder({kunde:e.target.value})}/></label>
-              <label><b>{t.reference}</b><input style={input} value={active.referenz} onChange={e=>updateOrder({referenz:e.target.value})}/></label>
-              <label><b>{t.address}</b><input style={input} value={active.adresse} onChange={e=>updateOrder({adresse:e.target.value})}/></label>
-              <label><b>{t.zip}</b><input style={input} value={active.plz} onChange={e=>updateOrder({plz:e.target.value})}/></label>
-              <label><b>{t.city}</b><input style={input} value={active.ort} onChange={e=>updateOrder({ort:e.target.value})}/></label>
-              <label><b>{t.phone}</b><input style={input} value={active.telefon} onChange={e=>updateOrder({telefon:e.target.value})}/></label>
-              <label><b>{t.email}</b><input style={input} value={active.email} onChange={e=>updateOrder({email:e.target.value})}/></label>
-              <label><b>{t.fitter}</b><input style={input} value={active.monteur} onChange={e=>updateOrder({monteur:e.target.value})}/></label>
-              <label><b>{t.created}</b><input type="date" style={input} value={active.erstelltAm} onChange={e=>updateOrder({erstelltAm:e.target.value})}/></label>
-              <label><b>{t.deliveryDate}</b><input type="date" style={input} value={active.lieferdatum} onChange={e=>updateOrder({lieferdatum:e.target.value})}/></label>
-              <label><b>{t.montageDate}</b><input type="date" style={input} value={active.montageDatum} onChange={e=>updateOrder({montageDatum:e.target.value})}/></label>
-              <label><b>{t.product}</b><input style={input} value={active.produkt} onChange={e=>updateOrder({produkt:e.target.value})}/></label>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 14, marginTop: 22 }}>
+            <div style={card}>
+              <h3>📋 {lang === 'de' ? 'Auftrag' : 'Order'}</h3>
+              <p style={{ color: '#64748b' }}>
+                {orders.length
+                  ? `${orders.length} ${lang === 'de' ? 'verknüpft' : 'gekoppeld'}`
+                  : lang === 'de'
+                  ? 'Noch nicht verknüpft'
+                  : 'Nog niet gekoppeld'}
+              </p>
+              <button style={ghost} onClick={createOrder}>
+                {lang === 'de' ? 'Erstellen' : 'Maken'}
+              </button>
             </div>
-          </div>}
 
-          {tab==='aufmass' && <div>
-            <div style={{padding:22}}>
-              <div style={{border:'1px solid #dfe6f0',borderRadius:12,padding:18,display:'flex',justifyContent:'space-between',gap:18}}>
-                <div style={{display:'flex',gap:18,alignItems:'center'}}>
-                  <div style={{width:72,height:110,borderRadius:10,background:'#111827',color:'#fff',display:'grid',placeItems:'center',fontSize:30}}>📏</div>
-                  <div><h2 style={{margin:0}}>{t.device}</h2><p><b>Status:</b> <span style={{color:active.deviceConnected?'#16a34a':'#ef4444',fontWeight:900}}>● {active.deviceConnected?t.connected:t.disconnected}</span></p><p><b>{t.battery}:</b> <span style={{color:'#16a34a',fontWeight:900}}>● 80% 🔋</span></p><p><b>{t.serial}:</b> 123456789</p></div>
-                </div>
-                <div style={{display:'grid',gap:10,minWidth:230}}>
-                  <button style={{...btn,color:'#16a34a'}} onClick={()=>updateOrder({deviceConnected:true})}>✓ {t.connect}</button><button style={btn}>⇄ {t.changeDevice}</button><button style={redBtn} onClick={()=>updateOrder({deviceConnected:false})}>⏻ {t.disconnect}</button>
-                </div>
+            <div style={card}>
+              <h3>🏭 {lang === 'de' ? 'Produktion' : 'Productie'}</h3>
+              <p style={{ color: '#64748b' }}>
+                {orders.some((o) => o.status === 'production')
+                  ? lang === 'de'
+                    ? 'In Produktion'
+                    : 'In productie'
+                  : lang === 'de'
+                  ? 'Noch nicht gestartet'
+                  : 'Nog niet gestart'}
+              </p>
+            </div>
+
+            <div style={card}>
+              <h3>🔧 Montage</h3>
+              <p style={{ color: '#64748b' }}>
+                {montageLists.length
+                  ? `${montageLists.length} ${lang === 'de' ? 'Liste(n)' : 'lijst(en)'}`
+                  : lang === 'de'
+                  ? 'Noch nicht verknüpft'
+                  : 'Nog niet gekoppeld'}
+              </p>
+              <button style={ghost} onClick={createMontage}>
+                {lang === 'de' ? 'Erstellen' : 'Maken'}
+              </button>
+            </div>
+
+            <div style={card}>
+              <h3>🧾 {lang === 'de' ? 'Rechnung' : 'Factuur'}</h3>
+              <p style={{ color: '#64748b' }}>
+                {lang === 'de' ? 'Später' : 'Later'}
+              </p>
+            </div>
+          </div>
+
+          {active.fotos.length > 0 && (
+            <div style={{ marginTop: 20 }}>
+              <h3>📷 {lang === 'de' ? 'Fotos' : 'Foto’s'}</h3>
+              <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                {active.fotos.map((src, i) => (
+                  <img
+                    key={i}
+                    src={src}
+                    alt={`Foto ${i + 1}`}
+                    style={{ width: 120, height: 90, objectFit: 'cover', borderRadius: 10, border: '1px solid #d7dde8' }}
+                  />
+                ))}
               </div>
             </div>
-            <div style={{display:'grid',gridTemplateColumns:'420px 1fr 420px',borderTop:'1px solid #e5eaf2',borderBottom:'1px solid #e5eaf2'}}>
-              <div style={{padding:20,borderRight:'1px solid #e5eaf2'}}>
-                <h3>{t.measures} ⓘ</h3>
-                <div style={{display:'grid',gap:8}}>
-                  {measureRows(t).map(([key,icon,label])=>(
-                    <div key={key} style={{display:'grid',gridTemplateColumns:'36px 1fr 95px 88px',gap:8,alignItems:'center',border:'1px solid #e5eaf2',borderRadius:9,padding:8}}>
-                      <span>{icon}</span><b>{label}</b><input style={{...input,textAlign:'right',fontWeight:900}} value={active.measures[key]} onChange={e=>updateMeasure(key,Number(e.target.value)||0)}/><button style={{...btn,color:'#0b73ff',padding:'8px 10px'}} onClick={()=>fakeMeasure(key)}>⌁ {t.measure}</button>
-                    </div>
-                  ))}
-                </div>
-                <div style={{marginTop:12,padding:12,borderRadius:9,background:'#eaf4ff',border:'1px solid #9cc9ff',color:'#0f4c81',fontSize:14}}>ℹ️ {t.measureInfo}</div>
-                <div style={{marginTop:12,display:'flex',gap:8}}><select style={input} value={measureTarget} onChange={e=>setMeasureTarget(e.target.value as MeasureKey)}>{measureRows(t).map(([key,,label])=><option key={key} value={key}>{label}</option>)}</select><button style={blueBtn} onClick={()=>fakeMeasure(measureTarget)}>{t.measure}</button></div>
-              </div>
-              <div style={{padding:20,borderRight:'1px solid #e5eaf2'}}>
-                <h3>{t.photo}</h3><div style={{height:330,background:'#f8fafc',border:'1px solid #dfe6f0',borderRadius:10,display:'grid',placeItems:'center',overflow:'hidden'}}>{active.foto?<img src={active.foto} alt="Aufmaß Foto" style={{width:'100%',height:'100%',objectFit:'cover'}}/>:<div style={{color:'#64748b',textAlign:'center'}}>📷<br/>{t.noPhotos}</div>}</div>
-                <input ref={photoRef} type="file" accept="image/*" capture="environment" multiple style={{display:'none'}} onChange={handlePhotos}/><div style={{display:'flex',gap:10,marginTop:14}}><button style={btn} onClick={()=>photoRef.current?.click()}>📷 {t.takePhoto}</button><button style={btn} onClick={()=>photoRef.current?.click()}>🖼️ {t.gallery}</button></div>
-              </div>
-              <div style={{padding:20}}>
-                <h3>{t.sketch}</h3><div style={{height:390,display:'grid',placeItems:'center',background:'#fff',border:'1px solid #e5eaf2',borderRadius:10}}>
-                  <svg width="340" height="310" viewBox="0 0 340 310"><defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#2f7df6"/></marker></defs><line x1="55" y1="30" x2="285" y2="30" stroke="#2f7df6" strokeWidth="2" markerStart="url(#arrow)" markerEnd="url(#arrow)"/><text x="170" y="24" textAnchor="middle" fontWeight="700">{active.measures.breite}</text><line x1="35" y1="60" x2="35" y2="245" stroke="#2f7df6" strokeWidth="2" markerStart="url(#arrow)" markerEnd="url(#arrow)"/><text x="25" y="155" textAnchor="middle" fontWeight="700" transform="rotate(-90 25 155)">{active.measures.hoehe}</text><rect x="60" y="58" width="220" height="190" fill="#fff" stroke="#333" strokeWidth="3"/><rect x="75" y="75" width="88" height="155" fill="#fff" stroke="#777" strokeWidth="2"/><rect x="177" y="75" width="88" height="155" fill="#fff" stroke="#777" strokeWidth="2"/><line x1="170" y1="58" x2="170" y2="248" stroke="#333" strokeWidth="2"/><circle cx="164" cy="155" r="3" fill="#333"/><circle cx="176" cy="155" r="3" fill="#333"/><line x1="75" y1="270" x2="163" y2="270" stroke="#2f7df6" strokeWidth="2" markerStart="url(#arrow)" markerEnd="url(#arrow)"/><text x="119" y="292" textAnchor="middle" fontWeight="700">{half}</text><line x1="177" y1="270" x2="265" y2="270" stroke="#2f7df6" strokeWidth="2" markerStart="url(#arrow)" markerEnd="url(#arrow)"/><text x="221" y="292" textAnchor="middle" fontWeight="700">{half}</text></svg>
-                </div>
-              </div>
-            </div>
-            <div style={{padding:20}}>
-              <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}><h3 style={{margin:0}}>{t.elements}</h3><button style={blueBtn} onClick={addElement}>+ {t.addElement}</button></div>
-              <table style={{width:'100%',borderCollapse:'collapse',fontSize:14}}><thead><tr style={{textAlign:'left',color:'#475569'}}><th style={{padding:10}}>{t.nr}</th><th>{t.element}</th><th>{t.type}</th><th>{t.widthMm}</th><th>{t.heightMm}</th><th>{t.depthMm}</th><th>{t.actions}</th></tr></thead><tbody>{active.elements.map((el,i)=><tr key={el.id} style={{borderTop:'1px solid #e5eaf2'}}><td style={{padding:10}}>{i+1}</td><td><input style={{...input,height:32}} value={el.name} onChange={e=>updateElement(el.id,{name:e.target.value})}/></td><td><input style={{...input,height:32}} value={el.typ} onChange={e=>updateElement(el.id,{typ:e.target.value})}/></td><td><input style={{...input,height:32,width:90}} value={el.breite} onChange={e=>updateElement(el.id,{breite:Number(e.target.value)||0})}/></td><td><input style={{...input,height:32,width:90}} value={el.hoehe} onChange={e=>updateElement(el.id,{hoehe:Number(e.target.value)||0})}/></td><td><input style={{...input,height:32,width:90}} value={el.tiefe} onChange={e=>updateElement(el.id,{tiefe:Number(e.target.value)||0})}/></td><td><button style={redBtn} onClick={()=>deleteElement(el.id)}>🗑</button></td></tr>)}</tbody></table>
-              <div style={{display:'flex',justifyContent:'flex-end',marginTop:18}}><button style={greenBtn} onClick={()=>alert(lang==='de'?'Auftrag gespeichert.':'Order opgeslagen.')}>✓ {t.save}</button></div>
-            </div>
-          </div>}
-
-          {tab==='photos' && <div style={{padding:22}}><h2>{t.photos}</h2><button style={blueBtn} onClick={()=>photoRef.current?.click()}>+ {t.uploadPhotos}</button><input ref={photoRef} type="file" accept="image/*" capture="environment" multiple style={{display:'none'}} onChange={handlePhotos}/>{active.fotos.length===0?<p style={{color:'#64748b'}}>{t.noPhotos}</p>:null}<div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(180px, 1fr))',gap:12,marginTop:18}}>{active.fotos.map((src,i)=><img key={i} src={src} alt={`Foto ${i+1}`} style={{width:'100%',height:140,objectFit:'cover',borderRadius:12,border:'1px solid #dfe6f0'}}/>)}</div></div>}
-
-          {tab==='documents' && <div style={{padding:22}}><h2>{t.documents}</h2><button style={blueBtn} onClick={()=>docsRef.current?.click()}>+ {t.uploadDocs}</button><input ref={docsRef} type="file" accept="image/*,.pdf,.xlsx,.xls,.doc,.docx" multiple style={{display:'none'}} onChange={handleDocs}/>{active.dokumente.length===0?<p style={{color:'#64748b'}}>{t.noDocs}</p>:null}<div style={{display:'grid',gap:10,marginTop:18}}>{active.dokumente.map((doc,i)=><a key={i} href={doc} target="_blank" style={{...btn,textDecoration:'none',color:'#0f172a'}}>📎 Dokument {i+1}</a>)}</div></div>}
-
-          {tab==='notes' && <div style={{padding:22}}><h2>{t.notes}</h2><textarea style={textarea} value={active.notizen} onChange={e=>updateOrder({notizen:e.target.value})}/></div>}
+          )}
         </main>
       </div>
-
-      <style jsx global>{`@media print{.no-print{display:none!important;}}`}</style>
     </section>
   );
 }
