@@ -436,7 +436,7 @@ export default function AuftraegeModule({ lang='de' }: { lang?: Lang }) {
   const half=Math.round(active.measures.breite/2);
 
   return (
-    <section>
+    <section className="orders-root">
       <div className="no-print" style={{display:'flex',gap:10,marginBottom:16,flexWrap:'wrap'}}>
         <button style={blueBtn} onClick={addOrder}>+ {t.newOrder}</button>
         <button style={btn} onClick={duplicateOrder}>{t.duplicate}</button>
@@ -444,6 +444,79 @@ export default function AuftraegeModule({ lang='de' }: { lang?: Lang }) {
         <button style={btn} onClick={exportJson}>⬇️ {t.export}</button>
         <button style={redBtn} onClick={deleteOrder}>🗑️ {t.delete}</button>
         <input style={{...input,maxWidth:280}} value={query} onChange={e=>setQuery(e.target.value)} placeholder={t.search}/>
+      </div>
+
+      <div className="pdf-only">
+        <div className="pdf-head">
+          <div>
+            <div className="pdf-logo">D&I</div>
+            <h1>D&I Kunststoff Kozijnen B.V.</h1>
+            <p>Kunststoff Kozijnen und Rollläden</p>
+          </div>
+          <div className="pdf-meta">
+            <b>{lang==='de'?'Aufmaß / Auftrag':'Inmeting / Order'}</b>
+            <span>{active.nummer}</span>
+            <span>{lang==='de'?'Datum':'Datum'}: {active.erstelltAm}</span>
+            <span>{lang==='de'?'Status':'Status'}: {statusLabel(active.status,lang)}</span>
+          </div>
+        </div>
+
+        <div className="pdf-grid pdf-customer">
+          <div>
+            <h2>{lang==='de'?'Kundendaten':'Klantgegevens'}</h2>
+            <p><b>{t.customer}:</b> {active.kunde}</p>
+            <p><b>{t.reference}:</b> {active.referenz || '-'}</p>
+            <p><b>{t.address}:</b> {active.adresse}</p>
+            <p><b>{t.zip} / {t.city}:</b> {active.plz} {active.ort}</p>
+            <p><b>{t.phone}:</b> {active.telefon}</p>
+            <p><b>{t.email}:</b> {active.email}</p>
+          </div>
+          <div>
+            <h2>{lang==='de'?'Auftragsdaten':'Ordergegevens'}</h2>
+            <p><b>{t.fitter}:</b> {active.monteur}</p>
+            <p><b>{t.deliveryDate}:</b> {active.lieferdatum || '-'}</p>
+            <p><b>{t.montageDate}:</b> {active.montageDatum || '-'}</p>
+            <p><b>{t.product}:</b> {active.produkt || '-'}</p>
+          </div>
+        </div>
+
+        <h2>{t.measures}</h2>
+        <table className="pdf-table">
+          <tbody>
+            {measureRows(t).map(([key,,label])=>(
+              <tr key={key}><td>{label}</td><td><b>{active.measures[key]} mm</b></td></tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className="pdf-grid pdf-media">
+          <div>
+            <h2>{t.photo}</h2>
+            <div className="pdf-photo">{active.foto ? <img src={active.foto} alt="Foto"/> : <span>{t.noPhotos}</span>}</div>
+          </div>
+          <div>
+            <h2>{t.sketch}</h2>
+            <div className="pdf-sketch">
+              <svg width="300" height="245" viewBox="0 0 340 310"><defs><marker id="pdfArrow" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#111827"/></marker></defs><line x1="55" y1="30" x2="285" y2="30" stroke="#111827" strokeWidth="2" markerStart="url(#pdfArrow)" markerEnd="url(#pdfArrow)"/><text x="170" y="24" textAnchor="middle" fontWeight="700">{active.measures.breite}</text><line x1="35" y1="60" x2="35" y2="245" stroke="#111827" strokeWidth="2" markerStart="url(#pdfArrow)" markerEnd="url(#pdfArrow)"/><text x="25" y="155" textAnchor="middle" fontWeight="700" transform="rotate(-90 25 155)">{active.measures.hoehe}</text><rect x="60" y="58" width="220" height="190" fill="#fff" stroke="#333" strokeWidth="3"/><rect x="75" y="75" width="88" height="155" fill="#fff" stroke="#777" strokeWidth="2"/><rect x="177" y="75" width="88" height="155" fill="#fff" stroke="#777" strokeWidth="2"/><line x1="170" y1="58" x2="170" y2="248" stroke="#333" strokeWidth="2"/><circle cx="164" cy="155" r="3" fill="#333"/><circle cx="176" cy="155" r="3" fill="#333"/></svg>
+            </div>
+          </div>
+        </div>
+
+        <h2>{t.elements}</h2>
+        <table className="pdf-table">
+          <thead><tr><th>{t.nr}</th><th>{t.element}</th><th>{t.type}</th><th>{t.widthMm}</th><th>{t.heightMm}</th><th>{t.depthMm}</th></tr></thead>
+          <tbody>{active.elements.map((el,i)=><tr key={el.id}><td>{i+1}</td><td>{el.name}</td><td>{el.typ}</td><td>{el.breite}</td><td>{el.hoehe}</td><td>{el.tiefe}</td></tr>)}</tbody>
+        </table>
+
+        <div className="pdf-notes">
+          <h2>{t.notes}</h2>
+          <p>{active.notizen || '-'}</p>
+        </div>
+
+        <div className="pdf-sign">
+          <div>{lang==='de'?'Unterschrift Kunde':'Handtekening klant'}</div>
+          <div>{lang==='de'?'Unterschrift Monteur':'Handtekening monteur'}</div>
+        </div>
       </div>
 
       <div style={{display:'grid',gridTemplateColumns:'320px 1fr',gap:18}}>
@@ -549,7 +622,35 @@ export default function AuftraegeModule({ lang='de' }: { lang?: Lang }) {
         </main>
       </div>
 
-      <style jsx global>{`@media print{.no-print{display:none!important;}}`}</style>
+      <style jsx global>{`
+        .pdf-only{display:none;}
+        @media print{
+          @page{size:A4 portrait;margin:10mm;}
+          html,body{background:#fff!important;margin:0!important;padding:0!important;overflow:visible!important;}
+          body *{visibility:hidden!important;}
+          .pdf-only,.pdf-only *{visibility:visible!important;}
+          .pdf-only{display:block!important;position:absolute!important;left:0!important;top:0!important;width:190mm!important;background:#fff!important;color:#111827!important;font-family:Arial,sans-serif!important;font-size:11px!important;line-height:1.25!important;}
+          .no-print{display:none!important;}
+          .pdf-head{display:flex!important;justify-content:space-between!important;align-items:flex-start!important;border-bottom:2px solid #111827!important;padding-bottom:8px!important;margin-bottom:10px!important;}
+          .pdf-logo{font-size:24px!important;font-weight:900!important;letter-spacing:-1px!important;}
+          .pdf-head h1{font-size:18px!important;margin:2px 0!important;}
+          .pdf-head p{margin:0!important;color:#374151!important;}
+          .pdf-meta{display:grid!important;gap:3px!important;text-align:right!important;}
+          .pdf-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:12px!important;margin:8px 0!important;}
+          .pdf-customer{border:1px solid #d1d5db!important;border-radius:8px!important;padding:8px!important;}
+          .pdf-only h2{font-size:14px!important;margin:9px 0 5px!important;}
+          .pdf-only p{margin:3px 0!important;}
+          .pdf-table{width:100%!important;border-collapse:collapse!important;margin:6px 0 10px!important;page-break-inside:auto!important;}
+          .pdf-table th,.pdf-table td{border:1px solid #d1d5db!important;padding:5px!important;text-align:left!important;}
+          .pdf-table th{background:#f3f4f6!important;font-weight:800!important;}
+          .pdf-media{page-break-inside:avoid!important;}
+          .pdf-photo,.pdf-sketch{border:1px solid #d1d5db!important;border-radius:8px!important;height:175px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;background:#fff!important;}
+          .pdf-photo img{width:100%!important;height:100%!important;object-fit:cover!important;}
+          .pdf-notes{border:1px solid #d1d5db!important;border-radius:8px!important;padding:8px!important;min-height:45px!important;page-break-inside:avoid!important;}
+          .pdf-sign{display:grid!important;grid-template-columns:1fr 1fr!important;gap:30px!important;margin-top:22px!important;page-break-inside:avoid!important;}
+          .pdf-sign div{border-top:1px solid #111827!important;padding-top:6px!important;text-align:center!important;}
+        }
+      `}</style>
     </section>
   );
 }
