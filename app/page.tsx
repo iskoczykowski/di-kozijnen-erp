@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 
-import DashboardModule from './DashboardModule';
+import DashboardModule, { Lang, Module } from './DashboardModule';
 import KundenModule from './KundenModule';
 import AuftraegeModule from './AuftraegeModule';
 import MontageModule from './MontageModule';
@@ -12,20 +12,6 @@ import LieferungModule from './LieferungModule';
 import KalenderModule from './KalenderModule';
 import MitarbeiterModule from './MitarbeiterModule';
 import NachrichtenModule from './NachrichtenModule';
-
-type Lang = 'de' | 'nl';
-
-type Module =
-  | 'dashboard'
-  | 'customers'
-  | 'orders'
-  | 'montage'
-  | 'production'
-  | 'stock'
-  | 'delivery'
-  | 'calendar'
-  | 'employees'
-  | 'messages';
 
 const page: React.CSSProperties = {
   minHeight: '100vh',
