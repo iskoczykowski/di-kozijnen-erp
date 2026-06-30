@@ -4,17 +4,16 @@ import React, { useEffect, useMemo, useState } from 'react';
 
 type Lang = 'de' | 'nl';
 type Module =
-  | 'dashboard'
-  | 'customers'
-  | 'orders'
-  | 'montage'
-  | 'production'
-  | 'stock'
-  | 'calendar'
-  | 'employees'
-  | 'messages'
-  | 'reports'
-  | 'settings';
+  | "dashboard"
+  | "customers"
+  | "orders"
+  | "montage"
+  | "production"
+  | "stock"
+  | "delivery"
+  | "calendar"
+  | "employees"
+  | "messages";
 
 type TaskStatus = 'open' | 'progress' | 'done';
 type TaskPriority = 'normal' | 'important';
