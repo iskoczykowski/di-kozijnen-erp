@@ -1,25 +1,26 @@
 {
-  "name": "di-kozijnen-erp",
-  "version": "1.0.1",
+  "name": "di-kozijnen-mobile",
+  "version": "1.0.0",
   "private": true,
+  "main": "expo/AppEntry",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "next lint"
+    "start": "expo start",
+    "android": "expo run:android",
+    "build:android": "eas build -p android"
   },
   "dependencies": {
-  "@supabase/supabase-js": "^2.45.4",
-  "lucide-react": "^0.468.0",
-  "next": "14.2.18",
-  "react": "18.3.1",
-  "react-dom": "18.3.1",
-  "xlsx": "^0.18.5"
-},
+    "expo": "^52.0.0",
+    "expo-status-bar": "~2.0.0",
+    "expo-device": "~7.0.0",
+    "expo-location": "~18.0.0",
+    "expo-camera": "~16.0.0",
+    "react": "18.3.1",
+    "react-native": "0.76.0",
+    "react-native-ble-plx": "^3.3.0",
+    "@supabase/supabase-js": "^2.45.4"
+  },
   "devDependencies": {
-    "@types/node": "^20.17.6",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
+    "@types/react": "~18.3.12",
     "typescript": "^5.6.3"
   }
 }
