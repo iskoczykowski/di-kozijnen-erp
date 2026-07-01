@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import BoschLaserModule from './BoschLaserModule';
 
 type Lang = 'de' | 'nl';
 
@@ -72,9 +73,6 @@ const TXT = {
     sketch: 'Skizze erzeugen',
     save: 'Speichern',
     windows: 'Fenster / Elemente',
-    active: 'Aktives Messfeld',
-    test: 'Testwert übernehmen',
-    last: 'Letzte Messung',
     name: 'Name',
     room: 'Raum',
     type: 'Fensterart',
@@ -102,8 +100,6 @@ const TXT = {
     schiebe: 'Schiebetür',
     tuer: 'Haustür',
     balkon: 'Balkontür',
-    bosch: 'Bosch Web-Modus',
-    boschText: 'Live-Bluetooth kommt in der Android-App. In der Web-Version kannst du Testwert oder manuelle Eingabe nutzen.',
     aiHint: 'Noch keine KI-Analyse gestartet.',
     aiText: 'KI-Vorschlag: 2-flügeliges Fenster, links Dreh-Kipp, rechts fest, Fensterbank vorhanden.',
     storageWarn: 'Hinweis: Browser-Speicher war voll. Foto wurde angezeigt, aber eventuell nicht dauerhaft gespeichert.',
@@ -120,9 +116,6 @@ const TXT = {
     sketch: 'Schets maken',
     save: 'Opslaan',
     windows: 'Ramen / elementen',
-    active: 'Actief meetveld',
-    test: 'Testwaarde overnemen',
-    last: 'Laatste meting',
     name: 'Naam',
     room: 'Ruimte',
     type: 'Raamtype',
@@ -150,8 +143,6 @@ const TXT = {
     schiebe: 'Schuifpui',
     tuer: 'Voordeur',
     balkon: 'Balkondeur',
-    bosch: 'Bosch webmodus',
-    boschText: 'Live-Bluetooth komt in de Android-app. In de webversie kun je testwaarde of handmatige invoer gebruiken.',
     aiHint: 'Nog geen AI-analyse gestart.',
     aiText: 'AI-voorstel: 2-vleugelig raam, links draai-kiep, rechts vast, vensterbank aanwezig.',
     storageWarn: 'Opmerking: browseropslag was vol. Foto is getoond, maar mogelijk niet blijvend opgeslagen.',
@@ -382,7 +373,6 @@ function useScreen() {
   }, []);
 
   return {
-    width,
     isTablet: width <= 1250,
     isSmallTablet: width <= 1050,
     isMobile: width <= 760,
@@ -404,7 +394,6 @@ export default function AufmassProModule({
   const [elements, setElements] = useState<ElementItem[]>([emptyElement(lang, 1)]);
   const [activeId, setActiveId] = useState('');
   const [field, setField] = useState<MeasureKey>('breite');
-  const [last, setLast] = useState<number | null>(null);
   const [warn, setWarn] = useState('');
 
   useEffect(() => {
@@ -504,22 +493,6 @@ export default function AufmassProModule({
     });
   }
 
-  function testValue() {
-    const value =
-      field === 'breite'
-        ? 1234
-        : field === 'hoehe'
-          ? 1487
-          : field === 'tiefe'
-            ? 72
-            : field.includes('diagonal')
-              ? 1920
-              : 65;
-
-    setLast(value);
-    updateMeasure(field, value);
-  }
-
   function analyse() {
     if (!active) return;
 
@@ -548,13 +521,14 @@ export default function AufmassProModule({
 
   const mainPhoto = active.photos[0]?.src || '';
   const rows = measureRows(t);
+  const activeFieldLabel = rows.find(([key]) => key === field)?.[1] || field;
 
   const topGridColumns = isMobile
     ? '1fr'
     : isSmallTablet
-      ? '1fr 1fr'
+      ? '1fr'
       : isTablet
-        ? '1.1fr .9fr .9fr'
+        ? '1fr 1fr'
         : '1fr 1fr 1fr';
 
   return (
@@ -748,54 +722,11 @@ export default function AufmassProModule({
               </div>
             </section>
 
-            <section style={card}>
-              <h3 style={{ marginTop: 0 }}>📏 {t.bosch}</h3>
-
-              <p style={{ color: '#64748b', fontSize: 14 }}>{t.boschText}</p>
-
-              <label>
-                <b>{t.active}</b>
-
-                <select style={input} value={field} onChange={(e) => setField(e.target.value as MeasureKey)}>
-                  {rows.map(([key, label]) => (
-                    <option key={key} value={key}>
-                      {label}
-                    </option>
-                  ))}
-                </select>
-              </label>
-
-              <div style={{ marginTop: 12 }}>
-                <b>{t.last}:</b> {last !== null ? `${last} mm` : '-'}
-              </div>
-
-              <button style={{ ...blueBtn, marginTop: 14 }} onClick={testValue}>
-                ⌁ {t.test}
-              </button>
-
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-                  gap: 8,
-                  marginTop: 12,
-                }}
-              >
-                {rows.slice(0, 6).map(([key, label]) => (
-                  <label key={key}>
-                    <b>{label}</b>
-
-                    <input
-                      style={input}
-                      type="number"
-                      value={active.measures[key]}
-                      onFocus={() => setField(key)}
-                      onChange={(e) => updateMeasure(key, Number(e.target.value))}
-                    />
-                  </label>
-                ))}
-              </div>
-            </section>
+            <BoschLaserModule
+              lang={lang}
+              activeFieldLabel={activeFieldLabel}
+              onMeasure={(millimeters) => updateMeasure(field, millimeters)}
+            />
 
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>🤖 KI</h3>
