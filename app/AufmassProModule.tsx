@@ -65,6 +65,7 @@ const TXT = {
     sub: 'Foto machen, Fenster wählen, Maße übernehmen und Skizze erzeugen.',
     add: 'Fenster hinzufügen',
     photo: 'Foto aufnehmen',
+    photos: 'Fotos',
     upload: 'Foto hochladen',
     noPhoto: 'Noch kein Foto',
     analyse: 'KI-Fotoanalyse starten',
@@ -104,6 +105,7 @@ const TXT = {
     balkon: 'Balkontür',
     bosch: 'Bosch Web-Modus',
     boschText: 'Live-Bluetooth kommt in der Android-App. In der Web-Version kannst du Testwert oder manuelle Eingabe nutzen.',
+    aiHint: 'Noch keine KI-Analyse gestartet.',
     aiText: 'KI-Vorschlag: 2-flügeliges Fenster, links Dreh-Kipp, rechts fest, Fensterbank vorhanden.',
     storageWarn: 'Hinweis: Browser-Speicher war voll. Foto wurde angezeigt, aber eventuell nicht dauerhaft gespeichert.',
   },
@@ -112,6 +114,7 @@ const TXT = {
     sub: 'Foto maken, raam kiezen, maten overnemen en schets maken.',
     add: 'Raam toevoegen',
     photo: 'Foto maken',
+    photos: 'Foto’s',
     upload: 'Foto uploaden',
     noPhoto: 'Nog geen foto',
     analyse: 'AI-fotoanalyse starten',
@@ -151,6 +154,7 @@ const TXT = {
     balkon: 'Balkondeur',
     bosch: 'Bosch webmodus',
     boschText: 'Live-Bluetooth komt in de Android-app. In de webversie kun je testwaarde of handmatige invoer gebruiken.',
+    aiHint: 'Nog geen AI-analyse gestart.',
     aiText: 'AI-voorstel: 2-vleugelig raam, links draai-kiep, rechts vast, vensterbank aanwezig.',
     storageWarn: 'Opmerking: browseropslag was vol. Foto is getoond, maar mogelijk niet blijvend opgeslagen.',
   },
@@ -251,13 +255,14 @@ function emptyElement(lang: Lang, nr: number): ElementItem {
   };
 }
 
-function safeNumber(v: any) {
+function safeNumber(v: unknown) {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 }
 
 function normalize(raw: any, lang: Lang, index: number): ElementItem {
   const base = emptyElement(lang, index + 1);
+
   const photos: PhotoItem[] = Array.isArray(raw?.photos)
     ? raw.photos
         .map((p: any) => {
@@ -265,10 +270,11 @@ function normalize(raw: any, lang: Lang, index: number): ElementItem {
           if (p && typeof p.src === 'string') return { id: p.id || id('ph'), src: p.src };
           return null;
         })
-        .filter(Boolean)
+        .filter((p: PhotoItem | null): p is PhotoItem => Boolean(p))
     : [];
 
   const m = raw?.measures || {};
+
   return {
     ...base,
     id: raw?.id || base.id,
@@ -302,7 +308,7 @@ function normalize(raw: any, lang: Lang, index: number): ElementItem {
   };
 }
 
-function measureRows(t: any): [MeasureKey, string][] {
+function measureRows(t: typeof TXT.de): [MeasureKey, string][] {
   return [
     ['breite', t.width],
     ['hoehe', t.height],
@@ -316,7 +322,7 @@ function measureRows(t: any): [MeasureKey, string][] {
   ];
 }
 
-function typeText(type: WindowType, t: any) {
+function typeText(type: WindowType, t: typeof TXT.de) {
   if (type === 'dreh_kipp') return t.dreh;
   if (type === 'fest') return t.fest;
   if (type === 'schiebetuer') return t.schiebe;
@@ -328,23 +334,32 @@ function typeText(type: WindowType, t: any) {
 function compressImage(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
+
     reader.onerror = () => reject(new Error('reader'));
+
     reader.onload = () => {
       const img = new Image();
+
       img.onerror = () => reject(new Error('image'));
+
       img.onload = () => {
         const max = 900;
         const scale = Math.min(max / img.width, max / img.height, 1);
+
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(img.width * scale));
         canvas.height = Math.max(1, Math.round(img.height * scale));
+
         const ctx = canvas.getContext('2d');
         if (!ctx) return reject(new Error('canvas'));
+
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         resolve(canvas.toDataURL('image/jpeg', 0.65));
       };
+
       img.src = String(reader.result || '');
     };
+
     reader.readAsDataURL(file);
   });
 }
@@ -369,6 +384,7 @@ export default function AufmassProModule({
   useEffect(() => {
     try {
       const raw = localStorage.getItem(storageKey);
+
       if (!raw) {
         const first = emptyElement(lang, 1);
         setElements([first]);
@@ -377,10 +393,15 @@ export default function AufmassProModule({
       }
 
       const parsed = JSON.parse(raw);
+
       if (Array.isArray(parsed) && parsed.length) {
         const clean = parsed.map((x, i) => normalize(x, lang, i));
         setElements(clean);
         setActiveId(clean[0].id);
+      } else {
+        const first = emptyElement(lang, 1);
+        setElements([first]);
+        setActiveId(first.id);
       }
     } catch {
       localStorage.removeItem(storageKey);
@@ -399,17 +420,27 @@ export default function AufmassProModule({
     } catch {
       setWarn(t.storageWarn);
     }
+
     onSave?.(elements);
-  }, [elements]);
+  }, [elements, storageKey, t.storageWarn, onSave]);
 
   function updateActive(patch: Partial<ElementItem>) {
     if (!active) return;
-    setElements((prev) => prev.map((el) => (el.id === active.id ? { ...el, ...patch } : el)));
+
+    setElements((prev) =>
+      prev.map((el) => (el.id === active.id ? { ...el, ...patch } : el))
+    );
   }
 
   function updateMeasure(key: MeasureKey, value: number) {
     if (!active) return;
-    updateActive({ measures: { ...active.measures, [key]: safeNumber(value) } });
+
+    updateActive({
+      measures: {
+        ...active.measures,
+        [key]: safeNumber(value),
+      },
+    });
   }
 
   function addElement() {
@@ -423,11 +454,15 @@ export default function AufmassProModule({
 
     try {
       const newPhotos: PhotoItem[] = [];
+
       for (const file of files.slice(0, 4)) {
         const src = await compressImage(file);
         newPhotos.push({ id: id('ph'), src });
       }
-      updateActive({ photos: [...active.photos, ...newPhotos] });
+
+      updateActive({
+        photos: [...active.photos, ...newPhotos],
+      });
     } catch {
       setWarn(lang === 'de' ? 'Foto konnte nicht geladen werden.' : 'Foto kon niet geladen worden.');
     } finally {
@@ -437,7 +472,10 @@ export default function AufmassProModule({
 
   function removePhoto(photoId: string) {
     if (!active) return;
-    updateActive({ photos: active.photos.filter((p) => p.id !== photoId) });
+
+    updateActive({
+      photos: active.photos.filter((p) => p.id !== photoId),
+    });
   }
 
   function testValue() {
@@ -445,18 +483,20 @@ export default function AufmassProModule({
       field === 'breite'
         ? 1234
         : field === 'hoehe'
-        ? 1487
-        : field === 'tiefe'
-        ? 72
-        : field.includes('diagonal')
-        ? 1920
-        : 65;
+          ? 1487
+          : field === 'tiefe'
+            ? 72
+            : field.includes('diagonal')
+              ? 1920
+              : 65;
 
     setLast(value);
     updateMeasure(field, value);
   }
 
   function analyse() {
+    if (!active) return;
+
     updateActive({
       aiDone: true,
       aiText: t.aiText,
@@ -468,6 +508,8 @@ export default function AufmassProModule({
   }
 
   function sketch() {
+    if (!active) return;
+
     updateActive({
       aiDone: true,
       aiText: active.aiText || t.aiText,
@@ -493,11 +535,23 @@ export default function AufmassProModule({
               {customerName ? ` · ${customerName}` : ''}
             </p>
           </div>
-          <button style={greenBtn} onClick={() => onSave?.(elements)}>✓ {t.save}</button>
+
+          <button style={greenBtn} onClick={() => onSave?.(elements)}>
+            ✓ {t.save}
+          </button>
         </div>
 
         {warn && (
-          <div style={{ marginTop: 12, padding: 10, borderRadius: 10, background: '#fef3c7', color: '#92400e', fontWeight: 800 }}>
+          <div
+            style={{
+              marginTop: 12,
+              padding: 10,
+              borderRadius: 10,
+              background: '#fef3c7',
+              color: '#92400e',
+              fontWeight: 800,
+            }}
+          >
             {warn}
           </div>
         )}
@@ -506,6 +560,7 @@ export default function AufmassProModule({
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16 }}>
         <aside style={card}>
           <h3 style={{ marginTop: 0 }}>🪟 {t.windows}</h3>
+
           <button style={{ ...blueBtn, width: '100%', marginBottom: 12 }} onClick={addElement}>
             + {t.add}
           </button>
@@ -522,9 +577,17 @@ export default function AufmassProModule({
                   background: el.id === active.id ? '#eff6ff' : '#fff',
                 }}
               >
-                <b>{el.nr}. {el.name}</b>
-                <div style={{ color: '#64748b' }}>{el.room} · {typeText(el.type, t)}</div>
-                <small>{el.photos.length} {t.photos} · {el.measures.breite} × {el.measures.hoehe} mm</small>
+                <b>
+                  {el.nr}. {el.name}
+                </b>
+
+                <div style={{ color: '#64748b' }}>
+                  {el.room} · {typeText(el.type, t)}
+                </div>
+
+                <small>
+                  {el.photos.length} {t.photos} · {el.measures.breite} × {el.measures.hoehe} mm
+                </small>
               </button>
             ))}
           </div>
@@ -545,26 +608,63 @@ export default function AufmassProModule({
                 onChange={(e) => addPhotos(Array.from(e.target.files || []))}
               />
 
-              <div style={{ height: 260, border: '1px solid #dfe6f0', borderRadius: 12, display: 'grid', placeItems: 'center', overflow: 'hidden', background: '#f8fafc' }}>
+              <div
+                style={{
+                  height: 260,
+                  border: '1px solid #dfe6f0',
+                  borderRadius: 12,
+                  display: 'grid',
+                  placeItems: 'center',
+                  overflow: 'hidden',
+                  background: '#f8fafc',
+                }}
+              >
                 {mainPhoto ? (
-                  <img src={mainPhoto} alt="Fenster" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  <img
+                    src={mainPhoto}
+                    alt="Fenster"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                  />
                 ) : (
-                  <div style={{ textAlign: 'center', color: '#64748b' }}>📷<br />{t.noPhoto}</div>
+                  <div style={{ textAlign: 'center', color: '#64748b' }}>
+                    📷
+                    <br />
+                    {t.noPhoto}
+                  </div>
                 )}
               </div>
 
               <div style={{ display: 'flex', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
-                <button style={blueBtn} onClick={() => fileRef.current?.click()}>📷 {t.photo}</button>
-                <button style={btn} onClick={() => fileRef.current?.click()}>🖼️ {t.upload}</button>
+                <button style={blueBtn} onClick={() => fileRef.current?.click()}>
+                  📷 {t.photo}
+                </button>
+
+                <button style={btn} onClick={() => fileRef.current?.click()}>
+                  🖼️ {t.upload}
+                </button>
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 6, marginTop: 10 }}>
                 {active.photos.slice(0, 4).map((p) => (
                   <div key={p.id} style={{ position: 'relative' }}>
-                    <img src={p.src} alt="Foto" style={{ width: '100%', height: 58, objectFit: 'cover', borderRadius: 8 }} />
+                    <img
+                      src={p.src}
+                      alt="Foto"
+                      style={{ width: '100%', height: 58, objectFit: 'cover', borderRadius: 8 }}
+                    />
+
                     <button
                       onClick={() => removePhoto(p.id)}
-                      style={{ position: 'absolute', top: 2, right: 2, border: 0, borderRadius: 99, background: '#ef4444', color: '#fff', cursor: 'pointer' }}
+                      style={{
+                        position: 'absolute',
+                        top: 2,
+                        right: 2,
+                        border: 0,
+                        borderRadius: 99,
+                        background: '#ef4444',
+                        color: '#fff',
+                        cursor: 'pointer',
+                      }}
                     >
                       ×
                     </button>
@@ -575,13 +675,17 @@ export default function AufmassProModule({
 
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📏 {t.bosch}</h3>
+
               <p style={{ color: '#64748b' }}>{t.boschText}</p>
 
               <label>
                 <b>{t.active}</b>
+
                 <select style={input} value={field} onChange={(e) => setField(e.target.value as MeasureKey)}>
                   {rows.map(([key, label]) => (
-                    <option key={key} value={key}>{label}</option>
+                    <option key={key} value={key}>
+                      {label}
+                    </option>
                   ))}
                 </select>
               </label>
@@ -598,6 +702,7 @@ export default function AufmassProModule({
                 {rows.slice(0, 6).map(([key, label]) => (
                   <label key={key}>
                     <b>{label}</b>
+
                     <input
                       style={input}
                       type="number"
@@ -612,17 +717,45 @@ export default function AufmassProModule({
 
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>🤖 KI</h3>
-              <button style={purpleBtn} onClick={analyse}>✨ {t.analyse}</button>
-              <button style={{ ...blueBtn, marginTop: 10 }} onClick={sketch}>✏️ {t.sketch}</button>
 
-              <div style={{ marginTop: 12, padding: 10, borderRadius: 10, background: active.aiDone ? '#dcfce7' : '#f8fafc', color: active.aiDone ? '#166534' : '#64748b', fontWeight: 800 }}>
-                {active.aiDone ? '✅ ' + active.aiText : t.aiHint}
+              <button style={purpleBtn} onClick={analyse}>
+                ✨ {t.analyse}
+              </button>
+
+              <button style={{ ...blueBtn, marginTop: 10 }} onClick={sketch}>
+                ✏️ {t.sketch}
+              </button>
+
+              <div
+                style={{
+                  marginTop: 12,
+                  padding: 10,
+                  borderRadius: 10,
+                  background: active.aiDone ? '#dcfce7' : '#f8fafc',
+                  color: active.aiDone ? '#166534' : '#64748b',
+                  fontWeight: 800,
+                }}
+              >
+                {active.aiDone ? `✅ ${active.aiText}` : t.aiHint}
               </div>
 
-              <div style={{ marginTop: 12, border: '1px solid #e2e8f0', borderRadius: 12, height: 220, display: 'grid', placeItems: 'center' }}>
+              <div
+                style={{
+                  marginTop: 12,
+                  border: '1px solid #e2e8f0',
+                  borderRadius: 12,
+                  height: 220,
+                  display: 'grid',
+                  placeItems: 'center',
+                }}
+              >
                 <svg width="280" height="190" viewBox="0 0 280 190">
                   <rect x="45" y="38" width="190" height="120" fill="#fff" stroke="#111827" strokeWidth="3" />
-                  {active.wings >= 2 && <line x1="140" y1="38" x2="140" y2="158" stroke="#111827" strokeWidth="2" />}
+
+                  {active.wings >= 2 && (
+                    <line x1="140" y1="38" x2="140" y2="158" stroke="#111827" strokeWidth="2" />
+                  )}
+
                   {active.wings >= 2 ? (
                     <>
                       <rect x="60" y="52" width="68" height="92" fill="#fff" stroke="#64748b" />
@@ -633,10 +766,22 @@ export default function AufmassProModule({
                   ) : (
                     <rect x="65" y="52" width="150" height="92" fill="#fff" stroke="#64748b" />
                   )}
-                  {active.roller && <rect x="45" y="20" width="190" height="16" fill="#dbeafe" stroke="#2563eb" />}
-                  {active.sill && <rect x="35" y="160" width="210" height="10" fill="#f1f5f9" stroke="#94a3b8" />}
-                  <text x="140" y="25" textAnchor="middle" fontWeight="700">{active.measures.breite} mm</text>
-                  <text x="27" y="98" textAnchor="middle" fontWeight="700" transform="rotate(-90 27 98)">{active.measures.hoehe} mm</text>
+
+                  {active.roller && (
+                    <rect x="45" y="20" width="190" height="16" fill="#dbeafe" stroke="#2563eb" />
+                  )}
+
+                  {active.sill && (
+                    <rect x="35" y="160" width="210" height="10" fill="#f1f5f9" stroke="#94a3b8" />
+                  )}
+
+                  <text x="140" y="25" textAnchor="middle" fontWeight="700">
+                    {active.measures.breite} mm
+                  </text>
+
+                  <text x="27" y="98" textAnchor="middle" fontWeight="700" transform="rotate(-90 27 98)">
+                    {active.measures.hoehe} mm
+                  </text>
                 </svg>
               </div>
             </section>
@@ -645,11 +790,21 @@ export default function AufmassProModule({
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📋 Daten</h3>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
-                <label><b>{t.name}</b><input style={input} value={active.name} onChange={(e) => updateActive({ name: e.target.value })} /></label>
-                <label><b>{t.room}</b><input style={input} value={active.room} onChange={(e) => updateActive({ room: e.target.value })} /></label>
+                <label>
+                  <b>{t.name}</b>
+                  <input style={input} value={active.name} onChange={(e) => updateActive({ name: e.target.value })} />
+                </label>
+
+                <label>
+                  <b>{t.room}</b>
+                  <input style={input} value={active.room} onChange={(e) => updateActive({ room: e.target.value })} />
+                </label>
+
                 <label>
                   <b>{t.type}</b>
+
                   <select style={input} value={active.type} onChange={(e) => updateActive({ type: e.target.value as WindowType })}>
                     <option value="unknown">{t.unknown}</option>
                     <option value="dreh_kipp">{t.dreh}</option>
@@ -659,23 +814,74 @@ export default function AufmassProModule({
                     <option value="balkontuer">{t.balkon}</option>
                   </select>
                 </label>
-                <label><b>{t.wings}</b><input style={input} type="number" value={active.wings} onChange={(e) => updateActive({ wings: Number(e.target.value) || 1 })} /></label>
-                <label><b>{t.opening}</b><input style={input} value={active.opening} onChange={(e) => updateActive({ opening: e.target.value })} /></label>
-                <label><b>{t.profile}</b><input style={input} value={active.profile} onChange={(e) => updateActive({ profile: e.target.value })} /></label>
-                <label><b>{t.colorIn}</b><input style={input} value={active.colorIn} onChange={(e) => updateActive({ colorIn: e.target.value })} /></label>
-                <label><b>{t.colorOut}</b><input style={input} value={active.colorOut} onChange={(e) => updateActive({ colorOut: e.target.value })} /></label>
-                <label><input type="checkbox" checked={active.roller} onChange={(e) => updateActive({ roller: e.target.checked })} /> {t.roller}</label>
-                <label><input type="checkbox" checked={active.sill} onChange={(e) => updateActive({ sill: e.target.checked })} /> {t.sill}</label>
-                <label><input type="checkbox" checked={active.insect} onChange={(e) => updateActive({ insect: e.target.checked })} /> {t.insect}</label>
+
+                <label>
+                  <b>{t.wings}</b>
+                  <input
+                    style={input}
+                    type="number"
+                    value={active.wings}
+                    onChange={(e) => updateActive({ wings: Number(e.target.value) || 1 })}
+                  />
+                </label>
+
+                <label>
+                  <b>{t.opening}</b>
+                  <input style={input} value={active.opening} onChange={(e) => updateActive({ opening: e.target.value })} />
+                </label>
+
+                <label>
+                  <b>{t.profile}</b>
+                  <input style={input} value={active.profile} onChange={(e) => updateActive({ profile: e.target.value })} />
+                </label>
+
+                <label>
+                  <b>{t.colorIn}</b>
+                  <input style={input} value={active.colorIn} onChange={(e) => updateActive({ colorIn: e.target.value })} />
+                </label>
+
+                <label>
+                  <b>{t.colorOut}</b>
+                  <input style={input} value={active.colorOut} onChange={(e) => updateActive({ colorOut: e.target.value })} />
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={active.roller}
+                    onChange={(e) => updateActive({ roller: e.target.checked })}
+                  />{' '}
+                  {t.roller}
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={active.sill}
+                    onChange={(e) => updateActive({ sill: e.target.checked })}
+                  />{' '}
+                  {t.sill}
+                </label>
+
+                <label>
+                  <input
+                    type="checkbox"
+                    checked={active.insect}
+                    onChange={(e) => updateActive({ insect: e.target.checked })}
+                  />{' '}
+                  {t.insect}
+                </label>
               </div>
             </section>
 
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📐 Maße komplett</h3>
+
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
                 {rows.map(([key, label]) => (
                   <label key={key}>
                     <b>{label}</b>
+
                     <input
                       style={input}
                       type="number"
@@ -688,6 +894,7 @@ export default function AufmassProModule({
               </div>
 
               <h3>📝 {t.note}</h3>
+
               <textarea style={textarea} value={active.note} onChange={(e) => updateActive({ note: e.target.value })} />
             </section>
           </div>
@@ -696,4 +903,3 @@ export default function AufmassProModule({
     </section>
   );
 }
-
