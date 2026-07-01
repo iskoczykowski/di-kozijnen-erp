@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 
 type Lang = 'de' | 'nl';
 
@@ -19,13 +19,66 @@ type MeasureItem = {
   time: string;
 };
 
+const TXT = {
+  de: {
+    title: 'Bosch UniversalDistance',
+    sub: 'Messgerät vorbereiten, Werte übernehmen und später per Android-Bluetooth verbinden.',
+    statusDisconnected: 'Nicht verbunden',
+    statusConnecting: 'Verbinde...',
+    statusConnected: 'Verbunden',
+    device: 'Gerät',
+    battery: 'Akku',
+    active: 'Aktives Feld',
+    last: 'Letzte Messung',
+    connect: 'Verbinden',
+    disconnect: 'Trennen',
+    single: 'Einzelmessung',
+    live: 'Live-Messung',
+    stop: 'Stoppen',
+    repeat: 'Erneut übernehmen',
+    manual: 'Manuell übernehmen',
+    history: 'Messhistorie',
+    noHistory: 'Noch keine Messung.',
+    placeholder: 'z.B. 1234',
+    webInfo:
+      'Web-Modus: echte Bluetooth-Verbindung ist im Browser eingeschränkt. Die echte Bosch-Verbindung bauen wir später in der Android-App ein.',
+    saved: 'Messwert wurde ins aktive Feld übernommen.',
+  },
+  nl: {
+    title: 'Bosch UniversalDistance',
+    sub: 'Meetapparaat voorbereiden, waarden overnemen en later via Android-Bluetooth verbinden.',
+    statusDisconnected: 'Niet verbonden',
+    statusConnecting: 'Verbinden...',
+    statusConnected: 'Verbonden',
+    device: 'Apparaat',
+    battery: 'Accu',
+    active: 'Actief veld',
+    last: 'Laatste meting',
+    connect: 'Verbinden',
+    disconnect: 'Verbreken',
+    single: 'Enkele meting',
+    live: 'Live-meting',
+    stop: 'Stoppen',
+    repeat: 'Opnieuw overnemen',
+    manual: 'Handmatig overnemen',
+    history: 'Meethistorie',
+    noHistory: 'Nog geen meting.',
+    placeholder: 'bijv. 1234',
+    webInfo:
+      'Webmodus: echte Bluetooth-verbinding is in de browser beperkt. De echte Bosch-verbinding bouwen wij later in de Android-app.',
+    saved: 'Meetwaarde is in het actieve veld overgenomen.',
+  },
+};
+
 const card: React.CSSProperties = {
   background: '#fff',
   border: '1px solid #dfe6f0',
   borderRadius: 16,
-  padding: 16,
-  margin: '10px 0',
+  padding: 14,
+  margin: 0,
   boxShadow: '0 6px 18px rgba(15,23,42,.05)',
+  minWidth: 0,
+  overflow: 'hidden',
 };
 
 const btn: React.CSSProperties = {
@@ -33,35 +86,36 @@ const btn: React.CSSProperties = {
   background: '#fff',
   color: '#0f172a',
   borderRadius: 10,
-  padding: '10px 14px',
+  padding: '9px 10px',
   fontWeight: 800,
   cursor: 'pointer',
+  fontSize: 13,
 };
 
 const blueBtn: React.CSSProperties = {
   ...btn,
-  border: '1px solid #2563eb',
+  borderColor: '#2563eb',
   background: '#2563eb',
   color: '#fff',
 };
 
 const greenBtn: React.CSSProperties = {
   ...btn,
-  border: '1px solid #16a34a',
+  borderColor: '#16a34a',
   background: '#16a34a',
   color: '#fff',
 };
 
 const redBtn: React.CSSProperties = {
   ...btn,
-  border: '1px solid #ef4444',
+  borderColor: '#ef4444',
   background: '#ef4444',
   color: '#fff',
 };
 
 const input: React.CSSProperties = {
   width: '100%',
-  height: 40,
+  height: 38,
   border: '1px solid #d7dde8',
   borderRadius: 10,
   padding: '0 10px',
@@ -69,76 +123,21 @@ const input: React.CSSProperties = {
   background: '#fff',
 };
 
-const TXT = {
-  de: {
-    title: 'Bosch UniversalDistance',
-    subtitle: 'Messgerät vorbereiten, Werte übernehmen und später per Android-Bluetooth verbinden.',
-    status: 'Status',
-    device: 'Gerät',
-    battery: 'Akku',
-    active: 'Aktives Feld',
-    last: 'Letzte Messung',
-    history: 'Messhistorie',
-    noHistory: 'Noch keine Messung.',
-    connect: 'Bosch verbinden',
-    connecting: 'Verbinde...',
-    disconnect: 'Trennen',
-    single: 'Einzelmessung',
-    live: 'Live-Messung simulieren',
-    stopLive: 'Live stoppen',
-    repeat: 'Erneut übernehmen',
-    manual: 'Manuellen Wert übernehmen',
-    manualPlaceholder: 'z.B. 1234',
-    webMode:
-      'Web-Modus: echte Bluetooth-Verbindung ist im Browser eingeschränkt. Die echte Verbindung bauen wir später in der Android-App ein.',
-    disconnected: 'Nicht verbunden',
-    connected: 'Verbunden',
-    connectingState: 'Verbindung läuft',
-    saved: 'Wert wurde ins aktive Feld übernommen.',
-  },
-  nl: {
-    title: 'Bosch UniversalDistance',
-    subtitle: 'Meetapparaat voorbereiden, waarden overnemen en later via Android-Bluetooth verbinden.',
-    status: 'Status',
-    device: 'Apparaat',
-    battery: 'Accu',
-    active: 'Actief veld',
-    last: 'Laatste meting',
-    history: 'Meethistorie',
-    noHistory: 'Nog geen meting.',
-    connect: 'Bosch verbinden',
-    connecting: 'Verbinden...',
-    disconnect: 'Verbreken',
-    single: 'Enkele meting',
-    live: 'Live-meting simuleren',
-    stopLive: 'Live stoppen',
-    repeat: 'Opnieuw overnemen',
-    manual: 'Handmatige waarde overnemen',
-    manualPlaceholder: 'bijv. 1234',
-    webMode:
-      'Webmodus: echte Bluetooth-verbinding is in de browser beperkt. De echte verbinding bouwen wij later in de Android-app.',
-    disconnected: 'Niet verbonden',
-    connected: 'Verbonden',
-    connectingState: 'Verbinding loopt',
-    saved: 'Waarde is in het actieve veld overgenomen.',
-  },
-};
-
 function makeId() {
   return `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-}
-
-function nowTime(lang: Lang) {
-  return new Date().toLocaleTimeString(lang === 'de' ? 'de-DE' : 'nl-NL', {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
 }
 
 function randomMeasure() {
   const values = [650, 720, 865, 980, 1050, 1234, 1450, 1487, 1620, 1920, 2100];
   return values[Math.floor(Math.random() * values.length)];
+}
+
+function time(lang: Lang) {
+  return new Date().toLocaleTimeString(lang === 'de' ? 'de-DE' : 'nl-NL', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
 export default function BoschLaserModule({
@@ -156,52 +155,52 @@ export default function BoschLaserModule({
   const [live, setLive] = useState(false);
   const [info, setInfo] = useState('');
 
-  const statusView = useMemo(() => {
+  const statusBox = useMemo(() => {
     if (status === 'connected') {
       return {
-        text: t.connected,
-        color: '#16a34a',
+        text: t.statusConnected,
         bg: '#dcfce7',
+        color: '#15803d',
         icon: '🟢',
       };
     }
 
     if (status === 'connecting') {
       return {
-        text: t.connectingState,
-        color: '#d97706',
+        text: t.statusConnecting,
         bg: '#fef3c7',
+        color: '#b45309',
         icon: '🟠',
       };
     }
 
     return {
-      text: t.disconnected,
-      color: '#b91c1c',
+      text: t.statusDisconnected,
       bg: '#fee2e2',
+      color: '#b91c1c',
       icon: '🔴',
     };
   }, [status, t]);
 
-  function saveMeasure(value: number, rawText?: string) {
+  function saveMeasure(value: number) {
     const clean = Number(value);
 
     if (!Number.isFinite(clean) || clean <= 0) return;
 
-    const raw = rawText || `${clean} mm`;
+    const raw = `${clean} mm`;
 
     setLastValue(clean);
-    setBattery((prev) => Math.max(15, prev - 1));
     setInfo(t.saved);
+    setBattery((old) => Math.max(12, old - 1));
 
-    setHistory((prev) => [
+    setHistory((old) => [
       {
         id: makeId(),
         value: clean,
         raw,
-        time: nowTime(lang),
+        time: time(lang),
       },
-      ...prev.slice(0, 9),
+      ...old.slice(0, 7),
     ]);
 
     onMeasure?.(clean, raw);
@@ -214,8 +213,8 @@ export default function BoschLaserModule({
     window.setTimeout(() => {
       setStatus('connected');
       setBattery(88);
-      setInfo(t.webMode);
-    }, 900);
+      setInfo(t.webInfo);
+    }, 700);
   }
 
   function disconnect() {
@@ -225,8 +224,7 @@ export default function BoschLaserModule({
   }
 
   function singleMeasure() {
-    const value = randomMeasure();
-    saveMeasure(value, `${value} mm`);
+    saveMeasure(randomMeasure());
   }
 
   function manualMeasure() {
@@ -234,185 +232,182 @@ export default function BoschLaserModule({
 
     if (!Number.isFinite(value) || value <= 0) return;
 
-    saveMeasure(value, `${value} mm`);
+    saveMeasure(value);
     setManualValue('');
   }
 
-  function repeatLast() {
+  function repeatMeasure() {
     if (!lastValue) return;
-    saveMeasure(lastValue, `${lastValue} mm`);
+    saveMeasure(lastValue);
   }
 
-  function toggleLive() {
-    const next = !live;
-    setLive(next);
+  useEffect(() => {
+    if (!live) return;
 
-    if (!next) return;
+    const timer = window.setInterval(() => {
+      saveMeasure(randomMeasure());
+    }, 2500);
 
-    const value = randomMeasure();
-    saveMeasure(value, `${value} mm`);
-  }
+    return () => window.clearInterval(timer);
+  }, [live, lastValue, lang]);
 
   return (
     <section style={card}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
+      <div style={{ display: 'grid', gap: 10 }}>
         <div>
-          <h3 style={{ margin: 0 }}>📏 {t.title}</h3>
-          <p style={{ color: '#64748b', marginBottom: 0 }}>{t.subtitle}</p>
+          <h3 style={{ margin: 0, fontSize: 22, lineHeight: 1.15 }}>📏 {t.title}</h3>
+          <p style={{ color: '#64748b', margin: '8px 0 0', fontSize: 14, lineHeight: 1.35 }}>{t.sub}</p>
         </div>
 
         <div
           style={{
-            padding: '8px 12px',
+            display: 'inline-flex',
+            width: 'fit-content',
+            alignItems: 'center',
+            gap: 8,
+            padding: '7px 11px',
             borderRadius: 999,
-            background: statusView.bg,
-            color: statusView.color,
+            background: statusBox.bg,
+            color: statusBox.color,
             fontWeight: 900,
-            height: 38,
           }}
         >
-          {statusView.icon} {statusView.text}
-        </div>
-      </div>
-
-      <div
-        style={{
-          marginTop: 14,
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit,minmax(180px,1fr))',
-          gap: 10,
-        }}
-      >
-        <div style={{ background: '#f8fafc', borderRadius: 14, padding: 12 }}>
-          <b>{t.device}</b>
-          <div style={{ color: '#0f172a', fontWeight: 900 }}>Bosch UniversalDistance</div>
-          <div style={{ color: '#64748b', fontSize: 13 }}>Bluetooth vorbereitet</div>
+          {statusBox.icon} {statusBox.text}
         </div>
 
-        <div style={{ background: '#f8fafc', borderRadius: 14, padding: 12 }}>
-          <b>{t.battery}</b>
-          <div style={{ color: battery > 25 ? '#16a34a' : '#ef4444', fontWeight: 900 }}>{battery}%</div>
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))',
+            gap: 8,
+          }}
+        >
+          <div style={{ background: '#f8fafc', borderRadius: 12, padding: 10 }}>
+            <b>{t.device}</b>
+            <div style={{ fontWeight: 900 }}>Bosch</div>
+            <div style={{ fontWeight: 900 }}>UniversalDistance</div>
+          </div>
+
+          <div style={{ background: '#f8fafc', borderRadius: 12, padding: 10 }}>
+            <b>{t.battery}</b>
+            <div style={{ color: battery > 25 ? '#15803d' : '#b91c1c', fontWeight: 900 }}>{battery}%</div>
+            <div style={{ height: 7, background: '#e2e8f0', borderRadius: 99, overflow: 'hidden', marginTop: 6 }}>
+              <div
+                style={{
+                  width: `${battery}%`,
+                  height: '100%',
+                  background: battery > 25 ? '#16a34a' : '#ef4444',
+                }}
+              />
+            </div>
+          </div>
+
+          <div style={{ background: '#f8fafc', borderRadius: 12, padding: 10 }}>
+            <b>{t.active}</b>
+            <div style={{ color: '#2563eb', fontWeight: 900 }}>{activeFieldLabel}</div>
+          </div>
+
+          <div style={{ background: '#f8fafc', borderRadius: 12, padding: 10 }}>
+            <b>{t.last}</b>
+            <div style={{ fontSize: 24, fontWeight: 900 }}>
+              {lastValue !== null ? `${lastValue} mm` : '-'}
+            </div>
+          </div>
+        </div>
+
+        {info && (
           <div
             style={{
-              height: 8,
-              background: '#e2e8f0',
-              borderRadius: 99,
-              overflow: 'hidden',
-              marginTop: 6,
+              padding: 10,
+              borderRadius: 12,
+              background: '#eff6ff',
+              color: '#1d4ed8',
+              fontWeight: 800,
+              fontSize: 13,
+              lineHeight: 1.35,
             }}
           >
-            <div
-              style={{
-                width: `${battery}%`,
-                height: '100%',
-                background: battery > 25 ? '#16a34a' : '#ef4444',
-              }}
-            />
+            {info}
           </div>
-        </div>
+        )}
 
-        <div style={{ background: '#f8fafc', borderRadius: 14, padding: 12 }}>
-          <b>{t.active}</b>
-          <div style={{ color: '#2563eb', fontWeight: 900 }}>{activeFieldLabel}</div>
-        </div>
-
-        <div style={{ background: '#f8fafc', borderRadius: 14, padding: 12 }}>
-          <b>{t.last}</b>
-          <div style={{ fontSize: 26, fontWeight: 900 }}>
-            {lastValue !== null ? `${lastValue} mm` : '-'}
-          </div>
-        </div>
-      </div>
-
-      {info && (
         <div
           style={{
-            marginTop: 12,
-            padding: 10,
-            borderRadius: 12,
-            background: '#eff6ff',
-            color: '#1d4ed8',
-            fontWeight: 800,
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit,minmax(130px,1fr))',
+            gap: 8,
           }}
         >
-          {info}
+          {status === 'connected' ? (
+            <button style={redBtn} onClick={disconnect}>
+              🔌 {t.disconnect}
+            </button>
+          ) : (
+            <button style={blueBtn} onClick={connect} disabled={status === 'connecting'}>
+              🔵 {t.connect}
+            </button>
+          )}
+
+          <button style={greenBtn} onClick={singleMeasure}>
+            📐 {t.single}
+          </button>
+
+          <button
+            style={live ? redBtn : btn}
+            onClick={() => setLive((old) => !old)}
+          >
+            {live ? `⏹️ ${t.stop}` : `📡 ${t.live}`}
+          </button>
+
+          <button style={btn} onClick={repeatMeasure} disabled={!lastValue}>
+            🔁 {t.repeat}
+          </button>
         </div>
-      )}
 
-      <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 14 }}>
-        {status === 'connected' ? (
-          <button style={redBtn} onClick={disconnect}>
-            🔌 {t.disconnect}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 8 }}>
+          <input
+            style={input}
+            value={manualValue}
+            inputMode="decimal"
+            placeholder={t.placeholder}
+            onChange={(e) => setManualValue(e.target.value)}
+          />
+
+          <button style={blueBtn} onClick={manualMeasure}>
+            ✍️ {t.manual}
           </button>
-        ) : (
-          <button style={blueBtn} onClick={connect} disabled={status === 'connecting'}>
-            🔵 {status === 'connecting' ? t.connecting : t.connect}
-          </button>
-        )}
+        </div>
 
-        <button style={greenBtn} onClick={singleMeasure}>
-          📐 {t.single}
-        </button>
+        <div>
+          <h4 style={{ margin: '4px 0 8px' }}>🧾 {t.history}</h4>
 
-        <button style={btn} onClick={toggleLive}>
-          {live ? `⏹️ ${t.stopLive}` : `📡 ${t.live}`}
-        </button>
-
-        <button style={btn} onClick={repeatLast} disabled={!lastValue}>
-          🔁 {t.repeat}
-        </button>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr auto',
-          gap: 8,
-          marginTop: 12,
-        }}
-      >
-        <input
-          style={input}
-          value={manualValue}
-          inputMode="decimal"
-          placeholder={t.manualPlaceholder}
-          onChange={(e) => setManualValue(e.target.value)}
-        />
-
-        <button style={blueBtn} onClick={manualMeasure}>
-          {t.manual}
-        </button>
-      </div>
-
-      <div style={{ marginTop: 16 }}>
-        <h4 style={{ marginBottom: 8 }}>🧾 {t.history}</h4>
-
-        {history.length === 0 ? (
-          <div style={{ color: '#64748b' }}>{t.noHistory}</div>
-        ) : (
-          <div style={{ display: 'grid', gap: 6 }}>
-            {history.map((item) => (
-              <button
-                key={item.id}
-                style={{
-                  ...btn,
-                  width: '100%',
-                  textAlign: 'left',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  gap: 12,
-                }}
-                onClick={() => saveMeasure(item.value, item.raw)}
-              >
-                <span>
-                  <b>{item.raw}</b>
-                  <span style={{ color: '#64748b' }}> · {item.time}</span>
-                </span>
-                <span>↩ übernehmen</span>
-              </button>
-            ))}
-          </div>
-        )}
+          {history.length === 0 ? (
+            <div style={{ color: '#64748b', fontSize: 14 }}>{t.noHistory}</div>
+          ) : (
+            <div style={{ display: 'grid', gap: 6 }}>
+              {history.map((item) => (
+                <button
+                  key={item.id}
+                  style={{
+                    ...btn,
+                    width: '100%',
+                    textAlign: 'left',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    gap: 8,
+                    fontSize: 12,
+                  }}
+                  onClick={() => saveMeasure(item.value)}
+                >
+                  <span>
+                    <b>{item.raw}</b> · {item.time}
+                  </span>
+                  <span>↩</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
