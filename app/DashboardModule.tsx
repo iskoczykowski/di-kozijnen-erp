@@ -570,11 +570,17 @@ function AppointmentModal({
 }
 
 export default function DashboardModule({ lang = 'de', setModule, setLang }: { lang?: Lang; setModule: (m: Module) => void; setLang: (l: Lang) => void }) {
+  const [now, setNow] = useState(new Date());
   const [tasks, setTasks] = useState<Task[]>([]);
   const [events, setEvents] = useState<EventItem[]>([]);
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [selectedDate, setSelectedDate] = useState('2026-06-30');
   const [modalDate, setModalDate] = useState<string | null>(null);
+
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     setTasks(readArray<Task>(TASK_KEY, defaultTasks(lang)));
@@ -645,7 +651,14 @@ export default function DashboardModule({ lang = 'de', setModule, setLang }: { l
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
-            <div style={{ textAlign: 'center' }}><div style={{ fontSize: 36, fontWeight: 900 }}>10:24</div><div style={{ color: '#475569' }}>{lang === 'de' ? 'Dienstag, 30. Juni 2026' : 'Dinsdag, 30 juni 2026'}</div></div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 36, fontWeight: 900 }}>
+                {now.toLocaleTimeString(lang === 'de' ? 'de-DE' : 'nl-NL', { hour: '2-digit', minute: '2-digit' })}
+              </div>
+              <div style={{ color: '#475569' }}>
+                {now.toLocaleDateString(lang === 'de' ? 'de-DE' : 'nl-NL', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+              </div>
+            </div>
             <div><b>{T[lang].office}</b><div style={{ color: '#16a34a' }}>● {T[lang].online}</div></div>
             <input style={{ ...input, width: 250 }} placeholder={T[lang].search} />
             <button style={blueBtn} onClick={() => setLang(lang === "de" ? "nl" : "de")}>{lang === "de" ? "DE" : "NL"}</button>
