@@ -69,7 +69,6 @@ const TXT = {
     upload: 'Foto hochladen',
     noPhoto: 'Noch kein Foto',
     analyse: 'KI-Fotoanalyse starten',
-    apply: 'Vorschlag übernehmen',
     sketch: 'Skizze erzeugen',
     save: 'Speichern',
     windows: 'Fenster / Elemente',
@@ -118,7 +117,6 @@ const TXT = {
     upload: 'Foto uploaden',
     noPhoto: 'Nog geen foto',
     analyse: 'AI-fotoanalyse starten',
-    apply: 'Voorstel overnemen',
     sketch: 'Schets maken',
     save: 'Opslaan',
     windows: 'Ramen / elementen',
@@ -164,8 +162,9 @@ const card: React.CSSProperties = {
   background: '#fff',
   border: '1px solid #dfe6f0',
   borderRadius: 16,
-  padding: 16,
+  padding: 14,
   boxShadow: '0 6px 18px rgba(15,23,42,.05)',
+  minWidth: 0,
 };
 
 const input: React.CSSProperties = {
@@ -188,7 +187,7 @@ const btn: React.CSSProperties = {
   border: '1px solid #d7dde8',
   background: '#fff',
   borderRadius: 10,
-  padding: '10px 14px',
+  padding: '10px 12px',
   fontWeight: 800,
   cursor: 'pointer',
 };
@@ -364,6 +363,32 @@ function compressImage(file: File): Promise<string> {
   });
 }
 
+function useScreen() {
+  const [width, setWidth] = useState(1200);
+
+  useEffect(() => {
+    function update() {
+      setWidth(window.innerWidth);
+    }
+
+    update();
+    window.addEventListener('resize', update);
+    window.addEventListener('orientationchange', update);
+
+    return () => {
+      window.removeEventListener('resize', update);
+      window.removeEventListener('orientationchange', update);
+    };
+  }, []);
+
+  return {
+    width,
+    isTablet: width <= 1250,
+    isSmallTablet: width <= 1050,
+    isMobile: width <= 760,
+  };
+}
+
 export default function AufmassProModule({
   lang = 'de',
   orderId = 'default',
@@ -374,6 +399,7 @@ export default function AufmassProModule({
   const t = TXT[lang];
   const fileRef = useRef<HTMLInputElement | null>(null);
   const storageKey = `${STORAGE_PREFIX}${orderId || 'default'}`;
+  const { isTablet, isSmallTablet, isMobile } = useScreen();
 
   const [elements, setElements] = useState<ElementItem[]>([emptyElement(lang, 1)]);
   const [activeId, setActiveId] = useState('');
@@ -523,13 +549,37 @@ export default function AufmassProModule({
   const mainPhoto = active.photos[0]?.src || '';
   const rows = measureRows(t);
 
+  const topGridColumns = isMobile
+    ? '1fr'
+    : isSmallTablet
+      ? '1fr 1fr'
+      : isTablet
+        ? '1.1fr .9fr .9fr'
+        : '1fr 1fr 1fr';
+
   return (
-    <section style={{ display: 'grid', gap: 16 }}>
+    <section
+      style={{
+        display: 'grid',
+        gap: 14,
+        width: '100%',
+        maxWidth: '100%',
+        overflowX: 'hidden',
+      }}
+    >
       <div style={card}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 16, alignItems: 'center' }}>
-          <div>
-            <h2 style={{ margin: 0 }}>📐 {t.title}</h2>
-            <p style={{ color: '#64748b', marginBottom: 0 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            gap: 12,
+            alignItems: 'center',
+            flexWrap: 'wrap',
+          }}
+        >
+          <div style={{ minWidth: 0 }}>
+            <h2 style={{ margin: 0, fontSize: isMobile ? 22 : 26 }}>📐 {t.title}</h2>
+            <p style={{ color: '#64748b', marginBottom: 0, fontSize: isMobile ? 13 : 15 }}>
               {t.sub}
               {orderNumber ? ` · ${orderNumber}` : ''}
               {customerName ? ` · ${customerName}` : ''}
@@ -557,7 +607,16 @@ export default function AufmassProModule({
         )}
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: isMobile ? '1fr' : isTablet ? '260px 1fr' : '300px 1fr',
+          gap: 14,
+          width: '100%',
+          maxWidth: '100%',
+          minWidth: 0,
+        }}
+      >
         <aside style={card}>
           <h3 style={{ marginTop: 0 }}>🪟 {t.windows}</h3>
 
@@ -575,13 +634,14 @@ export default function AufmassProModule({
                   textAlign: 'left',
                   borderColor: el.id === active.id ? '#2563eb' : '#d7dde8',
                   background: el.id === active.id ? '#eff6ff' : '#fff',
+                  width: '100%',
                 }}
               >
                 <b>
                   {el.nr}. {el.name}
                 </b>
 
-                <div style={{ color: '#64748b' }}>
+                <div style={{ color: '#64748b', fontSize: 13 }}>
                   {el.room} · {typeText(el.type, t)}
                 </div>
 
@@ -593,8 +653,23 @@ export default function AufmassProModule({
           </div>
         </aside>
 
-        <main style={{ display: 'grid', gap: 16 }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 16 }}>
+        <main
+          style={{
+            display: 'grid',
+            gap: 14,
+            minWidth: 0,
+            maxWidth: '100%',
+            overflowX: 'hidden',
+          }}
+        >
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: topGridColumns,
+              gap: 14,
+              minWidth: 0,
+            }}
+          >
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📷 {t.photo}</h3>
 
@@ -610,7 +685,7 @@ export default function AufmassProModule({
 
               <div
                 style={{
-                  height: 260,
+                  height: isTablet ? 220 : 260,
                   border: '1px solid #dfe6f0',
                   borderRadius: 12,
                   display: 'grid',
@@ -676,7 +751,7 @@ export default function AufmassProModule({
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📏 {t.bosch}</h3>
 
-              <p style={{ color: '#64748b' }}>{t.boschText}</p>
+              <p style={{ color: '#64748b', fontSize: 14 }}>{t.boschText}</p>
 
               <label>
                 <b>{t.active}</b>
@@ -698,7 +773,14 @@ export default function AufmassProModule({
                 ⌁ {t.test}
               </button>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 12 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gap: 8,
+                  marginTop: 12,
+                }}
+              >
                 {rows.slice(0, 6).map(([key, label]) => (
                   <label key={key}>
                     <b>{label}</b>
@@ -734,6 +816,7 @@ export default function AufmassProModule({
                   background: active.aiDone ? '#dcfce7' : '#f8fafc',
                   color: active.aiDone ? '#166534' : '#64748b',
                   fontWeight: 800,
+                  fontSize: 13,
                 }}
               >
                 {active.aiDone ? `✅ ${active.aiText}` : t.aiHint}
@@ -744,12 +827,13 @@ export default function AufmassProModule({
                   marginTop: 12,
                   border: '1px solid #e2e8f0',
                   borderRadius: 12,
-                  height: 220,
+                  height: isTablet ? 190 : 220,
                   display: 'grid',
                   placeItems: 'center',
+                  overflow: 'hidden',
                 }}
               >
-                <svg width="280" height="190" viewBox="0 0 280 190">
+                <svg width="100%" height="180" viewBox="0 0 280 190" preserveAspectRatio="xMidYMid meet">
                   <rect x="45" y="38" width="190" height="120" fill="#fff" stroke="#111827" strokeWidth="3" />
 
                   {active.wings >= 2 && (
@@ -787,11 +871,24 @@ export default function AufmassProModule({
             </section>
           </div>
 
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: isMobile || isSmallTablet ? '1fr' : '1fr 1fr',
+              gap: 14,
+              minWidth: 0,
+            }}
+          >
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📋 Daten</h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
+                  gap: 10,
+                }}
+              >
                 <label>
                   <b>{t.name}</b>
                   <input style={input} value={active.name} onChange={(e) => updateActive({ name: e.target.value })} />
@@ -877,7 +974,13 @@ export default function AufmassProModule({
             <section style={card}>
               <h3 style={{ marginTop: 0 }}>📐 Maße komplett</h3>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: isMobile ? '1fr' : isTablet ? '1fr 1fr' : '1fr 1fr 1fr',
+                  gap: 8,
+                }}
+              >
                 {rows.map(([key, label]) => (
                   <label key={key}>
                     <b>{label}</b>
