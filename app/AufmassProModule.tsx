@@ -102,7 +102,8 @@ const T = {
     insect: 'Insektenschutz',
     note: 'Notiz',
     save: 'Aufmaß speichern',
-    browserInfo: 'Web-Version: KI-Analyse ist als Vorschlag vorbereitet. Echte KI mit Bilderkennung verbinden wir danach über API/Server.',
+    browserInfo: 'Web-Version: KI-Analyse ist als Vorschlag vorbereitet. Fotos werden komprimiert gespeichert, damit kein weißer Bildschirm mehr kommt.',
+    storageWarning: 'Browser-Speicher ist voll. Foto wird angezeigt, aber eventuell nicht dauerhaft gespeichert.',
     photos: 'Fotos',
     noPhoto: 'Noch kein Foto',
     allMeasures: 'Maße komplett',
@@ -159,7 +160,8 @@ const T = {
     insect: 'Insectenhor',
     note: 'Notitie',
     save: 'Inmeting opslaan',
-    browserInfo: 'Webversie: AI-analyse is als voorstel voorbereid. Echte AI met beeldherkenning verbinden we later via API/server.',
+    browserInfo: 'Webversie: AI-analyse is als voorstel voorbereid. Foto’s worden gecomprimeerd opgeslagen, zodat geen wit scherm meer komt.',
+    storageWarning: 'Browseropslag is vol. Foto wordt getoond, maar mogelijk niet blijvend opgeslagen.',
     photos: 'Foto’s',
     noPhoto: 'Nog geen foto',
     allMeasures: 'Maten compleet',
@@ -234,12 +236,85 @@ function typeLabel(type: WindowType, lang: Lang) {
   return t.unknown;
 }
 
-async function filesToBase64(files: File[]) {
-  return Promise.all(files.map(file => new Promise<string>((resolve) => {
+function resizeImage(file: File, maxSize = 1200, quality = 0.72): Promise<string> {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(new Error('read failed'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onerror = () => reject(new Error('image failed'));
+      img.onload = () => {
+        const ratio = Math.min(maxSize / img.width, maxSize / img.height, 1);
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(img.width * ratio));
+        canvas.height = Math.max(1, Math.round(img.height * ratio));
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return reject(new Error('canvas failed'));
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.src = String(reader.result);
+    };
     reader.readAsDataURL(file);
-  })));
+  });
+}
+
+async function filesToBase64(files: File[]) {
+  const result: string[] = [];
+  for (const file of files) {
+    try {
+      result.push(await resizeImage(file));
+    } catch {
+      const raw = await new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.readAsDataURL(file);
+      });
+      result.push(raw);
+    }
+  }
+  return result;
+}
+
+function normalizePhoto(photo: any, index: number): AufmassPhoto | null {
+  if (!photo) return null;
+  if (typeof photo === 'string') return { id: makeId('photo'), src: photo, label: `Foto ${index + 1}` };
+  if (typeof photo === 'object' && typeof photo.src === 'string') {
+    return { id: photo.id || makeId('photo'), src: photo.src, label: photo.label || `Foto ${index + 1}` };
+  }
+  return null;
+}
+
+function normalizeMeasures(value: any): Record<MeasureKey, number> {
+  return { ...emptyMeasures(), ...(value && typeof value === 'object' ? value : {}) };
+}
+
+function normalizeElement(raw: any, lang: Lang, index: number): AufmassElement {
+  const base = emptyElement(lang, index + 1);
+  const photos = Array.isArray(raw?.photos) ? raw.photos.map((p: any, i: number) => normalizePhoto(p, i)).filter(Boolean) as AufmassPhoto[] : [];
+  return {
+    ...base,
+    ...(raw && typeof raw === 'object' ? raw : {}),
+    id: raw?.id || base.id,
+    number: Number(raw?.number || index + 1),
+    name: raw?.name || base.name,
+    room: raw?.room || base.room,
+    type: raw?.type || 'unknown',
+    photos,
+    measures: normalizeMeasures(raw?.measures),
+    wings: Number(raw?.wings || 1),
+    aiSketchReady: Boolean(raw?.aiSketchReady),
+    aiAnalyzed: Boolean(raw?.aiAnalyzed),
+    aiHint: raw?.aiHint || '',
+    opening: raw?.opening || '',
+    profileNumber: raw?.profileNumber || '',
+    colorInside: raw?.colorInside || '9016',
+    colorOutside: raw?.colorOutside || '7016',
+    rollerShutter: Boolean(raw?.rollerShutter),
+    windowSill: Boolean(raw?.windowSill),
+    insectScreen: Boolean(raw?.insectScreen),
+    note: raw?.note || '',
+  };
 }
 
 function demoAiAnalyze(element: AufmassElement, lang: Lang): AiResult {
@@ -270,6 +345,7 @@ export default function AufmassProModule({ lang = 'de', orderId = 'default', ord
   const [activeId, setActiveId] = useState(first.id);
   const [activeField, setActiveField] = useState<MeasureKey>('breite');
   const [lastMeasure, setLastMeasure] = useState<number | null>(null);
+  const [storageWarning, setStorageWarning] = useState('');
 
   useEffect(() => {
     try {
@@ -277,19 +353,25 @@ export default function AufmassProModule({ lang = 'de', orderId = 'default', ord
       if (raw) {
         const parsed = JSON.parse(raw);
         if (Array.isArray(parsed) && parsed.length) {
-          setElements(parsed);
-          setActiveId(parsed[0].id);
+          const normalized = parsed.map((el: any, index: number) => normalizeElement(el, lang, index));
+          setElements(normalized);
+          setActiveId(normalized[0].id);
         }
       }
     } catch {}
   }, [storageKey]);
 
   useEffect(() => {
-    localStorage.setItem(storageKey, JSON.stringify(elements));
+    try {
+      localStorage.setItem(storageKey, JSON.stringify(elements));
+      setStorageWarning('');
+    } catch {
+      setStorageWarning(T[lang].storageWarning);
+    }
     onSave?.(elements);
-  }, [elements]);
+  }, [elements, storageKey, lang]);
 
-  const active = elements.find(el => el.id === activeId) || elements[0];
+  const active = elements.find(el => el.id === activeId) || elements[0] || first;
 
   function updateActive(patch: Partial<AufmassElement>) {
     setElements(prev => prev.map(el => el.id === active.id ? { ...el, ...patch } : el));
@@ -306,9 +388,17 @@ export default function AufmassProModule({ lang = 'de', orderId = 'default', ord
   }
 
   async function addPhoto(files: File[]) {
-    const urls = await filesToBase64(files);
-    const photos = urls.map((src, index) => ({ id: makeId('photo'), src, label: `${t.photos} ${active.photos.length + index + 1}` }));
-    updateActive({ photos: [...active.photos, ...photos], selected: true });
+    if (!files.length) return;
+    try {
+      const urls = await filesToBase64(files);
+      const existingPhotos = Array.isArray(active.photos) ? active.photos : [];
+      const photos = urls.map((src, index) => ({ id: makeId('photo'), src, label: `${t.photos} ${existingPhotos.length + index + 1}` }));
+      updateActive({ photos: [...existingPhotos, ...photos], selected: true });
+    } catch {
+      setStorageWarning(lang === 'de' ? 'Foto konnte nicht verarbeitet werden.' : 'Foto kon niet verwerkt worden.');
+    } finally {
+      if (fileRef.current) fileRef.current.value = '';
+    }
   }
 
   function selectWindow(id: string) {
@@ -353,7 +443,7 @@ export default function AufmassProModule({ lang = 'de', orderId = 'default', ord
     updateActive({ aiSketchReady: true, aiHint: hint, type: active.type === 'unknown' ? 'dreh_kipp' : active.type });
   }
 
-  const mainPhoto = active.photos[0]?.src;
+  const mainPhoto = Array.isArray(active.photos) ? active.photos[0]?.src : '';
   const wings = active.aiResult?.wings || active.wings || 1;
 
   return (
@@ -366,6 +456,7 @@ export default function AufmassProModule({ lang = 'de', orderId = 'default', ord
           </div>
           <button style={greenBtn} onClick={() => onSave?.(elements)}>✓ {t.save}</button>
         </div>
+        {storageWarning && <div style={{ marginTop: 12, padding: 10, borderRadius: 10, background: '#fef3c7', color: '#92400e', fontWeight: 800 }}>{storageWarning}</div>}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: 16 }}>
@@ -377,7 +468,7 @@ export default function AufmassProModule({ lang = 'de', orderId = 'default', ord
               <button key={el.id} onClick={() => selectWindow(el.id)} style={{ ...btn, textAlign: 'left', borderColor: el.id === active.id ? '#2563eb' : '#d7dde8', background: el.id === active.id ? '#eff6ff' : '#fff' }}>
                 <b>{el.number}. {el.name}</b>
                 <div style={{ color: '#64748b' }}>{el.room} · {typeLabel(el.type, lang)}</div>
-                <small>{el.photos.length} {t.photos} · {el.measures.breite || 0} × {el.measures.hoehe || 0} mm</small>
+                <small>{Array.isArray(el.photos) ? el.photos.length : 0} {t.photos} · {el.measures.breite || 0} × {el.measures.hoehe || 0} mm</small>
               </button>
             ))}
           </div>
