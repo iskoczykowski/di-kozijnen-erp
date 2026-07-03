@@ -1,53 +1,45 @@
-import { supabase } from './supabase';
+export type MessagePriority = 'low' | 'normal' | 'high';
+export type MessageStatus = 'open' | 'read' | 'done';
 
 export type Message = {
-  id?: string;
+  id: string;
   title: string;
   message: string;
-  sender?: string;
-  receiver?: string;
-  status: string;
-  created_at?: string;
+  sender: string;
+  receiver: string;
+  priority: MessagePriority;
+  status: MessageStatus;
+  createdAt: string;
 };
 
-export async function getMessages() {
-  const { data, error } = await supabase
-    .from('messages')
-    .select('*')
-    .order('created_at', { ascending: false });
+const STORAGE_KEY = 'firmaflow_messages';
 
-  if (error) throw error;
-  return data ?? [];
-}
+export function getMessages(): Message[] {
+  if (typeof window === 'undefined') return [];
 
-export async function saveMessage(message: Message) {
-  if (message.id) {
-    const { data, error } = await supabase
-      .from('messages')
-      .update(message)
-      .eq('id', message.id)
-      .select()
-      .single();
-
-    if (error) throw error;
-    return data;
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    return data ? JSON.parse(data) : [];
+  } catch {
+    return [];
   }
-
-  const { data, error } = await supabase
-    .from('messages')
-    .insert(message)
-    .select()
-    .single();
-
-  if (error) throw error;
-  return data;
 }
 
-export async function deleteMessage(id: string) {
-  const { error } = await supabase
-    .from('messages')
-    .delete()
-    .eq('id', id);
+export function saveMessage(message: Message): Message[] {
+  const messages = getMessages();
 
-  if (error) throw error;
+  const exists = messages.some((m) => m.id === message.id);
+
+  const updated = exists
+    ? messages.map((m) => (m.id === message.id ? message : m))
+    : [message, ...messages];
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  return updated;
+}
+
+export function deleteMessage(id: string): Message[] {
+  const updated = getMessages().filter((m) => m.id !== id);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+  return updated;
 }
