@@ -8,6 +8,7 @@ import {
   deleteProject,
   type Project,
 } from '../../lib/projects';
+import ProjectFilesModule from './ProjectFilesModule';
 
 const emptyProject: Project = {
   customer_name: '',
@@ -54,6 +55,7 @@ export default function ProjectsModule() {
 
   async function remove() {
     if (!selected.id) return;
+
     await deleteProject(selected.id);
     setSelected(emptyProject);
     await load();
@@ -97,8 +99,12 @@ export default function ProjectsModule() {
               }
             >
               <div className="font-black">{project.project_name || '-'}</div>
-              <div className="text-sm text-slate-500">{project.customer_name || '-'}</div>
-              <div className="text-sm text-slate-500">{project.status || '-'}</div>
+              <div className="text-sm text-slate-500">
+                {project.customer_name || '-'}
+              </div>
+              <div className="text-sm text-slate-500">
+                {project.status || '-'}
+              </div>
             </button>
           ))}
         </div>
@@ -150,6 +156,12 @@ export default function ProjectsModule() {
           <Action icon="🚚" label={t('montage', lang)} />
           <Action icon="📦" label={t('warehouse', lang)} />
         </div>
+
+        {selected.id && (
+          <div className="mt-8">
+            <ProjectFilesModule projectId={selected.id} />
+          </div>
+        )}
       </div>
     </div>
   );
@@ -166,7 +178,10 @@ function Field({
 }) {
   return (
     <label>
-      <span className="mb-2 block text-sm font-bold text-slate-500">{label}</span>
+      <span className="mb-2 block text-sm font-bold text-slate-500">
+        {label}
+      </span>
+
       <input
         value={value}
         onChange={(e) => onChange(e.target.value)}
