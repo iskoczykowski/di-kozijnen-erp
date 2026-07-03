@@ -1,89 +1,136 @@
-create extension if not exists "uuid-ossp";
+-- =====================================================
+-- D&I Kozijnen ERP 2.0
+-- Basisdatenbank
+-- =====================================================
+
+create extension if not exists "pgcrypto";
+
+--------------------------------------------------------
+-- CUSTOMERS
+--------------------------------------------------------
 
 create table if not exists customers (
-  id uuid primary key default uuid_generate_v4(),
-  name text not null,
-  phone text,
-  email text,
-  address text,
-  city text,
-  status text default 'active',
-  created_at timestamptz default now()
+
+    id uuid primary key default gen_random_uuid(),
+
+    company_name text not null,
+    contact_name text,
+    phone text,
+    email text,
+
+    street text,
+    zip text,
+    city text,
+    country text,
+
+    notes text,
+
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
 );
+
+--------------------------------------------------------
+-- ORDERS
+--------------------------------------------------------
+
+create table if not exists orders (
+
+    id uuid primary key default gen_random_uuid(),
+
+    customer_id uuid references customers(id) on delete cascade,
+
+    order_number text not null,
+
+    customer_name text,
+    project_name text,
+
+    contact_name text,
+    phone text,
+    email text,
+
+    status text default 'Offen',
+
+    notes text,
+
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
+);
+
+--------------------------------------------------------
+-- PROJECTS
+--------------------------------------------------------
 
 create table if not exists projects (
-  id uuid primary key default uuid_generate_v4(),
-  project_number text unique,
-  customer_id uuid references customers(id) on delete set null,
-  title text not null,
-  product_type text,
-  width_mm numeric,
-  height_mm numeric,
-  color text,
-  glass_type text,
-  status text default 'request',
-  price numeric default 0,
-  created_at timestamptz default now()
+
+    id uuid primary key default gen_random_uuid(),
+
+    order_id uuid references orders(id) on delete cascade,
+
+    customer_id uuid references customers(id),
+
+    customer_name text,
+    project_name text,
+
+    status text default 'Offen',
+
+    progress integer default 0,
+
+    created_at timestamptz default now(),
+    updated_at timestamptz default now()
 );
 
-create table if not exists inventory_items (
-  id uuid primary key default uuid_generate_v4(),
-  sku text,
-  name text not null,
-  category text,
-  quantity numeric default 0,
-  min_quantity numeric default 0,
-  unit text default 'pcs',
-  supplier text,
-  created_at timestamptz default now()
+--------------------------------------------------------
+-- MEASUREMENTS
+--------------------------------------------------------
+
+create table if not exists measurements (
+
+    id uuid primary key default gen_random_uuid(),
+
+    project_id uuid references projects(id) on delete cascade,
+
+    room text,
+
+    width numeric,
+    height numeric,
+
+    laser text,
+
+    notes text,
+
+    created_at timestamptz default now()
 );
 
-create table if not exists goods_receipts (
-  id uuid primary key default uuid_generate_v4(),
-  item_id uuid references inventory_items(id) on delete cascade,
-  quantity numeric not null,
-  supplier text,
-  note text,
-  created_at timestamptz default now()
+--------------------------------------------------------
+-- PHOTOS
+--------------------------------------------------------
+
+create table if not exists photos (
+
+    id uuid primary key default gen_random_uuid(),
+
+    project_id uuid references projects(id) on delete cascade,
+
+    file_url text,
+
+    description text,
+
+    created_at timestamptz default now()
 );
 
-create table if not exists employees (
-  id uuid primary key default uuid_generate_v4(),
-  name text not null,
-  role text not null,
-  phone text,
-  email text,
-  active boolean default true,
-  created_at timestamptz default now()
-);
+--------------------------------------------------------
+-- DOCUMENTS
+--------------------------------------------------------
 
-create table if not exists calendar_events (
-  id uuid primary key default uuid_generate_v4(),
-  title text not null,
-  event_type text,
-  project_id uuid references projects(id) on delete set null,
-  employee_id uuid references employees(id) on delete set null,
-  starts_at timestamptz,
-  ends_at timestamptz,
-  address text,
-  notes text,
-  created_at timestamptz default now()
-);
+create table if not exists documents (
 
-create table if not exists quotes (
-  id uuid primary key default uuid_generate_v4(),
-  project_id uuid references projects(id) on delete cascade,
-  number text,
-  total numeric default 0,
-  status text default 'draft',
-  created_at timestamptz default now()
-);
+    id uuid primary key default gen_random_uuid(),
 
-create table if not exists invoices (
-  id uuid primary key default uuid_generate_v4(),
-  project_id uuid references projects(id) on delete cascade,
-  number text,
-  total numeric default 0,
-  status text default 'open',
-  created_at timestamptz default now()
+    project_id uuid references projects(id) on delete cascade,
+
+    name text,
+
+    file_url text,
+
+    created_at timestamptz default now()
 );
