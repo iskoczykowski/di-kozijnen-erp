@@ -2,6 +2,13 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { getLang, t, type Lang } from '../../lib/i18n';
+import {
+  getCustomers,
+  saveCustomer as saveCustomerDb,
+  deleteCustomer as deleteCustomerDb,
+  type Customer as DbCustomer,
+} from '../../lib/customers';
+import { subscribeCustomers, unsubscribe } from '../../lib/realtime';
 
 type Customer = {
   id: string;
@@ -29,18 +36,77 @@ const emptyCustomer: Customer = {
   notes: '',
 };
 
+function fromDb(c: any): Customer {
+  return {
+    id: c.id || '',
+    companyName: c.company_name || '',
+    contactName: c.contact_name || '',
+    phone: c.phone || '',
+    email: c.email || '',
+    street: c.street || '',
+    zip: c.zip || '',
+    city: c.city || '',
+    country: c.country || '',
+    notes: c.notes || '',
+  };
+}
+
+function toDb(c: Customer): DbCustomer {
+  return {
+    id: c.id || undefined,
+    company_name: c.companyName,
+    contact_name: c.contactName,
+    phone: c.phone,
+    email: c.email,
+    street: c.street,
+    zip: c.zip,
+    city: c.city,
+    country: c.country,
+    notes: c.notes,
+  };
+}
+
 export default function CustomersModule() {
   const [lang, setLangState] = useState<Lang>('de');
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [selected, setSelected] = useState<Customer>(emptyCustomer);
   const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     setLangState(getLang());
-    const update = () => setLangState(getLang());
-    window.addEventListener('language-change', update);
-    return () => window.removeEventListener('language-change', update);
+
+    const updateLang = () => setLangState(getLang());
+    window.addEventListener('language-change', updateLang);
+
+    loadCustomers();
+
+    const channel = subscribeCustomers(loadCustomers);
+
+    return () => {
+      window.removeEventListener('language-change', updateLang);
+      unsubscribe(channel);
+    };
   }, []);
+
+  async function loadCustomers() {
+    setLoading(true);
+
+    try {
+      const data = await getCustomers();
+      const list = data.map(fromDb);
+      setCustomers(list);
+
+      setSelected((old) => {
+        if (!old.id) return old;
+        return list.find((c) => c.id === old.id) || old;
+      });
+    } catch (error) {
+      console.error('CUSTOMERS LOAD ERROR', error);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   const filtered = useMemo(() => {
     const q = search.toLowerCase();
@@ -51,24 +117,26 @@ export default function CustomersModule() {
     setSelected({ ...emptyCustomer });
   }
 
-  function saveCustomer() {
-    const customer = {
-      ...selected,
-      id: selected.id || `CUS-${Date.now()}`,
-    };
-
-    setCustomers((old) => {
-      const exists = old.some((c) => c.id === customer.id);
-      return exists ? old.map((c) => (c.id === customer.id ? customer : c)) : [customer, ...old];
-    });
-
-    setSelected(customer);
+  async function saveCustomer() {
+    try {
+      const saved = await saveCustomerDb(toDb(selected));
+      setSelected(fromDb(saved));
+      await loadCustomers();
+    } catch (error) {
+      console.error('CUSTOMER SAVE ERROR', error);
+    }
   }
 
-  function deleteCustomer() {
+  async function deleteCustomer() {
     if (!selected.id) return;
-    setCustomers((old) => old.filter((c) => c.id !== selected.id));
-    setSelected(emptyCustomer);
+
+    try {
+      await deleteCustomerDb(selected.id);
+      setSelected(emptyCustomer);
+      await loadCustomers();
+    } catch (error) {
+      console.error('CUSTOMER DELETE ERROR', error);
+    }
   }
 
   function update(field: keyof Customer, value: string) {
@@ -77,7 +145,10 @@ export default function CustomersModule() {
 
   function openMaps() {
     const address = `${selected.street} ${selected.zip} ${selected.city} ${selected.country}`;
-    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`, '_blank');
+    window.open(
+      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
+      '_blank'
+    );
   }
 
   return (
@@ -87,6 +158,7 @@ export default function CustomersModule() {
           <button onClick={newCustomer} className="rounded-2xl bg-blue-600 px-4 py-3 font-black text-white">
             + {t('newCustomer', lang)}
           </button>
+
           <button onClick={saveCustomer} className="rounded-2xl bg-green-600 px-4 py-3 font-black text-white">
             {t('save', lang)}
           </button>
@@ -100,7 +172,9 @@ export default function CustomersModule() {
         />
 
         <div className="space-y-3">
-          {filtered.length === 0 && (
+          {loading && <p className="text-slate-500">{t('inProgress', lang)}...</p>}
+
+          {!loading && filtered.length === 0 && (
             <p className="text-slate-500">{t('noCustomers', lang)}</p>
           )}
 
@@ -114,9 +188,7 @@ export default function CustomersModule() {
                   : 'w-full rounded-2xl border bg-slate-50 p-4 text-left'
               }
             >
-              <div className="font-black text-slate-900">
-                {customer.companyName || '-'}
-              </div>
+              <div className="font-black text-slate-900">{customer.companyName || '-'}</div>
               <div className="text-sm text-slate-500">{customer.contactName || '-'}</div>
               <div className="text-sm text-slate-500">{customer.city || '-'}</div>
             </button>
@@ -178,6 +250,7 @@ function Field({
   return (
     <label className="block">
       <span className="mb-2 block text-sm font-bold text-slate-500">{label}</span>
+
       {textarea ? (
         <textarea
           value={value}
