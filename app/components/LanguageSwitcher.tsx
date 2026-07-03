@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { getLang, setLang, languages, Lang } from '@/lib/i18n';
+import { getLang, setLang, languages, type Lang } from '../../lib/i18n';
 
 export default function LanguageSwitcher() {
   const [lang, setCurrentLang] = useState<Lang>('de');
@@ -10,7 +10,6 @@ export default function LanguageSwitcher() {
     setCurrentLang(getLang());
 
     const update = () => setCurrentLang(getLang());
-
     window.addEventListener('language-change', update);
 
     return () => window.removeEventListener('language-change', update);
@@ -24,14 +23,7 @@ export default function LanguageSwitcher() {
         setCurrentLang(value);
         setLang(value);
       }}
-      style={{
-        padding: '10px',
-        borderRadius: 10,
-        border: '1px solid #d0d7de',
-        background: '#fff',
-        fontWeight: 700,
-        cursor: 'pointer',
-      }}
+      className="rounded-xl border bg-white px-4 py-2 font-bold text-slate-700"
     >
       {languages.map((l) => (
         <option key={l.code} value={l.code}>
