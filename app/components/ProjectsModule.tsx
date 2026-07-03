@@ -9,6 +9,7 @@ import {
   type Project,
 } from '../../lib/projects';
 import ProjectFilesModule from './ProjectFilesModule';
+import MeasurementsModule from './MeasurementsModule';
 
 const emptyProject: Project = {
   customer_name: '',
@@ -22,6 +23,7 @@ export default function ProjectsModule() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [selected, setSelected] = useState<Project>(emptyProject);
   const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState<'measure' | 'files'>('measure');
 
   useEffect(() => {
     setLang(getLang());
@@ -148,19 +150,42 @@ export default function ProjectsModule() {
           />
         </div>
 
-        <div className="mt-6 grid gap-4 md:grid-cols-3">
-          <Action icon="📐" label={t('measure', lang)} />
-          <Action icon="📷" label={t('photos', lang)} />
-          <Action icon="📄" label={t('documents', lang)} />
-          <Action icon="🏭" label={t('production', lang)} />
-          <Action icon="🚚" label={t('montage', lang)} />
-          <Action icon="📦" label={t('warehouse', lang)} />
-        </div>
-
         {selected.id && (
-          <div className="mt-8">
-            <ProjectFilesModule projectId={selected.id} />
-          </div>
+          <>
+            <div className="mt-8 flex flex-wrap gap-3">
+              <button
+                onClick={() => setActiveTab('measure')}
+                className={
+                  activeTab === 'measure'
+                    ? 'rounded-2xl bg-blue-600 px-5 py-3 font-black text-white'
+                    : 'rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700'
+                }
+              >
+                📐 {t('measure', lang)}
+              </button>
+
+              <button
+                onClick={() => setActiveTab('files')}
+                className={
+                  activeTab === 'files'
+                    ? 'rounded-2xl bg-blue-600 px-5 py-3 font-black text-white'
+                    : 'rounded-2xl bg-slate-100 px-5 py-3 font-black text-slate-700'
+                }
+              >
+                📄 {t('documents', lang)} / 📷 {t('photos', lang)}
+              </button>
+            </div>
+
+            <div className="mt-6">
+              {activeTab === 'measure' && (
+                <MeasurementsModule projectId={selected.id} />
+              )}
+
+              {activeTab === 'files' && (
+                <ProjectFilesModule projectId={selected.id} />
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
@@ -188,14 +213,5 @@ function Field({
         className="w-full rounded-2xl border px-4 py-3 font-semibold"
       />
     </label>
-  );
-}
-
-function Action({ icon, label }: { icon: string; label: string }) {
-  return (
-    <button className="rounded-3xl border bg-slate-50 p-6 text-left hover:bg-blue-50">
-      <div className="text-4xl">{icon}</div>
-      <div className="mt-3 font-black">{label}</div>
-    </button>
   );
 }
