@@ -3,28 +3,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { getLang, t, type Lang } from '../../lib/i18n';
 import {
+  addCustomer,
+  deleteCustomer,
   getCustomers,
-  saveCustomer as saveCustomerDb,
-  deleteCustomer as deleteCustomerDb,
-  type Customer as DbCustomer,
-} from '../../lib/customers';
-import { subscribeCustomers, unsubscribe } from '../../lib/realtime';
+  saveCustomers,
+  type Customer,
+} from '../../lib/storage';
+import { saveNotification } from '../../lib/notifications';
 
-type Customer = {
-  id: string;
-  companyName: string;
-  contactName: string;
-  phone: string;
-  email: string;
-  street: string;
-  zip: string;
-  city: string;
-  country: string;
-  notes: string;
-};
-
-const emptyCustomer: Customer = {
-  id: '',
+const emptyCustomer: Omit<Customer, 'id' | 'createdAt'> = {
   companyName: '',
   contactName: '',
   phone: '',
@@ -36,234 +23,221 @@ const emptyCustomer: Customer = {
   notes: '',
 };
 
-function fromDb(c: any): Customer {
-  return {
-    id: c.id || '',
-    companyName: c.company_name || '',
-    contactName: c.contact_name || '',
-    phone: c.phone || '',
-    email: c.email || '',
-    street: c.street || '',
-    zip: c.zip || '',
-    city: c.city || '',
-    country: c.country || '',
-    notes: c.notes || '',
-  };
-}
-
-function toDb(c: Customer): DbCustomer {
-  return {
-    id: c.id || undefined,
-    company_name: c.companyName,
-    contact_name: c.contactName,
-    phone: c.phone,
-    email: c.email,
-    street: c.street,
-    zip: c.zip,
-    city: c.city,
-    country: c.country,
-    notes: c.notes,
-  };
-}
-
 export default function CustomersModule() {
-  const [lang, setLangState] = useState<Lang>('de');
+  const [lang, setLang] = useState<Lang>('de');
   const [customers, setCustomers] = useState<Customer[]>([]);
-  const [selected, setSelected] = useState<Customer>(emptyCustomer);
+  const [form, setForm] = useState<Omit<Customer, 'id' | 'createdAt'>>(
+    emptyCustomer
+  );
+  const [editId, setEditId] = useState('');
   const [search, setSearch] = useState('');
-  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    setLangState(getLang());
-
-    const updateLang = () => setLangState(getLang());
-    window.addEventListener('language-change', updateLang);
-
-    loadCustomers();
-
-    const channel = subscribeCustomers(loadCustomers);
-
-    return () => {
-      window.removeEventListener('language-change', updateLang);
-      unsubscribe(channel);
-    };
+    setLang(getLang());
+    setCustomers(getCustomers());
   }, []);
 
-  async function loadCustomers() {
-    setLoading(true);
-
-    try {
-      const data = await getCustomers();
-      const list = data.map(fromDb);
-      setCustomers(list);
-
-      setSelected((old) => {
-        if (!old.id) return old;
-        return list.find((c) => c.id === old.id) || old;
-      });
-    } catch (error) {
-      console.error('CUSTOMERS LOAD ERROR', error);
-    } finally {
-      setLoading(false);
-    }
-  }
-
   const filtered = useMemo(() => {
-    const q = search.toLowerCase();
-    return customers.filter((c) => JSON.stringify(c).toLowerCase().includes(q));
+    return customers.filter((customer) =>
+      `${customer.companyName} ${customer.contactName} ${customer.phone} ${customer.email} ${customer.city}`
+        .toLowerCase()
+        .includes(search.toLowerCase())
+    );
   }, [customers, search]);
 
-  function newCustomer() {
-    setSelected({ ...emptyCustomer });
+  function resetForm() {
+    setForm(emptyCustomer);
+    setEditId('');
   }
 
-  async function saveCustomer() {
-    try {
-      const saved = await saveCustomerDb(toDb(selected));
-      setSelected(fromDb(saved));
-      await loadCustomers();
-    } catch (error) {
-      console.error('CUSTOMER SAVE ERROR', error);
+  function handleSave() {
+    if (!form.companyName.trim() && !form.contactName.trim()) return;
+
+    if (editId) {
+      const updated = customers.map((customer) =>
+        customer.id === editId ? { ...customer, ...form } : customer
+      );
+
+      saveCustomers(updated);
+      setCustomers(updated);
+    } else {
+      const customer = addCustomer(form);
+      setCustomers(getCustomers());
+
+      saveNotification({
+        title: `${t(lang, 'customers')}: ${t(lang, 'save')}`,
+        text: customer.companyName || customer.contactName,
+        type: 'customer',
+      });
     }
+
+    resetForm();
   }
 
-  async function deleteCustomer() {
-    if (!selected.id) return;
-
-    try {
-      await deleteCustomerDb(selected.id);
-      setSelected(emptyCustomer);
-      await loadCustomers();
-    } catch (error) {
-      console.error('CUSTOMER DELETE ERROR', error);
-    }
+  function handleEdit(customer: Customer) {
+    setEditId(customer.id);
+    setForm({
+      companyName: customer.companyName,
+      contactName: customer.contactName,
+      phone: customer.phone,
+      email: customer.email,
+      street: customer.street,
+      zip: customer.zip,
+      city: customer.city,
+      country: customer.country,
+      notes: customer.notes,
+    });
   }
 
-  function update(field: keyof Customer, value: string) {
-    setSelected((old) => ({ ...old, [field]: value }));
-  }
-
-  function openMaps() {
-    const address = `${selected.street} ${selected.zip} ${selected.city} ${selected.country}`;
-    window.open(
-      `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(address)}`,
-      '_blank'
-    );
+  function handleDelete(id: string) {
+    deleteCustomer(id);
+    setCustomers(getCustomers());
   }
 
   return (
-    <div className="grid grid-cols-1 gap-6 xl:grid-cols-3">
-      <div className="rounded-3xl bg-white p-6 shadow-sm xl:col-span-1">
-        <div className="mb-4 flex gap-3">
-          <button onClick={newCustomer} className="rounded-2xl bg-blue-600 px-4 py-3 font-black text-white">
-            + {t('newCustomer', lang)}
-          </button>
+    <div className="space-y-6">
+      <div className="rounded-2xl bg-white p-5 shadow">
+        <h2 className="text-2xl font-bold text-gray-900">
+          {t(lang, 'customers')}
+        </h2>
 
-          <button onClick={saveCustomer} className="rounded-2xl bg-green-600 px-4 py-3 font-black text-white">
-            {t('save', lang)}
-          </button>
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          <input
+            className="rounded-xl border p-3"
+            placeholder="Firma"
+            value={form.companyName}
+            onChange={(e) =>
+              setForm({ ...form, companyName: e.target.value })
+            }
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="Kontakt"
+            value={form.contactName}
+            onChange={(e) =>
+              setForm({ ...form, contactName: e.target.value })
+            }
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="Telefon"
+            value={form.phone}
+            onChange={(e) => setForm({ ...form, phone: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="E-Mail"
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="Straße"
+            value={form.street}
+            onChange={(e) => setForm({ ...form, street: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="PLZ"
+            value={form.zip}
+            onChange={(e) => setForm({ ...form, zip: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="Stadt"
+            value={form.city}
+            onChange={(e) => setForm({ ...form, city: e.target.value })}
+          />
+
+          <input
+            className="rounded-xl border p-3"
+            placeholder="Land"
+            value={form.country}
+            onChange={(e) => setForm({ ...form, country: e.target.value })}
+          />
+
+          <textarea
+            className="rounded-xl border p-3 md:col-span-2"
+            placeholder={t(lang, 'notes')}
+            rows={3}
+            value={form.notes}
+            onChange={(e) => setForm({ ...form, notes: e.target.value })}
+          />
         </div>
 
+        <div className="mt-4 flex gap-3">
+          <button
+            onClick={handleSave}
+            className="rounded-xl bg-blue-600 px-5 py-3 font-semibold text-white"
+          >
+            {t(lang, 'save')}
+          </button>
+
+          <button
+            onClick={resetForm}
+            className="rounded-xl bg-gray-200 px-5 py-3 font-semibold"
+          >
+            {t(lang, 'clear')}
+          </button>
+        </div>
+      </div>
+
+      <div className="rounded-2xl bg-white p-5 shadow">
         <input
+          className="mb-4 w-full rounded-xl border p-3"
+          placeholder={`${t(lang, 'search')}...`}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={t('search', lang)}
-          className="mb-4 w-full rounded-2xl border px-4 py-3 font-semibold"
         />
 
         <div className="space-y-3">
-          {loading && <p className="text-slate-500">{t('inProgress', lang)}...</p>}
-
-          {!loading && filtered.length === 0 && (
-            <p className="text-slate-500">{t('noCustomers', lang)}</p>
-          )}
-
           {filtered.map((customer) => (
-            <button
-              key={customer.id}
-              onClick={() => setSelected(customer)}
-              className={
-                selected.id === customer.id
-                  ? 'w-full rounded-2xl border-2 border-blue-600 bg-blue-50 p-4 text-left'
-                  : 'w-full rounded-2xl border bg-slate-50 p-4 text-left'
-              }
-            >
-              <div className="font-black text-slate-900">{customer.companyName || '-'}</div>
-              <div className="text-sm text-slate-500">{customer.contactName || '-'}</div>
-              <div className="text-sm text-slate-500">{customer.city || '-'}</div>
-            </button>
+            <div key={customer.id} className="rounded-xl border p-4">
+              <h3 className="text-lg font-bold">
+                {customer.companyName || customer.contactName}
+              </h3>
+
+              <p className="text-sm text-gray-500">{customer.contactName}</p>
+              <p className="text-sm text-gray-500">{customer.phone}</p>
+              <p className="text-sm text-gray-500">{customer.email}</p>
+              <p className="text-sm text-gray-500">
+                {customer.street}, {customer.zip} {customer.city},{' '}
+                {customer.country}
+              </p>
+
+              {customer.notes && (
+                <p className="mt-3 whitespace-pre-wrap">{customer.notes}</p>
+              )}
+
+              <div className="mt-4 flex gap-2">
+                <button
+                  onClick={() => handleEdit(customer)}
+                  className="rounded-lg bg-yellow-500 px-4 py-2 text-white"
+                >
+                  {t(lang, 'edit')}
+                </button>
+
+                <button
+                  onClick={() => handleDelete(customer.id)}
+                  className="rounded-lg bg-red-600 px-4 py-2 text-white"
+                >
+                  {t(lang, 'delete')}
+                </button>
+              </div>
+            </div>
           ))}
-        </div>
-      </div>
 
-      <div className="rounded-3xl bg-white p-6 shadow-sm xl:col-span-2">
-        <div className="mb-6 flex items-center justify-between">
-          <h2 className="text-3xl font-black text-slate-900">
-            {t('customerData', lang)}
-          </h2>
-
-          <button onClick={deleteCustomer} className="rounded-2xl bg-red-600 px-4 py-3 font-black text-white">
-            {t('delete', lang)}
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <Field label={t('companyName', lang)} value={selected.companyName} onChange={(v) => update('companyName', v)} />
-          <Field label={t('contactName', lang)} value={selected.contactName} onChange={(v) => update('contactName', v)} />
-          <Field label={t('phone', lang)} value={selected.phone} onChange={(v) => update('phone', v)} />
-          <Field label={t('email', lang)} value={selected.email} onChange={(v) => update('email', v)} />
-          <Field label={t('street', lang)} value={selected.street} onChange={(v) => update('street', v)} />
-          <Field label={t('zip', lang)} value={selected.zip} onChange={(v) => update('zip', v)} />
-          <Field label={t('city', lang)} value={selected.city} onChange={(v) => update('city', v)} />
-          <Field label={t('country', lang)} value={selected.country} onChange={(v) => update('country', v)} />
-        </div>
-
-        <div className="mt-4">
-          <Field label={t('notes', lang)} value={selected.notes} onChange={(v) => update('notes', v)} textarea />
-        </div>
-
-        <div className="mt-6 flex flex-wrap gap-3">
-          <button onClick={openMaps} className="rounded-2xl bg-slate-900 px-5 py-3 font-black text-white">
-            📍 {t('openMaps', lang)}
-          </button>
-
-          <button className="rounded-2xl bg-blue-600 px-5 py-3 font-black text-white">
-            📋 {t('createOrder', lang)}
-          </button>
+          {filtered.length === 0 && (
+            <p className="text-gray-500">{t(lang, 'noData')}</p>
+          )}
         </div>
       </div>
     </div>
-  );
-}
-
-function Field({
-  label,
-  value,
-  onChange,
-  textarea,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-  textarea?: boolean;
-}) {
-  return (
-    <label className="block">
-      <span className="mb-2 block text-sm font-bold text-slate-500">{label}</span>
-
-      {textarea ? (
-        <textarea
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="min-h-28 w-full rounded-2xl border px-4 py-3 font-semibold"
-        />
-      ) : (
-        <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full rounded-2xl border px-4 py-3 font-semibold"
-        />
-      )}
-    </label>
   );
 }
