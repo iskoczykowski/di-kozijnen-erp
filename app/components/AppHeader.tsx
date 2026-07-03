@@ -20,8 +20,7 @@ export default function AppHeader() {
   return (
     <header className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-white p-5 shadow">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">D&I Kozijnen ERP</h1>
-
+        <h1 className="text-2xl font-bold text-gray-900">FirmaFlow 2.0</h1>
         <p className="mt-2 text-slate-600">
           {t(lang, 'customers')} · {t(lang, 'orders')} · {t(lang, 'projects')} ·{' '}
           {t(lang, 'warehouse')} · {t(lang, 'calendar')} · {t(lang, 'messages')} ·{' '}
